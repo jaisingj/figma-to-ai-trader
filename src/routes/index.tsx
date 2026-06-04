@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plug, BrainCircuit, LineChart, Rocket, Lightbulb, TrendingUp } from "lucide-react";
+import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
