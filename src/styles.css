@@ -19,6 +19,20 @@
   animation: slide-in-card 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@utility perspective-1200 {
+  perspective: 1200px;
+}
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+@utility backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+@utility rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
 /*
  * Design system definition.
  *

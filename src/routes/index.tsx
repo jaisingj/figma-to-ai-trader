@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link2, Sparkles, PresentationIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -115,10 +116,51 @@ function Index() {
         </div>
       </section>
 
-      {/* How it works placeholder */}
-      <section className="px-8 py-24 max-w-7xl mx-auto text-center">
-        <h2 className="text-4xl font-bold text-slate-900">How it works</h2>
-        <p className="mt-4 text-slate-600">Coming next — upload, analyze, ask AI.</p>
+      {/* How it works */}
+      <section className="px-8 py-24 max-w-7xl mx-auto">
+        <h2 className="text-4xl font-bold text-slate-900 text-center">How it works</h2>
+        <p className="mt-4 text-slate-600 text-center max-w-3xl mx-auto">
+          OptiX uses a US patent-pending algorithm to understand trades from Robinhood, Schwab, and Fidelity that can help you analyze your performance. Your data is safe and private.
+        </p>
+
+        <div className="mt-16 grid md:grid-cols-3 gap-6">
+          {[
+            {
+              icon: <Link2 className="h-5 w-5 text-slate-700" />,
+              title: "Connect your broker data",
+              front: "Import your trading data by uploading a report from Robinhood, Fidelity, or Schwab — or link your broker account securely via SnapTrade.",
+              back: "One-click sync from your broker keeps trades, fills, and option legs up to date automatically — no manual reconciliation.",
+            },
+            {
+              icon: <Sparkles className="h-5 w-5 text-slate-700" />,
+              title: "Uncover trading insights",
+              front: "Get deeper insights into your trading. See patterns, exposure, and behaviour clearly to improve your decisions.",
+              back: "Ask OptiX AI why a strategy worked, spot recurring mistakes, and get personalized suggestions grounded in your real history.",
+            },
+            {
+              icon: <PresentationIcon className="h-5 w-5 text-slate-700" />,
+              title: "Track performance over time",
+              front: "See how your trading performance evolves over time through clear trends, visual breakdowns, and deeper insights.",
+              back: "Compare P/L, win rate, and exposure week-over-week. Spot your peak periods and drawdowns at a glance.",
+            },
+          ].map((c, i) => (
+            <div key={i} className="perspective-1200 h-80 group">
+              <div className="relative h-full w-full preserve-3d transition-transform duration-700 [transform-style:preserve-3d] group-hover:rotate-y-180">
+                {/* Front */}
+                <div className="absolute inset-0 backface-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center">{c.icon}</div>
+                  <h3 className="mt-6 text-xl font-semibold text-slate-900">{c.title}</h3>
+                  <p className="mt-3 text-slate-600 leading-relaxed">{c.front}</p>
+                </div>
+                {/* Back */}
+                <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-7 shadow-lg flex flex-col justify-center">
+                  <h3 className="text-xl font-semibold text-white">{c.title}</h3>
+                  <p className="mt-3 text-blue-50 leading-relaxed">{c.back}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );
