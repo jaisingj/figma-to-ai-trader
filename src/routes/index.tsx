@@ -62,58 +62,103 @@ function Index() {
           </div>
         </div>
 
-        {/* Floating cards */}
-        <div className="relative h-[560px] hidden lg:block">
-          <FloatCard delay="0.05s" className="top-0 right-20 w-72 rotate-[-6deg]">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">PROFIT BY SYMBOL</p>
-            <div className="mt-3 flex justify-center">
-              <div className="h-28 w-28 rounded-full border-[14px] border-blue-600 border-r-blue-300 border-b-blue-400" />
-            </div>
-            <div className="mt-3 flex gap-2 text-[10px] text-slate-500 justify-center flex-wrap">
-              <span>● AAPL</span><span>● TSLA</span><span>● NVDA</span><span>● NFLX</span>
-            </div>
-          </FloatCard>
-
-          <FloatCard delay="0.15s" className="top-44 right-0 w-60 rotate-[5deg]">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">WIN RATE</p>
-            <p className="mt-2 text-4xl font-bold text-slate-900">71%</p>
-            <p className="mt-1 text-[11px] text-slate-500">Avg win: <span className="text-emerald-600 font-semibold">$240</span> · Avg loss: <span className="text-rose-600 font-semibold">-$410</span></p>
-          </FloatCard>
-
-          <FloatCard delay="0.25s" className="top-44 left-0 w-56 rotate-[-4deg]">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">REALIZED P/L</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-600">+$1,860</p>
-            <p className="mt-1 text-[11px] text-slate-500">After Tax: <span className="text-emerald-600 font-semibold">+$1,720</span></p>
-          </FloatCard>
-
-          <FloatCard delay="0.35s" className="top-60 left-36 w-80 z-10">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">Reactive Optimizer</p>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">You frequently adjust positions based on short-term signals rather than planned exits.</p>
-            <a className="mt-3 inline-block text-xs font-semibold text-blue-600">Deep dive →</a>
-          </FloatCard>
-
-          <FloatCard delay="0.45s" className="bottom-20 left-0 w-56 rotate-[-5deg]">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">PREMIUM</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-600">+$2,320</p>
-            <p className="mt-1 text-[11px] text-rose-600">↘ -10% <span className="text-slate-500">over the last week</span></p>
-          </FloatCard>
-
-          <FloatCard delay="0.55s" className="bottom-24 right-2 w-60 rotate-[4deg]">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">TOP SYMBOL</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">AAPL</p>
-            <p className="mt-1 text-[11px] text-emerald-600 font-semibold">+$980 <span className="text-slate-500 font-normal">across 16 trades</span></p>
-          </FloatCard>
-
-          <FloatCard delay="0.65s" className="bottom-0 right-24 w-72 rotate-[3deg]">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">EXPOSURE DISTRIBUTION</p>
-            <div className="mt-3 flex justify-center">
-              <div className="h-24 w-24 rounded-full border-[12px] border-blue-300 border-t-blue-600 border-r-blue-500" />
-            </div>
-            <div className="mt-3 flex gap-2 text-[10px] text-slate-500 justify-center">
-              <span>● AAPL</span><span>● TSLA</span><span>● NVDA</span>
-            </div>
-          </FloatCard>
+        {/* Endlessly shuffling feature cards */}
+        <div className="relative hidden lg:grid grid-cols-2 gap-5 h-[560px] overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_88%,transparent)]">
+          {(() => {
+            const cards = [
+              { tag: "PROFIT BY SYMBOL", body: (
+                <>
+                  <div className="mt-3 flex justify-center">
+                    <div className="h-24 w-24 rounded-full border-[12px] border-blue-600 border-r-blue-300 border-b-blue-400" />
+                  </div>
+                  <div className="mt-3 flex gap-2 text-[10px] text-slate-500 justify-center flex-wrap">
+                    <span>● AAPL</span><span>● TSLA</span><span>● NVDA</span><span>● NFLX</span>
+                  </div>
+                </>
+              )},
+              { tag: "WIN RATE", body: (
+                <>
+                  <p className="mt-2 text-4xl font-bold text-slate-900">71%</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Avg win: <span className="text-emerald-600 font-semibold">$240</span> · Loss: <span className="text-rose-600 font-semibold">-$410</span></p>
+                </>
+              )},
+              { tag: "REALIZED P/L", body: (
+                <>
+                  <p className="mt-2 text-3xl font-bold text-emerald-600">+$1,860</p>
+                  <p className="mt-1 text-[11px] text-slate-500">After Tax: <span className="text-emerald-600 font-semibold">+$1,720</span></p>
+                </>
+              )},
+              { tag: "TRADER PERSONALITY", body: (
+                <>
+                  <p className="mt-2 text-xl font-bold text-slate-900">Reactive Optimizer</p>
+                  <p className="mt-2 text-[11px] text-slate-600 leading-relaxed">Frequently adjusts positions based on short-term signals.</p>
+                </>
+              )},
+              { tag: "PREMIUM COLLECTED", body: (
+                <>
+                  <p className="mt-2 text-3xl font-bold text-emerald-600">+$2,320</p>
+                  <p className="mt-1 text-[11px] text-rose-600">↘ -10% <span className="text-slate-500">vs last week</span></p>
+                </>
+              )},
+              { tag: "TOP SYMBOL", body: (
+                <>
+                  <p className="mt-2 text-2xl font-bold text-slate-900">AAPL</p>
+                  <p className="mt-1 text-[11px] text-emerald-600 font-semibold">+$980 <span className="text-slate-500 font-normal">/ 16 trades</span></p>
+                </>
+              )},
+              { tag: "EXPOSURE", body: (
+                <>
+                  <div className="mt-3 flex justify-center">
+                    <div className="h-20 w-20 rounded-full border-[10px] border-blue-300 border-t-blue-600 border-r-blue-500" />
+                  </div>
+                </>
+              )},
+              { tag: "AI INSIGHT", body: (
+                <>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">"You exit winners 2.3x faster than losers."</p>
+                  <p className="mt-2 text-[11px] text-blue-600 font-semibold">Ask OptiX AI →</p>
+                </>
+              )},
+              { tag: "SHARPE RATIO", body: (
+                <>
+                  <p className="mt-2 text-3xl font-bold text-slate-900">1.82</p>
+                  <p className="mt-1 text-[11px] text-emerald-600">↗ Strong risk-adjusted return</p>
+                </>
+              )},
+              { tag: "OPEN POSITIONS", body: (
+                <>
+                  <p className="mt-2 text-3xl font-bold text-slate-900">7</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Net delta: <span className="text-slate-900 font-semibold">+24</span></p>
+                </>
+              )},
+            ];
+            const col = (items: typeof cards) => (
+              <div className="space-y-5">
+                {items.map((c, i) => (
+                  <div key={i} className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_20px_40px_-22px_rgba(15,40,120,0.25)]">
+                    <p className="text-[10px] font-semibold tracking-widest text-slate-400">{c.tag}</p>
+                    {c.body}
+                  </div>
+                ))}
+              </div>
+            );
+            const colA = cards.filter((_, i) => i % 2 === 0);
+            const colB = cards.filter((_, i) => i % 2 === 1);
+            return (
+              <>
+                <div className="flex flex-col animate-marquee-y will-change-transform">
+                  {col(colA)}
+                  <div className="h-5" />
+                  {col(colA)}
+                </div>
+                <div className="flex flex-col animate-marquee-y-reverse will-change-transform mt-10">
+                  {col(colB)}
+                  <div className="h-5" />
+                  {col(colB)}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </section>
 

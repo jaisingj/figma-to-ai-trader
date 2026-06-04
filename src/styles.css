@@ -19,6 +19,21 @@
   animation: slide-in-card 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes marquee-y {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+@utility animate-marquee-y {
+  animation: marquee-y 28s linear infinite;
+}
+@keyframes marquee-y-reverse {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+@utility animate-marquee-y-reverse {
+  animation: marquee-y-reverse 32s linear infinite;
+}
+
 @utility perspective-1200 {
   perspective: 1200px;
 }
