@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Link2, Sparkles, PresentationIcon } from "lucide-react";
+import { Plug, BrainCircuit, LineChart, Rocket, Lightbulb, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,7 +42,7 @@ function Index() {
       </header>
 
       {/* Hero */}
-      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-20 pt-20 pb-32 max-w-7xl mx-auto">
+      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-20 pt-16 pb-12 max-w-7xl mx-auto">
         <div className="flex flex-col justify-center">
           <p className="text-sm font-medium text-slate-500 mb-4">For US Options Traders</p>
           <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.05]">
@@ -117,45 +117,56 @@ function Index() {
       </section>
 
       {/* How it works */}
-      <section className="px-8 py-24 max-w-7xl mx-auto">
+      <section className="px-8 pt-4 pb-24 max-w-7xl mx-auto">
         <h2 className="text-4xl font-bold text-slate-900 text-center">How it works</h2>
         <p className="mt-4 text-slate-600 text-center max-w-3xl mx-auto">
           OptiX uses a US patent-pending algorithm to understand trades from Robinhood, Schwab, and Fidelity that can help you analyze your performance. Your data is safe and private.
         </p>
 
-        <div className="mt-16 grid md:grid-cols-3 gap-6">
+        <div className="mt-14 grid md:grid-cols-3 gap-7">
           {[
             {
-              icon: <Link2 className="h-5 w-5 text-slate-700" />,
+              frontIcon: <Plug className="h-6 w-6 text-blue-600" />,
+              frontIconBg: "from-blue-100 to-blue-50",
+              backIcon: <Rocket className="h-7 w-7 text-blue-600" />,
               title: "Connect your broker data",
               front: "Import your trading data by uploading a report from Robinhood, Fidelity, or Schwab — or link your broker account securely via SnapTrade.",
-              back: "One-click sync from your broker keeps trades, fills, and option legs up to date automatically — no manual reconciliation.",
+              back: "One-click sync keeps trades, fills, and option legs up to date automatically. No spreadsheets, no manual reconciliation.",
             },
             {
-              icon: <Sparkles className="h-5 w-5 text-slate-700" />,
+              frontIcon: <BrainCircuit className="h-6 w-6 text-violet-600" />,
+              frontIconBg: "from-violet-100 to-violet-50",
+              backIcon: <Lightbulb className="h-7 w-7 text-violet-600" />,
               title: "Uncover trading insights",
               front: "Get deeper insights into your trading. See patterns, exposure, and behaviour clearly to improve your decisions.",
               back: "Ask OptiX AI why a strategy worked, spot recurring mistakes, and get personalized suggestions grounded in your real history.",
             },
             {
-              icon: <PresentationIcon className="h-5 w-5 text-slate-700" />,
+              frontIcon: <LineChart className="h-6 w-6 text-emerald-600" />,
+              frontIconBg: "from-emerald-100 to-emerald-50",
+              backIcon: <TrendingUp className="h-7 w-7 text-emerald-600" />,
               title: "Track performance over time",
-              front: "See how your trading performance evolves over time through clear trends, visual breakdowns, and deeper insights.",
+              front: "See how your trading performance evolves through clear trends, visual breakdowns, and deeper insights.",
               back: "Compare P/L, win rate, and exposure week-over-week. Spot your peak periods and drawdowns at a glance.",
             },
           ].map((c, i) => (
             <div key={i} className="perspective-1200 h-80 group">
-              <div className="relative h-full w-full preserve-3d transition-transform duration-700 [transform-style:preserve-3d] group-hover:rotate-y-180">
+              <div className="relative h-full w-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                 {/* Front */}
-                <div className="absolute inset-0 backface-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center">{c.icon}</div>
+                <div className="absolute inset-0 backface-hidden rounded-2xl border border-slate-200/70 bg-white p-7 shadow-[0_8px_30px_-12px_rgba(15,40,120,0.12)]">
+                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${c.frontIconBg} flex items-center justify-center ring-1 ring-white shadow-sm`}>
+                    {c.frontIcon}
+                  </div>
                   <h3 className="mt-6 text-xl font-semibold text-slate-900">{c.title}</h3>
                   <p className="mt-3 text-slate-600 leading-relaxed">{c.front}</p>
                 </div>
                 {/* Back */}
-                <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-7 shadow-lg flex flex-col justify-center">
-                  <h3 className="text-xl font-semibold text-white">{c.title}</h3>
-                  <p className="mt-3 text-blue-50 leading-relaxed">{c.back}</p>
+                <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/60 to-sky-100/70 p-7 shadow-[0_20px_50px_-20px_rgba(15,40,120,0.25)] flex flex-col justify-center">
+                  <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center ring-1 ring-blue-100 shadow-sm">
+                    {c.backIcon}
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-slate-900">{c.title}</h3>
+                  <p className="mt-3 text-slate-700 leading-relaxed">{c.back}</p>
                 </div>
               </div>
             </div>
