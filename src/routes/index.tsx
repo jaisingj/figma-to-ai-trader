@@ -42,7 +42,7 @@ function Index() {
       </header>
 
       {/* Hero */}
-      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-20 pt-20 pb-32 max-w-7xl mx-auto">
+      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-20 pt-16 pb-12 max-w-7xl mx-auto">
         <div className="flex flex-col justify-center">
           <p className="text-sm font-medium text-slate-500 mb-4">For US Options Traders</p>
           <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.05]">
