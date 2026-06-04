@@ -36,7 +36,7 @@ function Index() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Nav */}
       <header className="flex items-center justify-between px-8 py-5 border-b border-slate-200/60 bg-white/70 backdrop-blur">
-        <img src={optixProLogo.url} alt="OptiXPro" className="h-12 w-auto" />
+        <img src={optixProLogo.url} alt="OptiXPro" className="h-20 w-auto" />
         <button className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
           Sign up for free
         </button>
