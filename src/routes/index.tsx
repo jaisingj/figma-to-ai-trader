@@ -1443,23 +1443,86 @@ function DashboardScene({ active }: { active: boolean }) {
 
 /* ---------- Scene 3: AI chat ---------- */
 function AIScene({ active }: { active: boolean }) {
-  const messages = [
-    { role: "user", model: "You", text: "Why did I lose money on TSLA puts last month?" },
-    { role: "assistant", model: "Claude", text: "Looking at your 14 TSLA put trades in November: you opened most of them within 2 days of earnings, and held through IV crush. Average loss was -$310 per trade driven by vega decay, not direction — TSLA actually dropped 4%." },
-    { role: "user", model: "You", text: "What should I do differently?" },
-    { role: "assistant", model: "ChatGPT", text: "Three patterns to fix: 1) Avoid opening short-dated options 48h pre-earnings, 2) Your win rate on debit spreads is 73% vs 41% on naked puts — lean into spreads, 3) You exit winners too early (avg 22% of max profit). Want me to draft new trade rules?" },
+  const SHORTCUTS = [
+    "📊 Summarize my month",
+    "🎯 Best win rate setup",
+    "⚠️ Riskiest open positions",
+    "💡 Suggest better exits",
   ];
-  const [shown, setShown] = useState(0);
+  const PICKED_SHORTCUT = SHORTCUTS[0];
+  const TYPED_QUESTION = "Why did I lose money on TSLA puts last month?";
+
+  type Msg = { role: "user" | "assistant"; model: string; text: string };
+  const ANSWER_1: Msg = {
+    role: "assistant",
+    model: "Claude",
+    text: "November P/L was +$1,840 across 62 trades. Win rate 58%. Best stretch: 11/12–11/19 (+$920 on TSLA calls). Worst: 11/26 earnings week on NVDA puts (-$410).",
+  };
+  const ANSWER_2: Msg = {
+    role: "assistant",
+    model: "ChatGPT",
+    text: "You opened most TSLA puts 48h pre-earnings and held through IV crush. Average loss -$310 was vega decay, not direction — TSLA actually dropped 4%. Switch to debit spreads here (your win rate: 73% vs 41% on naked puts).",
+  };
+
+  // Timeline (ms)
+  const T_HIGHLIGHT  = 300;
+  const T_MSG1       = 900;   // user bubble from shortcut
+  const T_TYPING1    = 1100;
+  const T_ANSWER1    = 2100;
+  const T_TYPE_START = 3000;  // typewriter in input
+  const T_TYPE_END   = T_TYPE_START + TYPED_QUESTION.length * 28; // ~1900ms total
+  const T_MSG2       = T_TYPE_END + 200;
+  const T_TYPING2    = T_MSG2 + 200;
+  const T_ANSWER2    = T_TYPING2 + 1100;
+
+  const [highlight, setHighlight] = useState(false);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [typing, setTyping] = useState(false);
+  const [inputChars, setInputChars] = useState(0); // typewriter chars
+
   useEffect(() => {
-    if (!active) { setShown(0); return; }
-    let i = 0;
-    setShown(1);
-    const id = setInterval(() => {
-      i += 1;
-      setShown(i + 1);
-      if (i + 1 >= messages.length) clearInterval(id);
-    }, 950);
-    return () => clearInterval(id);
+    if (!active) {
+      setHighlight(false);
+      setMessages([]);
+      setTyping(false);
+      setInputChars(0);
+      return;
+    }
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => setHighlight(true), T_HIGHLIGHT));
+    timers.push(setTimeout(() => {
+      setHighlight(false);
+      setMessages([{ role: "user", model: "You", text: PICKED_SHORTCUT }]);
+    }, T_MSG1));
+    timers.push(setTimeout(() => setTyping(true), T_TYPING1));
+    timers.push(setTimeout(() => {
+      setTyping(false);
+      setMessages((m) => [...m, ANSWER_1]);
+    }, T_ANSWER1));
+
+    // typewriter in input
+    const typeIv = setTimeout(() => {
+      let n = 0;
+      const id = setInterval(() => {
+        n += 1;
+        setInputChars(n);
+        if (n >= TYPED_QUESTION.length) clearInterval(id);
+      }, 28);
+      timers.push(setTimeout(() => clearInterval(id), TYPED_QUESTION.length * 28 + 100));
+    }, T_TYPE_START);
+    timers.push(typeIv);
+
+    timers.push(setTimeout(() => {
+      setInputChars(0);
+      setMessages((m) => [...m, { role: "user", model: "You", text: TYPED_QUESTION }]);
+    }, T_MSG2));
+    timers.push(setTimeout(() => setTyping(true), T_TYPING2));
+    timers.push(setTimeout(() => {
+      setTyping(false);
+      setMessages((m) => [...m, ANSWER_2]);
+    }, T_ANSWER2));
+
+    return () => timers.forEach(clearTimeout);
   }, [active]);
 
   return (
@@ -1490,7 +1553,7 @@ function AIScene({ active }: { active: boolean }) {
           </div>
         </div>
 
-        {messages.slice(0, shown).map((m, i) => {
+        {messages.map((m, i) => {
           const isUser = m.role === "user";
           const badgeColor = m.model === "Claude" ? "bg-orange-100 text-orange-700" : m.model === "ChatGPT" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700";
           return (
@@ -1510,8 +1573,8 @@ function AIScene({ active }: { active: boolean }) {
             </div>
           );
         })}
-        {shown < messages.length && (
-          <div className="flex justify-start">
+        {typing && (
+          <div className="flex justify-start animate-fade-in">
             <div className="bg-white ring-1 ring-slate-200 rounded-2xl px-4 py-3 flex gap-1">
               <span className="h-2 w-2 rounded-full bg-slate-300 animate-pulse" />
               <span className="h-2 w-2 rounded-full bg-slate-300 animate-pulse" style={{ animationDelay: "150ms" }} />
@@ -1523,23 +1586,40 @@ function AIScene({ active }: { active: boolean }) {
 
       <div className="px-6 py-4 border-t border-slate-200 space-y-3">
         <div className="flex flex-wrap gap-2">
-          {[
-            "📊 Summarize my month",
-            "🎯 Best win rate setup",
-            "⚠️ Riskiest open positions",
-            "💡 Suggest better exits",
-          ].map((p) => (
-            <button
-              key={p}
-              className="text-[11.5px] font-medium px-3 py-1.5 rounded-full bg-white ring-1 ring-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-            >
-              {p}
-            </button>
-          ))}
+          {SHORTCUTS.map((p) => {
+            const isPicked = highlight && p === PICKED_SHORTCUT;
+            return (
+              <button
+                key={p}
+                className={`relative text-[11.5px] font-medium px-3 py-1.5 rounded-full ring-1 transition-all ${
+                  isPicked
+                    ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
+                    : "bg-white text-slate-600 ring-slate-200"
+                }`}
+              >
+                {p}
+                {isPicked && (
+                  <>
+                    <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
+                    <MousePointer2 className="absolute -right-3 -bottom-3 h-4 w-4 text-slate-800 fill-white drop-shadow" />
+                  </>
+                )}
+              </button>
+            );
+          })}
         </div>
         <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
           <MessageSquare className="h-4 w-4 text-slate-400" />
-          <span className="text-[12px] text-slate-400 flex-1">Ask anything about your trading history…</span>
+          <span className={`text-[12px] flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+            {inputChars > 0 ? (
+              <>
+                {TYPED_QUESTION.slice(0, inputChars)}
+                <span className="inline-block w-px h-3 align-middle bg-slate-900 ml-px animate-pulse" />
+              </>
+            ) : (
+              "Ask anything about your trading history…"
+            )}
+          </span>
           <button className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center">
             <ArrowUp className="h-3.5 w-3.5 text-white" />
           </button>
