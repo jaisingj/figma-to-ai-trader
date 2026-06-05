@@ -69,7 +69,7 @@ function Index() {
 
       {/* Hero */}
       <section className="px-8 lg:px-12 pt-16 pb-24 max-w-3xl mx-auto flex flex-col items-center text-center">
-        <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight">
+        <h1 className="font-serif text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight">
           Raw data in.<br />AI powered insights out.
         </h1>
         <p className="mt-6 text-base text-slate-600 max-w-md">
