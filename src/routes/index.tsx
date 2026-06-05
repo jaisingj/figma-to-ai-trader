@@ -738,104 +738,130 @@ function Cursor({ phase }: { phase: number }) {
 
 /* ---------- Scene 2: CSV → Dashboard transformation ---------- */
 function CsvTransformScene({ active }: { active: boolean }) {
-  // Raw CSV rows (subset of user's file)
-  const csvRows = [
+  // Two broker CSVs with very different shapes
+  const robinhoodRows = [
     `"8/28/2024","COST","Buy","12","$892.51","($10,710.12)"`,
     `"8/27/2024","AAPL","STO","1","$4.41","$440.94"`,
     `"8/22/2024","NFLX","STO","1","$9.10","$909.93"`,
-    `"8/22/2024","NVDA","STO","1","$2.99","$298.95"`,
     `"8/16/2024","TSLA","STO","1","$13.63","$1,362.92"`,
-    `"8/16/2024","NVDA","STO","1","$3.95","$394.94"`,
-    `"8/7/2024","NVDA","Buy","25","$99.66","($2,491.63)"`,
-    `"8/5/2024","TSLA","STO","1","$6.02","$601.94"`,
+    `"8/07/2024","NVDA","Buy","25","$99.66","($2,491.63)"`,
   ];
-  const parsed = [
-    { d: "8/28", sym: "COST", side: "BUY",  qty: "12", px: "$892.51",  amt: "-$10,710", pos: false },
-    { d: "8/27", sym: "AAPL", side: "STO",  qty: "1",  px: "$4.41",    amt: "+$441",    pos: true  },
-    { d: "8/22", sym: "NFLX", side: "STO",  qty: "1",  px: "$9.10",    amt: "+$910",    pos: true  },
-    { d: "8/22", sym: "NVDA", side: "STO",  qty: "1",  px: "$2.99",    amt: "+$299",    pos: true  },
-    { d: "8/16", sym: "TSLA", side: "STO",  qty: "1",  px: "$13.63",   amt: "+$1,363",  pos: true  },
-    { d: "8/16", sym: "NVDA", side: "STO",  qty: "1",  px: "$3.95",    amt: "+$395",    pos: true  },
-    { d: "8/7",  sym: "NVDA", side: "BUY",  qty: "25", px: "$99.66",   amt: "-$2,492",  pos: false },
-    { d: "8/5",  sym: "TSLA", side: "STO",  qty: "1",  px: "$6.02",    amt: "+$602",    pos: true  },
+  const schwabRows = [
+    `08/26/24|SELL_TO_OPEN|MSFT 09/20 420C|2|6.85|+1370.00`,
+    `08/21/24|BUY|AMZN|10|178.40|-1784.00`,
+    `08/15/24|BUY_TO_CLOSE|SPY 08/30 545P|3|2.10|-630.00`,
+    `08/12/24|SELL|GOOGL|5|164.20|+821.00`,
+    `08/04/24|SELL_TO_OPEN|META 09/06 500P|1|9.40|+940.00`,
+  ];
+  const unified = [
+    { d: "8/28", sym: "COST",  side: "BUY", qty: "12", px: "$892.51", amt: "-$10,710", pos: false, br: "RH" },
+    { d: "8/27", sym: "AAPL",  side: "STO", qty: "1",  px: "$4.41",   amt: "+$441",    pos: true,  br: "RH" },
+    { d: "8/26", sym: "MSFT",  side: "STO", qty: "2",  px: "$6.85",   amt: "+$1,370",  pos: true,  br: "SC" },
+    { d: "8/22", sym: "NFLX",  side: "STO", qty: "1",  px: "$9.10",   amt: "+$910",    pos: true,  br: "RH" },
+    { d: "8/21", sym: "AMZN",  side: "BUY", qty: "10", px: "$178.40", amt: "-$1,784",  pos: false, br: "SC" },
+    { d: "8/16", sym: "TSLA",  side: "STO", qty: "1",  px: "$13.63",  amt: "+$1,363",  pos: true,  br: "RH" },
+    { d: "8/15", sym: "SPY",   side: "BTC", qty: "3",  px: "$2.10",   amt: "-$630",    pos: false, br: "SC" },
+    { d: "8/12", sym: "GOOGL", side: "SELL",qty: "5",  px: "$164.20", amt: "+$821",    pos: true,  br: "SC" },
+    { d: "8/07", sym: "NVDA",  side: "BUY", qty: "25", px: "$99.66",  amt: "-$2,492",  pos: false, br: "RH" },
+    { d: "8/04", sym: "META",  side: "STO", qty: "1",  px: "$9.40",   amt: "+$940",    pos: true,  br: "SC" },
   ];
 
-  // phase 0: csv only, 1: morphing, 2: dashboard preview
+  // 0: RH only, 1: Schwab dropped in, 2: unifying, 3: dashboard preview
   const [phase, setPhase] = useState(0);
   useEffect(() => {
     if (!active) { setPhase(0); return; }
-    const t1 = setTimeout(() => setPhase(1), 2200);
-    const t2 = setTimeout(() => setPhase(2), 4200);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t1 = setTimeout(() => setPhase(1), 1500);
+    const t2 = setTimeout(() => setPhase(2), 3400);
+    const t3 = setTimeout(() => setPhase(3), 5600);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [active]);
 
   return (
     <div className="h-full w-full flex flex-col bg-slate-50">
       <div className="h-12 px-5 border-b border-slate-200 bg-white flex items-center gap-3">
         <FileSpreadsheet className="h-4 w-4 text-blue-600" />
-        <p className="text-sm font-semibold text-slate-900">robinhood_options_2024.csv</p>
-        <span className="ml-auto text-[10px] text-slate-500">Parsing · normalizing · enriching</span>
+        <p className="text-sm font-semibold text-slate-900">Importing from 2 brokers</p>
+        <span className="ml-auto text-[10px] text-slate-500">Parsing · normalizing · unifying</span>
       </div>
 
       <div className="flex-1 p-5 grid grid-cols-2 gap-4 overflow-hidden">
-        {/* Left: raw CSV */}
-        <div className="rounded-xl bg-slate-900 ring-1 ring-slate-800 p-4 font-mono text-[10.5px] leading-relaxed text-slate-200 overflow-hidden">
-          <p className="text-[9px] tracking-widest text-slate-500 mb-2">RAW CSV</p>
-          <div className="text-amber-300 truncate">"Date","Symbol","Code","Qty","Price","Amount"</div>
-          {csvRows.map((r, i) => (
-            <div
-              key={i}
-              className="truncate text-slate-300 transition-all"
-              style={{
-                opacity: active ? 1 : 0,
-                transform: phase >= 1 ? `translateX(${20 + i * 2}%) scale(0.96)` : "translateX(0)",
-                filter: phase >= 1 ? "blur(0.5px)" : "none",
-                transitionDelay: `${i * 60}ms`,
-                transitionDuration: "900ms",
-              }}
-            >
-              {r}
+        {/* Left column: two CSVs stacked */}
+        <div className="flex flex-col gap-3 min-h-0">
+          {/* Robinhood CSV */}
+          <div className="flex-1 rounded-xl bg-slate-900 ring-1 ring-slate-800 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-hidden transition-all duration-700"
+               style={{ opacity: phase >= 2 ? 0.35 : 1, transform: phase >= 2 ? "scale(0.97)" : "scale(1)" }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[9px] font-bold tracking-widest text-emerald-400">ROBINHOOD.CSV</span>
             </div>
-          ))}
+            <div className="text-amber-300 truncate">"Date","Symbol","Code","Qty","Price","Amount"</div>
+            {robinhoodRows.map((r, i) => (
+              <div key={i} className="truncate text-slate-300">{r}</div>
+            ))}
+          </div>
+          {/* Schwab CSV - drops in at phase 1 */}
+          <div
+            className="flex-1 rounded-xl bg-slate-900 ring-1 ring-slate-800 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-hidden transition-all duration-700"
+            style={{
+              opacity: phase >= 1 ? (phase >= 2 ? 0.35 : 1) : 0,
+              transform: phase >= 1 ? (phase >= 2 ? "scale(0.97)" : "translateY(0)") : "translateY(20px)",
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[9px] font-bold tracking-widest text-sky-400">SCHWAB_EXPORT.CSV</span>
+            </div>
+            <div className="text-amber-300 truncate">Date|Action|Description|Qty|Price|Amount</div>
+            {schwabRows.map((r, i) => (
+              <div key={i} className="truncate text-slate-300">{r}</div>
+            ))}
+          </div>
         </div>
 
-        {/* Right: structured table emerging */}
+        {/* Right: unified table emerging */}
         <div className="relative rounded-xl bg-white ring-1 ring-slate-200 p-4 overflow-hidden">
-          <p className="text-[9px] tracking-widest text-slate-400 mb-2 font-semibold">STRUCTURED TRADES</p>
-          <div className="grid grid-cols-[0.6fr_0.7fr_0.6fr_0.5fr_0.8fr_0.9fr] gap-2 text-[9px] text-slate-400 font-semibold uppercase tracking-wider pb-1.5 border-b border-slate-100">
-            <span>Date</span><span>Sym</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">Amount</span>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[9px] tracking-widest text-slate-400 font-semibold">UNIFIED TRADES</p>
+            <div className="flex items-center gap-1 text-[8px] font-semibold">
+              <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">RH</span>
+              <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">SC</span>
+            </div>
           </div>
-          <div className="mt-1 text-[11px]">
-            {parsed.map((t, i) => (
+          <div className="grid grid-cols-[0.5fr_0.7fr_0.55fr_0.4fr_0.75fr_0.85fr_0.3fr] gap-1.5 text-[9px] text-slate-400 font-semibold uppercase tracking-wider pb-1.5 border-b border-slate-100">
+            <span>Date</span><span>Sym</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">Amount</span><span></span>
+          </div>
+          <div className="mt-1 text-[10.5px]">
+            {unified.map((t, i) => (
               <div
                 key={i}
-                className="grid grid-cols-[0.6fr_0.7fr_0.6fr_0.5fr_0.8fr_0.9fr] gap-2 items-center py-1 border-b border-slate-50 last:border-0 transition-all duration-700"
+                className="grid grid-cols-[0.5fr_0.7fr_0.55fr_0.4fr_0.75fr_0.85fr_0.3fr] gap-1.5 items-center py-1 border-b border-slate-50 last:border-0 transition-all duration-700"
                 style={{
-                  opacity: phase >= 1 ? 1 : 0,
-                  transform: phase >= 1 ? "translateY(0)" : "translateY(8px)",
-                  transitionDelay: `${800 + i * 90}ms`,
+                  opacity: phase >= 2 ? 1 : 0,
+                  transform: phase >= 2 ? "translateY(0)" : "translateY(8px)",
+                  transitionDelay: `${i * 70}ms`,
                 }}
               >
                 <span className="text-slate-500">{t.d}</span>
                 <span className="font-semibold text-slate-800">{t.sym}</span>
                 <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold w-fit ${
-                  t.side === "BUY" ? "bg-blue-50 text-blue-700" : "bg-violet-50 text-violet-700"
+                  t.side === "BUY" || t.side === "BTC" ? "bg-blue-50 text-blue-700"
+                  : t.side === "SELL" ? "bg-amber-50 text-amber-700"
+                  : "bg-violet-50 text-violet-700"
                 }`}>{t.side}</span>
                 <span className="text-slate-600">{t.qty}</span>
                 <span className="text-slate-600">{t.px}</span>
                 <span className={`text-right font-semibold ${t.pos ? "text-emerald-600" : "text-rose-600"}`}>{t.amt}</span>
+                <span className={`text-[8px] font-bold text-center rounded ${t.br === "RH" ? "text-emerald-600" : "text-sky-600"}`}>{t.br}</span>
               </div>
             ))}
           </div>
 
-          {/* Dashboard preview overlay slides up at phase 2 */}
+          {/* Dashboard preview overlay slides up at phase 3 */}
           <div
             className={`absolute inset-x-3 bottom-3 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white p-4 shadow-xl transition-all duration-700 ${
-              phase >= 2 ? "translate-y-0 opacity-100" : "translate-y-[120%] opacity-0"
+              phase >= 3 ? "translate-y-0 opacity-100" : "translate-y-[120%] opacity-0"
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-[9px] font-semibold tracking-widest opacity-80">DASHBOARD READY</p>
+              <p className="text-[9px] font-semibold tracking-widest opacity-80">UNIFIED DASHBOARD READY</p>
               <Sparkles className="h-3.5 w-3.5" />
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2 text-center">
@@ -847,10 +873,10 @@ function CsvTransformScene({ active }: { active: boolean }) {
         </div>
       </div>
 
-      {/* arrow indicator */}
+      {/* unify pulse indicator */}
       <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 rounded-full bg-white ring-1 ring-slate-200 shadow-lg pointer-events-none transition-opacity duration-500"
-        style={{ opacity: phase === 1 ? 1 : 0 }}
+        style={{ opacity: phase === 2 ? 1 : 0 }}
       >
         <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
       </div>
