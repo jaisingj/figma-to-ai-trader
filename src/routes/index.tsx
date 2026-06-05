@@ -1391,6 +1391,9 @@ function DashboardScene({ active }: { active: boolean }) {
               { s: "SPY 510C 01/17",   t: "CALL", d: "BUY",  q: "10", p: "$4.20",  v: "+$140" },
               { s: "AAPL 200C 12/27",  t: "CALL", d: "STC",  q: "4",  p: "$2.80",  v: "+$112" },
               { s: "AMZN 220C 12/20",  t: "CALL", d: "STC",  q: "6",  p: "$1.95",  v: "+$96"  },
+              { s: "MSFT 410C 01/03",  t: "CALL", d: "BTO",  q: "3",  p: "$5.60",  v: "+$84"  },
+              { s: "GOOGL 175P 12/27", t: "PUT",  d: "STC",  q: "4",  p: "$1.85",  v: "+$72"  },
+              { s: "META 580C 01/10",  t: "CALL", d: "BUY",  q: "2",  p: "$9.40",  v: "+$60"  },
             ].map((t) => (
               <div key={t.s} className="grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
                 <span className="font-medium text-slate-800 truncate">{t.s}</span>
