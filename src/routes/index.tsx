@@ -252,6 +252,84 @@ function ScrollColumn({ direction, delay, compact = false }: { direction: "up" |
 
 
 
+const AI_LOGOS = [
+  { name: "Claude", bg: "bg-orange-50", color: "text-orange-600", ring: "ring-orange-200" },
+  { name: "ChatGPT", bg: "bg-emerald-50", color: "text-emerald-700", ring: "ring-emerald-200" },
+  { name: "Gemini", bg: "bg-blue-50", color: "text-blue-600", ring: "ring-blue-200" },
+  { name: "LLaMA", bg: "bg-violet-50", color: "text-violet-600", ring: "ring-violet-200" },
+  { name: "Mistral", bg: "bg-amber-50", color: "text-amber-600", ring: "ring-amber-200" },
+];
+
+function HeroReveal() {
+  // Phases: 0 = tagline (0-2s), 1 = AI logos (2-4.5s), 2 = carousel (4.5-8s), then loop
+  const [phase, setPhase] = useState(0);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    let timers: ReturnType<typeof setTimeout>[] = [];
+    const run = () => {
+      setPhase(0);
+      timers.push(setTimeout(() => setPhase(1), 2000));
+      timers.push(setTimeout(() => setPhase(2), 4500));
+      timers.push(setTimeout(() => setTick((t) => t + 1), 8000));
+    };
+    run();
+    return () => timers.forEach(clearTimeout);
+  }, [tick]);
+
+  return (
+    <div className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+      {/* Phase 0: tagline */}
+      {phase === 0 && (
+        <div key={`t-${tick}`} className="absolute inset-0 flex items-center justify-center px-6">
+          <p className="text-center text-xl lg:text-2xl font-bold text-slate-900 animate-[fade-in_0.5s_ease-out_both]">
+            <span className="text-slate-500">Scattered trades in.</span>{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+              OptiX AI insights out.
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* Phase 1: AI logos zoom */}
+      {phase === 1 && (
+        <div key={`l-${tick}`} className="absolute inset-0 flex items-center justify-center gap-3 px-4">
+          {AI_LOGOS.map((logo, i) => (
+            <div
+              key={logo.name}
+              className={`flex flex-col items-center gap-1.5 opacity-0 ${logo.bg} ${logo.ring} ring-1 rounded-xl px-2.5 py-2 shadow-sm`}
+              style={{
+                animation: `ai-pop 1.6s ${i * 0.15}s ease-in-out both`,
+              }}
+            >
+              <Sparkles className={`h-5 w-5 ${logo.color}`} />
+              <span className={`text-[10px] font-bold tracking-wide ${logo.color}`}>{logo.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Phase 2: carousel */}
+      {phase === 2 && (
+        <div key={`c-${tick}`} className="absolute inset-0 grid grid-cols-2 gap-2 p-3 animate-[fade-in_0.4s_ease-out_both]">
+          <ScrollColumn direction="up" delay="0s" compact />
+          <ScrollColumn direction="down" delay="-6s" compact />
+        </div>
+      )}
+
+      <style>{`
+        @keyframes ai-pop {
+          0%   { opacity: 0; transform: scale(0.4); }
+          30%  { opacity: 1; transform: scale(1.15); }
+          55%  { transform: scale(1); }
+          80%  { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.7); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+
 
 const OFFERS = [
   {
