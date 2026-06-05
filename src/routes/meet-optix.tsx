@@ -423,3 +423,130 @@ function Stat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+/* --------------------------------------------------------------- */
+/* Dashboard + AI Chat preview                                     */
+/* --------------------------------------------------------------- */
+function DashboardChatPreview() {
+  return (
+    <div className="mt-10 grid gap-4 lg:grid-cols-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 lg:p-6">
+      {/* Dashboard */}
+      <div className="lg:col-span-3 rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+            <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
+              Unified dashboard
+            </p>
+          </div>
+          <span className="text-[10px] font-medium text-slate-400">Live · 4 brokers</span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <DashStat label="REALIZED P/L" value="+$1,860" sub="+12.4% MTD" tone="emerald" />
+          <DashStat label="WIN RATE" value="71%" sub="vs 64% prior" tone="blue" />
+          <DashStat label="TRADES" value="482" sub="this quarter" tone="slate" />
+        </div>
+
+        {/* tiny chart */}
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-end justify-between h-24 gap-1.5">
+            {[40, 55, 35, 70, 50, 80, 60, 95, 75, 110, 90, 130].map((h, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t-md bg-gradient-to-t from-blue-500 to-blue-300"
+                style={{ height: `${h}%` }}
+              />
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between text-[10px] text-slate-400">
+            <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span>
+          </div>
+        </div>
+
+        {/* recent trades */}
+        <div className="mt-4 space-y-1.5">
+          {[
+            { d: "8/16", s: "TSLA", t: "STO", pl: "+$1,363", c: "text-emerald-600" },
+            { d: "8/15", s: "SPY", t: "BTC", pl: "-$630", c: "text-rose-600" },
+            { d: "8/12", s: "GOOGL", t: "SELL", pl: "+$821", c: "text-emerald-600" },
+          ].map((r) => (
+            <div
+              key={r.d}
+              className="grid grid-cols-4 items-center text-xs px-3 py-2 rounded-lg bg-slate-50 border border-slate-100"
+            >
+              <span className="text-slate-500">{r.d}</span>
+              <span className="font-semibold text-slate-900">{r.s}</span>
+              <span className="text-slate-500">{r.t}</span>
+              <span className={`text-right font-semibold ${r.c}`}>{r.pl}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat */}
+      <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Ask OptiX</p>
+            <p className="text-[10px] text-slate-400">Powered by your LLM</p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex-1 space-y-3">
+          <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-3.5 py-2 text-sm text-white">
+            Why am I down on Mondays?
+          </div>
+          <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-slate-100 px-3.5 py-2.5 text-sm text-slate-800">
+            Across the last 12 weeks, your Monday trades show a{" "}
+            <span className="font-semibold text-rose-600">-$412 avg P/L</span>. You tend to open
+            larger 0DTE positions before noon. Tue–Thu the same setup is{" "}
+            <span className="font-semibold text-emerald-600">+$280 avg</span>.
+          </div>
+          <div className="max-w-[60%] rounded-2xl rounded-tl-sm bg-slate-100 px-3.5 py-2 text-xs text-slate-500 italic">
+            Want me to flag this next Monday?
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
+          <input
+            disabled
+            placeholder="Ask anything about your trades…"
+            className="flex-1 bg-transparent text-xs text-slate-500 outline-none"
+          />
+          <button className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white">
+            <Send className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DashStat({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  tone: "emerald" | "blue" | "slate";
+}) {
+  const toneMap = {
+    emerald: "text-emerald-600",
+    blue: "text-blue-600",
+    slate: "text-slate-900",
+  };
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-[10px] font-semibold tracking-widest text-slate-400">{label}</p>
+      <p className={`mt-1 text-lg font-bold ${toneMap[tone]}`}>{value}</p>
+      <p className="text-[10px] text-slate-500">{sub}</p>
+    </div>
+  );
+}
