@@ -667,10 +667,16 @@ function FinderScene({ active }: { active: boolean }) {
         </div>
 
         {phase >= 5 && (
-          <div className="mt-5 flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700 animate-fade-in">
-            <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
+          <div className="mt-5 space-y-1.5 animate-fade-in">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+              <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+              <Check className="h-4 w-4" /> schwab_export.csv loaded
+            </div>
           </div>
         )}
+
       </div>
 
       {/* Mac Finder window */}
