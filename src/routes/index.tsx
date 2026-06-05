@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search } from "lucide-react";
+import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, ChevronDown, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import optixProLogo from "@/assets/optixpro-transparent.png";
@@ -42,6 +42,52 @@ function FloatCard({ className = "", delay, children }: CardProps) {
   );
 }
 
+function NavDropdown({ label, content, panelClassName = "" }: { label: string; content: React.ReactNode; panelClassName?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition rounded-full">
+        {label}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className={`absolute left-1/2 top-full z-50 pt-3 ${panelClassName}`}>
+          <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_30px_80px_-20px_rgba(15,40,120,0.25)] overflow-hidden animate-fade-in">
+            {content}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DropdownGroup({ title, items }: { title: string; items: { label: string; external?: boolean }[] }) {
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-3">{title}</p>
+      <ul className="space-y-2.5">
+        {items.map((it) => (
+          <li key={it.label}>
+            <a href="#" className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
+              {it.label}
+              {it.external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function DropdownLink({ label, external = false }: { label: string; external?: boolean }) {
+  return (
+    <a href="#" className="group flex items-center justify-between rounded-lg px-3 py-2 text-[15px] font-medium text-slate-900 hover:bg-slate-50 hover:text-blue-600 transition">
+      <span>{label}</span>
+      {external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+    </a>
+  );
+}
+
 function Index() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [step, setStep] = useState(0);
@@ -50,16 +96,135 @@ function Index() {
     <div className="min-h-screen bg-white">
       <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
 
-      {/* Nav — Claude-style minimal */}
+      {/* Nav — Claude-style with dropdowns */}
       <header className="flex items-center justify-between px-8 lg:px-12 py-5">
         <img src={optixProLogo} alt="OptiXPro" className="h-44 w-auto" />
 
-        <div className="flex items-center gap-6">
-          <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
-            About
+        <nav className="hidden lg:flex items-center gap-1">
+          <NavDropdown
+            label="Meet OptiX"
+            panelClassName="w-[720px] -translate-x-1/4"
+            content={
+              <div className="grid grid-cols-3 gap-10 p-7">
+                <DropdownGroup title="Products" items={[
+                  { label: "OptiX" },
+                  { label: "OptiX Pro" },
+                  { label: "OptiX Mobile" },
+                  { label: "OptiX for Teams" },
+                ]} />
+                <DropdownGroup title="Features" items={[
+                  { label: "Broker import" },
+                  { label: "Unified dashboard" },
+                  { label: "AI trade chat" },
+                  { label: "Trader personality" },
+                ]} />
+                <DropdownGroup title="AI Models" items={[
+                  { label: "Claude", external: true },
+                  { label: "ChatGPT", external: true },
+                  { label: "Gemini", external: true },
+                  { label: "LLaMA", external: true },
+                ]} />
+              </div>
+            }
+          />
+          <NavDropdown
+            label="Platform"
+            panelClassName="w-[260px]"
+            content={
+              <div className="p-5 space-y-1">
+                <DropdownLink label="Overview" />
+                <DropdownLink label="Integrations" external />
+                <DropdownLink label="Pricing" />
+                <div className="my-2 border-t border-slate-200" />
+                <DropdownLink label="Dashboard login" external />
+              </div>
+            }
+          />
+          <NavDropdown
+            label="Solutions"
+            panelClassName="w-[860px] -translate-x-1/2"
+            content={
+              <div className="grid grid-cols-4 gap-8 p-7">
+                <DropdownGroup title="Trader type" items={[
+                  { label: "Options traders" },
+                  { label: "Day traders" },
+                  { label: "Swing traders" },
+                ]} />
+                <DropdownGroup title="Experience" items={[
+                  { label: "Beginners" },
+                  { label: "Active retail" },
+                  { label: "Power users" },
+                ]} />
+                <DropdownGroup title="Brokers" items={[
+                  { label: "Robinhood" },
+                  { label: "Schwab" },
+                  { label: "Fidelity" },
+                  { label: "E*TRADE" },
+                ]} />
+                <DropdownGroup title="Use cases" items={[
+                  { label: "Performance review" },
+                  { label: "Behavior coaching" },
+                  { label: "Tax reporting" },
+                ]} />
+              </div>
+            }
+          />
+          <NavDropdown
+            label="Pricing"
+            panelClassName="w-[220px]"
+            content={
+              <div className="p-5 space-y-1">
+                <DropdownLink label="Overview" />
+                <DropdownLink label="Compare plans" />
+                <div className="my-2 border-t border-slate-200" />
+                <p className="text-[11px] uppercase tracking-widest text-slate-400 px-3 pt-1 pb-2">Plans</p>
+                <DropdownLink label="Free" />
+                <DropdownLink label="Pro" />
+                <DropdownLink label="Teams" />
+                <DropdownLink label="Enterprise" />
+              </div>
+            }
+          />
+          <NavDropdown
+            label="Resources"
+            panelClassName="w-[820px] -translate-x-3/4"
+            content={
+              <div className="grid grid-cols-4 gap-8 p-7">
+                <DropdownGroup title="Insights" items={[
+                  { label: "Blog" },
+                  { label: "Trader stories" },
+                  { label: "OptiX news", external: true },
+                ]} />
+                <DropdownGroup title="Learn" items={[
+                  { label: "OptiX Academy", external: true },
+                  { label: "Guides", external: true },
+                  { label: "Tutorials" },
+                  { label: "Use cases" },
+                ]} />
+                <DropdownGroup title="Tools" items={[
+                  { label: "Broker connectors" },
+                  { label: "CSV templates" },
+                ]} />
+                <DropdownGroup title="Connect" items={[
+                  { label: "Community" },
+                  { label: "Events", external: true },
+                ]} />
+              </div>
+            }
+          />
+
+          <a href="#contact" className="ml-3 rounded-full border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-900 hover:bg-slate-50 transition">
+            Contact sales
           </a>
-          <button onClick={openGuide} className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
-            Sign up for free
+          <button onClick={openGuide} className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
+            Try OptiX
+          </button>
+        </nav>
+
+        {/* Mobile fallback */}
+        <div className="flex lg:hidden items-center gap-3">
+          <button onClick={openGuide} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+            Try OptiX
           </button>
         </div>
       </header>
