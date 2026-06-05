@@ -1420,7 +1420,7 @@ function AIScene({ active }: { active: boolean }) {
     "💡 Suggest better exits",
   ];
   const PICKED_SHORTCUT = SHORTCUTS[0];
-  const TYPED_QUESTION = "Why did I lose money on TSLA puts last month?";
+  const TYPED_QUESTION = "Which stock gave me the best win rate?";
 
   type TableData = {
     title: string;
