@@ -1384,7 +1384,7 @@ function DashboardScene({ active }: { active: boolean }) {
           <div className="mt-1.5 grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1 border-b border-blue-100">
             <span>Symbol</span><span>Type</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
           </div>
-          <div className="mt-1 text-[11.5px]">
+          <div className="mt-1 text-[11.5px] flex-1 overflow-hidden">
             {[
               { s: "TSLA 250C 12/20",  t: "CALL", d: "BUY",  q: "5",  p: "$3.45",  v: "+$240" },
               { s: "NVDA 900P 12/13",  t: "PUT",  d: "SELL", q: "3",  p: "$12.10", v: "+$180" },
