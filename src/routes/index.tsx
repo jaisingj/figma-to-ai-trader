@@ -805,33 +805,37 @@ function CsvTransformScene({ active }: { active: boolean }) {
       <div className="flex-1 p-5 grid grid-cols-2 gap-4 overflow-hidden">
         {/* Left column: two CSVs stacked */}
         <div className="flex flex-col gap-3 min-h-0">
-          {/* Robinhood CSV */}
-          <div className="flex-1 rounded-xl bg-slate-900 ring-1 ring-slate-800 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-hidden transition-all duration-700"
-               style={{ opacity: phase >= 2 ? 0.35 : 1, transform: phase >= 2 ? "scale(0.97)" : "scale(1)" }}>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[9px] font-bold tracking-widest text-emerald-400">ROBINHOOD.CSV</span>
-            </div>
-            <div className="text-amber-300 truncate">"Date","Symbol","Code","Qty","Price","Amount"</div>
-            {robinhoodRows.map((r, i) => (
-              <div key={i} className="truncate text-slate-300">{r}</div>
-            ))}
-          </div>
+          {/* Robinhood CSV - Excel style */}
+          <ExcelSheet
+            name="ROBINHOOD.CSV"
+            tabColor="emerald"
+            headers={["Date", "Symbol", "Code", "Qty", "Price", "Amount"]}
+            rows={[
+              ["8/28/2024", "COST", "Buy", "12", "$892.51", "($10,710.12)"],
+              ["8/27/2024", "AAPL", "STO", "1", "$4.41", "$440.94"],
+              ["8/22/2024", "NFLX", "STO", "1", "$9.10", "$909.93"],
+              ["8/16/2024", "TSLA", "STO", "1", "$13.63", "$1,362.92"],
+              ["8/07/2024", "NVDA", "Buy", "25", "$99.66", "($2,491.63)"],
+            ]}
+            faded={phase >= 2}
+            visible
+          />
           {/* Schwab CSV - drops in at phase 1 */}
-          <div
-            className="flex-1 rounded-xl bg-slate-900 ring-1 ring-slate-800 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-hidden transition-all duration-700"
-            style={{
-              opacity: phase >= 1 ? (phase >= 2 ? 0.35 : 1) : 0,
-              transform: phase >= 1 ? (phase >= 2 ? "scale(0.97)" : "translateY(0)") : "translateY(20px)",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[9px] font-bold tracking-widest text-sky-400">SCHWAB_EXPORT.CSV</span>
-            </div>
-            <div className="text-amber-300 truncate">Date|Action|Description|Qty|Price|Amount</div>
-            {schwabRows.map((r, i) => (
-              <div key={i} className="truncate text-slate-300">{r}</div>
-            ))}
-          </div>
+          <ExcelSheet
+            name="SCHWAB_EXPORT.CSV"
+            tabColor="sky"
+            headers={["Date", "Action", "Description", "Qty", "Price", "Amount"]}
+            rows={[
+              ["08/26/24", "SELL_TO_OPEN", "MSFT 09/20 420C", "2", "6.85", "+1370.00"],
+              ["08/21/24", "BUY", "AMZN", "10", "178.40", "-1784.00"],
+              ["08/15/24", "BUY_TO_CLOSE", "SPY 08/30 545P", "3", "2.10", "-630.00"],
+              ["08/12/24", "SELL", "GOOGL", "5", "164.20", "+821.00"],
+              ["08/04/24", "SELL_TO_OPEN", "META 09/06 500P", "1", "9.40", "+940.00"],
+            ]}
+            faded={phase >= 2}
+            visible={phase >= 1}
+          />
+
         </div>
 
         {/* Right: unified table emerging */}
