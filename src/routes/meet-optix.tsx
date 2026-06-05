@@ -10,8 +10,14 @@ import {
   TrendingUp,
   FileText,
   Zap,
+  LayoutDashboard,
+  Send,
 } from "lucide-react";
 import optixProLogo from "@/assets/optixpro-transparent.png";
+import claudeLogo from "@/assets/claude.webp.asset.json";
+import chatgptLogo from "@/assets/chatgpt.webp.asset.json";
+import geminiLogo from "@/assets/gemini.webp.asset.json";
+import llamaLogo from "@/assets/llama.svg.asset.json";
 
 export const Route = createFileRoute("/meet-optix")({
   head: () => ({
