@@ -206,7 +206,7 @@ function Index() {
                     <div className={`h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br ${c.frontIconBg} flex items-center justify-center ring-1 ring-white shadow-sm`}>
                       {c.frontIcon}
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 whitespace-nowrap">{c.title}</h3>
+                    <h3 className="text-xl font-semibold text-slate-600 whitespace-nowrap">{c.title}</h3>
                   </div>
                   <div className="mt-3 flex-1 rounded-2xl overflow-hidden bg-white">
                     <img src={c.image} alt={c.title} loading="lazy" width={1024} height={1024} className="h-full w-full object-contain scale-110" />
@@ -218,7 +218,7 @@ function Index() {
                     <div className={`h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br ${c.frontIconBg} flex items-center justify-center ring-1 ring-white shadow-sm`}>
                       {c.frontIcon}
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 whitespace-nowrap">{c.title}</h3>
+                    <h3 className="text-xl font-semibold text-slate-600 whitespace-nowrap">{c.title}</h3>
                   </div>
                   <p className="mt-5 text-slate-700 leading-relaxed text-base">{c.back}</p>
                 </div>
