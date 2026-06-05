@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3 } from "lucide-react";
+import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
 import featureConnect from "@/assets/feature-connect.jpg";
@@ -42,8 +43,13 @@ function FloatCard({ className = "", delay, children }: CardProps) {
 }
 
 function Index() {
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const openGuide = () => { setStep(0); setGuideOpen(true); };
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
+
       {/* Nav */}
       <header className="flex items-center justify-between px-8 py-3 border-b border-slate-200/60 bg-white/70 backdrop-blur">
         <img src={optixProLogo.url} alt="OptiXPro" className="h-32 w-auto" />
@@ -51,9 +57,10 @@ function Index() {
           <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
             About
           </a>
-          <button className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
+          <button onClick={openGuide} className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
             Sign up for free
           </button>
+
         </div>
       </header>
 
@@ -68,9 +75,10 @@ function Index() {
             Drop a CSV from Robinhood, Schwab, or Fidelity. OptiX unifies your activity, surfaces the patterns behind your P/L, and lets you ask AI why you trade the way you do.
           </p>
           <div className="mt-10 flex items-center gap-6">
-            <button className="rounded-full bg-blue-600 px-7 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
+            <button onClick={openGuide} className="rounded-full bg-blue-600 px-7 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
               Try OptiX for free
             </button>
+
             <a href="#plans" className="text-sm font-semibold text-blue-600 hover:text-blue-700">
               View plans
             </a>
@@ -416,3 +424,113 @@ function AIVisual() {
   );
 }
 
+
+const API_PROVIDERS = [
+  { name: "OpenAI", desc: "GPT-4, GPT-5 and o-series models.", url: "https://platform.openai.com/api-keys" },
+  { name: "Anthropic Claude", desc: "Claude Sonnet, Opus and Haiku models.", url: "https://console.anthropic.com/settings/keys" },
+  { name: "Google Gemini", desc: "Gemini 2.5 Pro and Flash models.", url: "https://aistudio.google.com/app/apikey" },
+  { name: "Meta LLaMA", desc: "Access LLaMA models via Meta's API.", url: "https://llama.developer.meta.com/" },
+  { name: "Perplexity", desc: "Sonar online and chat models.", url: "https://www.perplexity.ai/settings/api" },
+];
+
+function GettingStartedDialog({
+  open, onOpenChange, step, setStep,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  step: number;
+  setStep: (n: number) => void;
+}) {
+  const totalSteps = 2;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden bg-slate-50 border-slate-200">
+        <div className="p-8">
+          <div className="flex items-center gap-3">
+            {step === 0 ? (
+              <img src={optixProLogo.url} alt="OptiX" className="h-10 w-auto" />
+            ) : (
+              <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <KeyRound className="h-5 w-5 text-blue-600" />
+              </div>
+            )}
+            <h2 className="text-2xl font-bold text-slate-900">
+              {step === 0 ? "Welcome to OptiX!" : "Configure your LLM API key"}
+            </h2>
+          </div>
+
+          {step === 0 ? (
+            <>
+              <p className="mt-6 text-slate-600 leading-relaxed">
+                OptiX gives you a unified view of your options trading activity. This quick guide will walk you through everything you need to get started.
+              </p>
+              <div className="mt-6 rounded-xl bg-white ring-1 ring-slate-200 p-6">
+                <h3 className="font-bold text-slate-900 mb-4">What OptiX offers:</h3>
+                <ul className="space-y-3 text-slate-700">
+                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>A unified view of your trading data across brokers</span></li>
+                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>AI-driven assessment of your trading behavior</span></li>
+                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>Detailed transaction history with deep insights</span></li>
+                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>Track your investment progress over time and more</span></li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-6 text-slate-600 leading-relaxed">
+                OptiX uses your own LLM API key for AI analysis. Grab a key from any of the providers below — sign in, create a new API key, and paste it into OptiX settings.
+              </p>
+              <div className="mt-6 space-y-2">
+                {API_PROVIDERS.map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between rounded-xl bg-white ring-1 ring-slate-200 p-4 hover:ring-blue-400 hover:bg-blue-50/40 transition group"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-900">{p.name}</p>
+                      <p className="text-sm text-slate-500">{p.desc}</p>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-slate-200 bg-white px-8 py-4">
+          <button
+            onClick={() => setStep(Math.max(0, step - 1))}
+            disabled={step === 0}
+            className="flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            <ChevronLeft className="h-4 w-4" /> Previous
+          </button>
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <span key={i} className={`h-2 w-2 rounded-full ${i === step ? "bg-blue-600" : "bg-slate-300"}`} />
+            ))}
+            <span className="ml-3 text-sm text-slate-500">{step + 1} of {totalSteps}</span>
+          </div>
+          {step < totalSteps - 1 ? (
+            <button
+              onClick={() => setStep(step + 1)}
+              className="flex items-center gap-1 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenChange(false)}
+              className="flex items-center gap-1 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
+            >
+              Get started
+            </button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
