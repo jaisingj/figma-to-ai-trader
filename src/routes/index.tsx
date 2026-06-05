@@ -46,9 +46,9 @@ function NavDropdown({ label, content, panelClassName = "" }: { label: string; c
   const [open, setOpen] = useState(false);
   return (
     <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition rounded-full">
+      <button className="flex items-center gap-1 px-4 py-2 text-base font-medium text-slate-700 hover:text-slate-900 transition rounded-full">
         {label}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className={`absolute left-1/2 top-full z-50 pt-3 ${panelClassName}`}>
