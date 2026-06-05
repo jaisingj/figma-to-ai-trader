@@ -177,6 +177,7 @@ function Index() {
         </div>
       </section>
 
+      <ScrollingFeatureWall />
       <WhatOptixOffers />
     </div>
   );
