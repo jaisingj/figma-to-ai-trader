@@ -161,10 +161,62 @@ function MeetOptixPage() {
           </div>
         </section>
 
+        {/* See it in action — Dashboard + Chat */}
+        <section className="mt-24">
+          <div className="flex items-center gap-2 text-blue-600">
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="text-xs font-semibold tracking-[0.2em] uppercase">See it</span>
+          </div>
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">
+            One clean dashboard. One smart chat.
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
+            Your unified P/L, win rate, and exposure on the left. An AI co-pilot on the right that
+            has read every fill you've ever made.
+          </p>
+
+          <DashboardChatPreview />
+        </section>
+
+        {/* AI models */}
+        <section className="mt-24">
+          <div className="flex items-center gap-2 text-blue-600">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-xs font-semibold tracking-[0.2em] uppercase">Bring your own AI</span>
+          </div>
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">
+            Works with every major model
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
+            Plug in your own API key from Anthropic, OpenAI, Google, or Meta. Switch models any
+            time — your trade data never leaves your control.
+          </p>
+
+          <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { name: "Claude", src: claudeLogo.url, by: "Anthropic" },
+              { name: "ChatGPT", src: chatgptLogo.url, by: "OpenAI" },
+              { name: "Gemini", src: geminiLogo.url, by: "Google" },
+              { name: "LLaMA", src: llamaLogo.url, by: "Meta" },
+            ].map((m) => (
+              <div
+                key={m.name}
+                className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-[0_8px_24px_-12px_rgba(37,99,235,0.25)] transition"
+              >
+                <img src={m.src} alt={m.name} className="h-12 w-12 object-contain" />
+                <p className="mt-3 text-base font-semibold text-slate-900">{m.name}</p>
+                <p className="text-xs text-slate-500">{m.by}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Built for traders */}
-        <section className="mt-20">
-          <h2 className="text-3xl font-bold tracking-tight">Built for traders, not accountants</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+        <section className="mt-24">
+          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">
+            Built for traders, not accountants
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             Existing portfolio trackers were built for buy-and-hold equity investors. They treat
             options as an afterthought — a single line item with no notion of legs, strikes, or
             expiration. OptiX was designed options-first from day one, so the dashboard speaks
@@ -173,13 +225,12 @@ function MeetOptixPage() {
         </section>
 
         {/* Privacy */}
-        <section className="mt-20">
-          <h2 className="text-3xl font-bold tracking-tight">Your data, your models</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+        <section className="mt-24">
+          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">Your data, your models</h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             OptiX is privacy-first. Your trade data is encrypted and never used to train shared
-            models. You bring your own LLM API key — Claude, ChatGPT, Gemini, or LLaMA — and
-            OptiX uses it to power the chat. You stay in control of which model sees your trades
-            and what it costs.
+            models. You bring your own LLM API key and OptiX uses it to power the chat. You stay
+            in control of which model sees your trades and what it costs.
           </p>
         </section>
 
