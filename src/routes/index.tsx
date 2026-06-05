@@ -1030,18 +1030,18 @@ function AIScene({ active }: { active: boolean }) {
 
       <div className="flex-1 overflow-hidden px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white">
         {/* Trader personality card */}
-        <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-start gap-4 animate-fade-in">
+        <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-center gap-5 animate-fade-in">
+          <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-32 w-32 rounded-xl object-cover shrink-0 ring-1 ring-slate-200" />
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
-            <h4 className="mt-1 text-lg font-bold text-slate-900">Reactive Optimizer</h4>
-            <p className="mt-1 text-[12px] text-slate-600 leading-relaxed">
+            <h4 className="mt-1 text-xl font-bold text-slate-900">Reactive Optimizer</h4>
+            <p className="mt-1.5 text-[12.5px] text-slate-600 leading-relaxed">
               You frequently adjust positions based on short-term signals rather than planned exits.
             </p>
             <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
               <Sparkles className="h-3 w-3" /> <span className="underline">Deep dive</span>
             </div>
           </div>
-          <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-20 w-auto shrink-0" />
         </div>
 
         {messages.slice(0, shown).map((m, i) => {
@@ -1049,12 +1049,14 @@ function AIScene({ active }: { active: boolean }) {
           const badgeColor = m.model === "Claude" ? "bg-orange-100 text-orange-700" : m.model === "ChatGPT" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700";
           return (
             <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
-              <div className={`max-w-[80%] ${isUser ? "items-end" : "items-start"} flex flex-col gap-1.5`}>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isUser ? "bg-blue-100 text-blue-700" : badgeColor}`}>
+              <div className={`max-w-[82%] ${isUser ? "items-end" : "items-start"} flex flex-col gap-1.5`}>
+                <span className={`text-[10px] font-semibold tracking-wide px-2 py-0.5 rounded-full ${isUser ? "bg-blue-100 text-blue-700" : badgeColor}`}>
                   {m.model}
                 </span>
-                <div className={`rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${
-                  isUser ? "bg-blue-600 text-white rounded-tr-sm" : "bg-white ring-1 ring-slate-200 text-slate-800 rounded-tl-sm shadow-sm"
+                <div className={`rounded-2xl px-4 py-3 text-[13.5px] leading-[1.55] tracking-[-0.005em] font-[450] ${
+                  isUser
+                    ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-sm shadow-[0_8px_24px_-12px_rgba(37,99,235,0.5)]"
+                    : "bg-white ring-1 ring-slate-200/80 text-slate-800 rounded-tl-sm shadow-[0_6px_20px_-12px_rgba(15,40,120,0.18)]"
                 }`}>
                   {m.text}
                 </div>
