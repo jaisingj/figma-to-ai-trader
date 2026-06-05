@@ -484,34 +484,47 @@ function DemoPanel() {
   }, []);
 
   return (
-    <div className="hidden lg:flex relative h-[640px] items-center justify-center border-l border-slate-200/70">
-      {DEMO_SCENES.map((s, i) => (
-        <div
-          key={s.key}
-          className={`absolute left-1/2 top-1/2 w-[360px] transition-all duration-700 ease-out ${
-            scene === i
-              ? "opacity-100 -translate-x-1/2 -translate-y-1/2 scale-100"
-              : "opacity-0 -translate-x-1/2 -translate-y-[40%] scale-95 pointer-events-none"
-          }`}
-        >
-          <div className="rounded-3xl bg-white ring-1 ring-slate-200 shadow-[0_30px_80px_-30px_rgba(15,40,120,0.25)] p-6 min-h-[420px] flex flex-col">
-            {i === 0 && <UploadScene active={scene === 0} />}
-            {i === 1 && <DashboardScene active={scene === 1} />}
-            {i === 2 && <AIScene active={scene === 2} />}
-            {i === 3 && <InsightScene active={scene === 3} />}
-          </div>
-        </div>
-      ))}
+    <div className="hidden lg:flex relative min-h-screen w-full items-center justify-center overflow-hidden border-l border-slate-200/70 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 px-8 py-16">
+      {/* ambient glow */}
+      <div className="pointer-events-none absolute -top-32 -right-24 h-[460px] w-[460px] rounded-full bg-blue-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-24 h-[460px] w-[460px] rounded-full bg-violet-300/25 blur-3xl" />
+
+      <div className="relative w-full max-w-[640px] aspect-[5/6]">
+        {DEMO_SCENES.map((s, i) => {
+          const isActive = scene === i;
+          return (
+            <div
+              key={s.key}
+              className={`absolute inset-0 transition-all ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                isActive
+                  ? "opacity-100 scale-100 duration-[1200ms]"
+                  : "opacity-0 scale-[1.08] duration-700 pointer-events-none"
+              }`}
+            >
+              <div
+                className={`h-full w-full rounded-[2rem] bg-white ring-1 ring-slate-200/80 shadow-[0_50px_120px_-30px_rgba(15,40,120,0.35)] p-10 flex flex-col origin-center ${
+                  isActive ? "animate-kenburns" : ""
+                }`}
+              >
+                {i === 0 && <UploadScene active={isActive} />}
+                {i === 1 && <DashboardScene active={isActive} />}
+                {i === 2 && <AIScene active={isActive} />}
+                {i === 3 && <InsightScene active={isActive} />}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Dot indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-10">
         {DEMO_SCENES.map((s, i) => (
           <button
             key={s.key}
             onClick={() => setScene(i)}
             aria-label={s.label}
-            className={`h-1.5 rounded-full transition-all ${
-              scene === i ? "w-6 bg-blue-600" : "w-1.5 bg-slate-300 hover:bg-slate-400"
+            className={`h-2 rounded-full transition-all ${
+              scene === i ? "w-8 bg-blue-600" : "w-2 bg-slate-300 hover:bg-slate-400"
             }`}
           />
         ))}
