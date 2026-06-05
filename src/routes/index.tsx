@@ -280,7 +280,7 @@ function Index() {
         </div>
 
         {/* Right: Claude-style demo panel with cycling feature scenes */}
-        <DemoPanel />
+        <div className="lg:-mt-10 lg:translate-x-6"><DemoPanel /></div>
 
 
       </section>
