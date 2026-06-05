@@ -47,9 +47,14 @@ function Index() {
       {/* Nav */}
       <header className="flex items-center justify-between px-8 py-3 border-b border-slate-200/60 bg-white/70 backdrop-blur">
         <img src={optixProLogo.url} alt="OptiXPro" className="h-32 w-auto" />
-        <button className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
-          Sign up for free
-        </button>
+        <div className="flex items-center gap-6">
+          <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
+            About
+          </a>
+          <button className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
+            Sign up for free
+          </button>
+        </div>
       </header>
 
       {/* Hero */}
