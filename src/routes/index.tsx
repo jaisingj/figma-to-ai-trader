@@ -330,6 +330,9 @@ function HeroReveal() {
               className="absolute left-1/2 top-1/2 opacity-0"
               style={{
                 ["--rot" as never]: `${logo.rot}deg`,
+                ["--tx" as never]: `${logo.tx}px`,
+                ["--ty" as never]: `${logo.ty}px`,
+                ["--spin" as never]: `${logo.spin}deg`,
                 animation: `ai-pulse ${PER_LOGO}ms ${i * PER_LOGO}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
               }}
             >
