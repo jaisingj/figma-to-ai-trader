@@ -1271,18 +1271,18 @@ function CsvTransformScene({ active }: { active: boolean }) {
 
           {/* Dashboard preview overlay slides up at phase 3 */}
           <div
-            className={`absolute inset-x-3 bottom-16 rounded-xl bg-white ring-1 ring-blue-200 text-slate-900 p-4 shadow-[0_12px_32px_-12px_rgba(37,99,235,0.35)] transition-all duration-700 ${
-              phase >= 3 ? "translate-y-0 opacity-100" : "translate-y-[120%] opacity-0"
+            className={`absolute inset-x-6 top-1/2 -translate-y-1/2 rounded-2xl bg-white ring-1 ring-blue-200 text-slate-900 p-6 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.4)] transition-all duration-700 ${
+              phase >= 3 ? "opacity-100 scale-100" : "opacity-0 scale-95"
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-[9px] font-semibold tracking-widest text-blue-600">UNIFIED DASHBOARD READY</p>
-              <Sparkles className="h-3.5 w-3.5 text-blue-500" />
+              <p className="text-[12px] font-semibold tracking-widest text-blue-600">UNIFIED DASHBOARD READY</p>
+              <Sparkles className="h-5 w-5 text-blue-500" />
             </div>
-            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-              <div><p className="text-[9px] text-slate-400">TRADES</p><p className="font-bold text-blue-700">482</p></div>
-              <div><p className="text-[9px] text-slate-400">P/L</p><p className="font-bold text-blue-700">+$1,860</p></div>
-              <div><p className="text-[9px] text-slate-400">WIN</p><p className="font-bold text-blue-700">71%</p></div>
+            <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+              <div><p className="text-[11px] text-slate-400">TRADES</p><p className="text-2xl font-bold text-blue-700">482</p></div>
+              <div><p className="text-[11px] text-slate-400">P/L</p><p className="text-2xl font-bold text-blue-700">+$1,860</p></div>
+              <div><p className="text-[11px] text-slate-400">WIN</p><p className="text-2xl font-bold text-blue-700">71%</p></div>
             </div>
           </div>
         </div>
