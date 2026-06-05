@@ -1356,7 +1356,22 @@ function AIScene({ active }: { active: boolean }) {
         )}
       </div>
 
-      <div className="px-6 py-4 border-t border-slate-200">
+      <div className="px-6 py-4 border-t border-slate-200 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {[
+            "📊 Summarize my month",
+            "🎯 Best win rate setup",
+            "⚠️ Riskiest open positions",
+            "💡 Suggest better exits",
+          ].map((p) => (
+            <button
+              key={p}
+              className="text-[11.5px] font-medium px-3 py-1.5 rounded-full bg-white ring-1 ring-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            >
+              {p}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
           <MessageSquare className="h-4 w-4 text-slate-400" />
           <span className="text-[12px] text-slate-400 flex-1">Ask anything about your trading history…</span>
