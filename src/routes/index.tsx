@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plug, BrainCircuit, LineChart } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3 } from "lucide-react";
+
 import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
 import featureConnect from "@/assets/feature-connect.jpg";
 import featureInsights from "@/assets/feature-insights.jpg";
