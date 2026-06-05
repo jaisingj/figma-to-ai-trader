@@ -248,15 +248,15 @@ function ScrollColumn({ direction, delay }: { direction: "up" | "down"; delay: s
 
 function ScrollingFeatureWall() {
   return (
-    <section className="px-8 pb-20 max-w-7xl mx-auto">
+    <section className="px-8 pb-12 max-w-7xl mx-auto">
       <div className="grid lg:grid-cols-2 gap-10 items-center">
         <div>
-          <p className="text-xs font-semibold tracking-widest text-blue-600">LIVE INSIGHTS</p>
+          <p className="text-xs font-semibold tracking-widest text-blue-600">AI DRIVEN INSIGHTS</p>
           <h2 className="mt-3 text-4xl font-bold text-slate-900 leading-tight">
-            A living view of<br />your trading life.
+            Live insights from<br />every trade you make.
           </h2>
           <p className="mt-4 text-slate-600 max-w-md">
-            P/L, win rates, exposure, dividends, option legs — OptiX surfaces hundreds of signals from your CSV and keeps them fresh, automatically.
+            P/L, win rates, exposure, dividends, option legs — OptiX surfaces hundreds of signals from your broker data and keeps them fresh, automatically.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -268,6 +268,7 @@ function ScrollingFeatureWall() {
     </section>
   );
 }
+
 
 const OFFERS = [
   {
