@@ -1444,11 +1444,28 @@ function AIScene({ active }: { active: boolean }) {
   const PICKED_SHORTCUT = SHORTCUTS[0];
   const TYPED_QUESTION = "Why did I lose money on TSLA puts last month?";
 
-  type Msg = { role: "user" | "assistant"; model: string; text: string };
+  type TableData = {
+    title: string;
+    headers: string[];
+    rows: (string | { v: string; pos?: boolean })[][];
+    footer?: { label: string; value: string; pos?: boolean };
+  };
+  type Msg = { role: "user" | "assistant"; model: string; text?: string; table?: TableData };
   const ANSWER_1: Msg = {
     role: "assistant",
     model: "Claude",
-    text: "November P/L was +$1,840 across 62 trades. Win rate 58%. Best stretch: 11/12–11/19 (+$920 on TSLA calls). Worst: 11/26 earnings week on NVDA puts (-$410).",
+    text: "Here's your November snapshot — 62 trades, +$1,840 realized, 58% win rate.",
+    table: {
+      title: "November · weekly breakdown",
+      headers: ["Week", "Trades", "Win rate", "P/L"],
+      rows: [
+        ["Nov 1–8",   "14", "64%", { v: "+$420", pos: true }],
+        ["Nov 9–15",  "18", "72%", { v: "+$920", pos: true }],
+        ["Nov 16–22", "16", "50%", { v: "+$310", pos: true }],
+        ["Nov 23–30", "14", "43%", { v: "+$190", pos: true }],
+      ],
+      footer: { label: "Month total", value: "+$1,840", pos: true },
+    },
   };
   const ANSWER_2: Msg = {
     role: "assistant",
