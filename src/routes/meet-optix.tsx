@@ -69,7 +69,7 @@ function MeetOptixPage() {
         <p className="mt-5 text-sm text-slate-500">Published June 5, 2026 · 4 min read</p>
 
         {/* Lead */}
-        <p className="mt-10 text-lg leading-relaxed text-slate-700">
+        <p className="mt-10 text-xl leading-relaxed text-slate-700">
           OptiX is a unified options-trading dashboard with an AI co-pilot. Connect your
           brokers — Robinhood, Schwab, Fidelity, E*TRADE — and OptiX pulls every trade into one
           clean view. Then you can simply ask it:
@@ -82,7 +82,7 @@ function MeetOptixPage() {
           ].map((q) => (
             <div
               key={q}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm italic text-slate-700"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base italic text-slate-700"
             >
               "{q}"
             </div>
