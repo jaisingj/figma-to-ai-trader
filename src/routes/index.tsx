@@ -1617,10 +1617,7 @@ function AIScene({ active }: { active: boolean }) {
               >
                 {p}
                 {isPicked && (
-                  <>
-                    <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
-                    <MousePointer2 className="absolute -right-3 -bottom-3 h-4 w-4 text-slate-800 fill-white drop-shadow" />
-                  </>
+                  <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
                 )}
               </button>
             );
