@@ -541,18 +541,18 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATION = 7500;
+const SCENE_DURATIONS = [7500, 9000, 7500, 13000, 7500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
   const [tick, setTick] = useState(0); // forces scene re-mount to restart sub-animations
   useEffect(() => {
-    const id = setInterval(() => {
+    const id = setTimeout(() => {
       setScene((s) => (s + 1) % DEMO_SCENES.length);
       setTick((t) => t + 1);
-    }, SCENE_DURATION);
-    return () => clearInterval(id);
-  }, []);
+    }, SCENE_DURATIONS[scene]);
+    return () => clearTimeout(id);
+  }, [scene]);
 
   return (
     <div className="hidden lg:flex relative w-full flex-col items-center bg-slate-50 rounded-3xl ring-1 ring-slate-200/70 px-6 py-8 shadow-[0_30px_80px_-40px_rgba(15,40,120,0.25)]">
