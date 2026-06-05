@@ -259,11 +259,11 @@ import claudeLogo from "@/assets/claude.webp.asset.json";
 import llamaLogo from "@/assets/llama.svg.asset.json";
 
 const AI_LOGOS = [
-  { name: "Claude", src: claudeLogo.url, rot: -8 },
-  { name: "ChatGPT", src: chatgptLogo.url, rot: 6 },
-  { name: "Gemini", src: geminiLogo.url, rot: -5 },
-  { name: "LLaMA", src: llamaLogo.url, rot: 9 },
-  { name: "Perplexity", src: perplexityLogo.url, rot: -7 },
+  { name: "Claude", src: claudeLogo.url, rot: -8, tx: -260, ty: -160, spin: -540 },
+  { name: "ChatGPT", src: chatgptLogo.url, rot: 6, tx: 280, ty: -140, spin: 720 },
+  { name: "Gemini", src: geminiLogo.url, rot: -5, tx: -300, ty: 180, spin: -720 },
+  { name: "LLaMA", src: llamaLogo.url, rot: 9, tx: 290, ty: 190, spin: 540 },
+  { name: "Perplexity", src: perplexityLogo.url, rot: -7, tx: 0, ty: -260, spin: 900 },
 ];
 
 // Typewriter timing
@@ -278,7 +278,7 @@ const HOLD_MS = 4000;
 const T_TAGLINE_END = TYPE_DURATION + HOLD_MS;              // ~6560ms
 
 // Slow logo zoom
-const PER_LOGO = 2400;
+const PER_LOGO = 1800;
 const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO;
 const CAROUSEL_MS = 6500;
 const T_CAROUSEL_END = T_LOGOS_END + CAROUSEL_MS;
@@ -330,6 +330,9 @@ function HeroReveal() {
               className="absolute left-1/2 top-1/2 opacity-0"
               style={{
                 ["--rot" as never]: `${logo.rot}deg`,
+                ["--tx" as never]: `${logo.tx}px`,
+                ["--ty" as never]: `${logo.ty}px`,
+                ["--spin" as never]: `${logo.spin}deg`,
                 animation: `ai-pulse ${PER_LOGO}ms ${i * PER_LOGO}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
               }}
             >
@@ -366,10 +369,10 @@ function HeroReveal() {
         }
         @keyframes ai-pulse {
           0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(var(--rot)); }
-          25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot)); }
-          50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
-          70%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6) rotate(var(--rot)); }
+          20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot)); }
+          45%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
+          60%  { opacity: 1; transform: translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1.2) rotate(var(--rot)); }
+          100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4) rotate(var(--spin)); }
         }
       `}</style>
     </div>
