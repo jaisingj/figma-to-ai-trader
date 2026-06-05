@@ -1448,7 +1448,7 @@ function AIScene({ active }: { active: boolean }) {
   const ANSWER_2: Msg = {
     role: "assistant",
     model: "ChatGPT",
-    text: "You opened most TSLA puts 48h pre-earnings and held through IV crush. Average loss -$310 was vega decay, not direction — TSLA actually dropped 4%. Switch to debit spreads here (your win rate: 73% vs 41% on naked puts).",
+    text: "NVDA leads with a 78% win rate over 18 trades (+$1,120). Your edge: selling premium into IV spikes around earnings — STO/BTC cycles closed in under 5 days averaged 82% wins. Worst: TSLA at 41%.",
   };
 
   // Timeline (ms)
