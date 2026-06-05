@@ -631,16 +631,16 @@ function FinderScene({ active }: { active: boolean }) {
   return (
     <div className="relative h-full w-full bg-slate-100 p-8 flex flex-col items-center justify-center">
       {/* Upload card behind */}
-      <div className="w-full max-w-[420px] rounded-2xl bg-white ring-1 ring-slate-200 p-8 shadow-sm">
+      <div className="w-full max-w-[540px] rounded-2xl bg-white ring-1 ring-slate-200 p-10 shadow-sm">
         <p className="text-[11px] font-semibold tracking-widest text-slate-400">STEP 1 — IMPORT</p>
-        <h3 className="mt-2 text-xl font-semibold text-slate-900">Upload your broker CSV</h3>
-        <p className="mt-1.5 text-sm text-slate-500">We'll parse and normalize 482 trades in seconds.</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-900">Upload your broker CSV</h3>
+        <p className="mt-2 text-sm text-slate-500">We'll parse and normalize 482 trades in seconds.</p>
 
-        <div className="mt-6 rounded-xl border-2 border-dashed border-slate-300 p-6 flex flex-col items-center text-center">
-          <Upload className="h-7 w-7 text-slate-400" />
-          <p className="mt-2 text-sm text-slate-600">Drag a file here, or</p>
+        <div className="mt-7 rounded-xl border-2 border-dashed border-slate-300 p-10 flex flex-col items-center text-center">
+          <Upload className="h-10 w-10 text-slate-400" />
+          <p className="mt-3 text-base text-slate-600">Drag a file here, or</p>
           <button
-            className={`relative mt-3 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+            className={`relative mt-4 rounded-lg px-6 py-2.5 text-base font-semibold transition-all ${
               phase >= 1 ? "bg-slate-900 text-white scale-95" : "bg-slate-900 text-white hover:bg-slate-800"
             }`}
           >
@@ -652,17 +652,18 @@ function FinderScene({ active }: { active: boolean }) {
         </div>
 
         {phase >= 5 && (
-          <div className="mt-5 space-y-1.5 animate-fade-in">
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+          <div className="mt-6 space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2.5 text-sm font-medium text-emerald-700">
               <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
             </div>
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2.5 text-sm font-medium text-emerald-700">
               <Check className="h-4 w-4" /> schwab_export.csv loaded
             </div>
           </div>
         )}
 
       </div>
+
 
       {/* Mac Finder window */}
       {phase >= 2 && phase < 5 && (
@@ -753,23 +754,122 @@ function Cursor({ phase }: { phase: number }) {
   );
 }
 
+/* ---------- Excel-style spreadsheet ---------- */
+function ExcelSheet({
+  name, tabColor, headers, rows, faded, visible,
+}: {
+  name: string;
+  tabColor: "emerald" | "sky";
+  headers: string[];
+  rows: string[][];
+  faded: boolean;
+  visible: boolean;
+}) {
+  const colLetters = ["A", "B", "C", "D", "E", "F", "G"];
+  const tabColorClass = tabColor === "emerald" ? "bg-emerald-600" : "bg-sky-600";
+  return (
+    <div
+      className="flex-1 rounded-lg bg-white ring-1 ring-slate-300 shadow-sm overflow-hidden flex flex-col transition-all duration-700"
+      style={{
+        opacity: visible ? (faded ? 0.4 : 1) : 0,
+        transform: visible ? (faded ? "scale(0.97)" : "translateY(0)") : "translateY(20px)",
+      }}
+    >
+      {/* Excel-like title bar */}
+      <div className={`h-6 ${tabColorClass} text-white flex items-center px-2.5 text-[9px] font-semibold tracking-wider`}>
+        <FileSpreadsheet className="h-3 w-3 mr-1.5" />
+        {name}
+      </div>
+      {/* Formula bar */}
+      <div className="h-5 bg-slate-50 border-b border-slate-200 flex items-center px-2 gap-1.5 text-[8px] text-slate-500 font-mono">
+        <span className="px-1 rounded bg-white ring-1 ring-slate-200">A1</span>
+        <span className="italic text-slate-400">fx</span>
+        <span className="truncate">{headers[0]}</span>
+      </div>
+      {/* Grid */}
+      <div className="flex-1 overflow-hidden">
+        {/* Column header row */}
+        <div className="grid bg-slate-100 border-b border-slate-300" style={{ gridTemplateColumns: `20px repeat(${headers.length}, minmax(0, 1fr))` }}>
+          <div className="text-[8px] text-slate-500 text-center border-r border-slate-300 py-0.5"></div>
+          {headers.map((_, i) => (
+            <div key={i} className="text-[8px] text-slate-600 font-semibold text-center border-r border-slate-300 py-0.5">{colLetters[i]}</div>
+          ))}
+        </div>
+        {/* Header data row */}
+        <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: `20px repeat(${headers.length}, minmax(0, 1fr))` }}>
+          <div className="text-[8px] text-slate-500 text-center bg-slate-100 border-r border-slate-300 py-0.5">1</div>
+          {headers.map((h, i) => (
+            <div key={i} className="text-[9px] font-bold text-slate-800 px-1.5 py-0.5 border-r border-slate-200 truncate">{h}</div>
+          ))}
+        </div>
+        {/* Data rows */}
+        {rows.map((row, r) => (
+          <div key={r} className="grid border-b border-slate-100" style={{ gridTemplateColumns: `20px repeat(${headers.length}, minmax(0, 1fr))` }}>
+            <div className="text-[8px] text-slate-500 text-center bg-slate-100 border-r border-slate-300 py-0.5">{r + 2}</div>
+            {row.map((cell, c) => (
+              <div key={c} className="text-[9px] text-slate-700 px-1.5 py-0.5 border-r border-slate-200 truncate font-mono">{cell}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* Sheet tabs */}
+      <div className="h-4 bg-slate-100 border-t border-slate-300 flex items-center px-1 gap-0.5">
+        <span className="px-1.5 text-[7px] font-semibold text-slate-700 bg-white rounded-sm border border-slate-300 border-b-0 leading-3">Sheet1</span>
+        <span className="px-1.5 text-[7px] text-slate-500 leading-3">Sheet2</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Doughnut chart ---------- */
+function Doughnut({ data, total, centerLabel, centerValue }: {
+  data: { label: string; value: number; color: string }[];
+  total: number;
+  centerLabel: string;
+  centerValue: string;
+}) {
+  const R = 32, r = 20, C = 2 * Math.PI * R;
+  let offset = 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative shrink-0">
+        <svg viewBox="-40 -40 80 80" className="h-24 w-24 -rotate-90">
+          <circle cx="0" cy="0" r={R} fill="none" stroke="#f1f5f9" strokeWidth={R - r} />
+          {data.map((d, i) => {
+            const len = (d.value / total) * C;
+            const dash = `${len} ${C - len}`;
+            const dashoffset = -offset;
+            offset += len;
+            return (
+              <circle key={i} cx="0" cy="0" r={R} fill="none"
+                stroke={d.color} strokeWidth={R - r}
+                strokeDasharray={dash} strokeDashoffset={dashoffset} />
+            );
+          })}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <p className="text-[8px] text-slate-400 font-semibold tracking-wider">{centerLabel}</p>
+          <p className="text-sm font-bold text-slate-900">{centerValue}</p>
+        </div>
+      </div>
+      <div className="flex-1 space-y-1 min-w-0">
+        {data.map((d, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-[10px]">
+            <span className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: d.color }} />
+            <span className="text-slate-600 truncate flex-1">{d.label}</span>
+            <span className="text-slate-800 font-semibold">{Math.round((d.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Scene 2: CSV → Dashboard transformation ---------- */
+
 function CsvTransformScene({ active }: { active: boolean }) {
-  // Two broker CSVs with very different shapes
-  const robinhoodRows = [
-    `"8/28/2024","COST","Buy","12","$892.51","($10,710.12)"`,
-    `"8/27/2024","AAPL","STO","1","$4.41","$440.94"`,
-    `"8/22/2024","NFLX","STO","1","$9.10","$909.93"`,
-    `"8/16/2024","TSLA","STO","1","$13.63","$1,362.92"`,
-    `"8/07/2024","NVDA","Buy","25","$99.66","($2,491.63)"`,
-  ];
-  const schwabRows = [
-    `08/26/24|SELL_TO_OPEN|MSFT 09/20 420C|2|6.85|+1370.00`,
-    `08/21/24|BUY|AMZN|10|178.40|-1784.00`,
-    `08/15/24|BUY_TO_CLOSE|SPY 08/30 545P|3|2.10|-630.00`,
-    `08/12/24|SELL|GOOGL|5|164.20|+821.00`,
-    `08/04/24|SELL_TO_OPEN|META 09/06 500P|1|9.40|+940.00`,
-  ];
+  // Two broker CSVs are rendered as Excel sheets below
+
   const unified = [
     { d: "8/28", sym: "COST",  side: "BUY", qty: "12", px: "$892.51", amt: "-$10,710", pos: false, br: "RH" },
     { d: "8/27", sym: "AAPL",  side: "STO", qty: "1",  px: "$4.41",   amt: "+$441",    pos: true,  br: "RH" },
@@ -804,33 +904,37 @@ function CsvTransformScene({ active }: { active: boolean }) {
       <div className="flex-1 p-5 grid grid-cols-2 gap-4 overflow-hidden">
         {/* Left column: two CSVs stacked */}
         <div className="flex flex-col gap-3 min-h-0">
-          {/* Robinhood CSV */}
-          <div className="flex-1 rounded-xl bg-slate-900 ring-1 ring-slate-800 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-hidden transition-all duration-700"
-               style={{ opacity: phase >= 2 ? 0.35 : 1, transform: phase >= 2 ? "scale(0.97)" : "scale(1)" }}>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[9px] font-bold tracking-widest text-emerald-400">ROBINHOOD.CSV</span>
-            </div>
-            <div className="text-amber-300 truncate">"Date","Symbol","Code","Qty","Price","Amount"</div>
-            {robinhoodRows.map((r, i) => (
-              <div key={i} className="truncate text-slate-300">{r}</div>
-            ))}
-          </div>
+          {/* Robinhood CSV - Excel style */}
+          <ExcelSheet
+            name="ROBINHOOD.CSV"
+            tabColor="emerald"
+            headers={["Date", "Symbol", "Code", "Qty", "Price", "Amount"]}
+            rows={[
+              ["8/28/2024", "COST", "Buy", "12", "$892.51", "($10,710.12)"],
+              ["8/27/2024", "AAPL", "STO", "1", "$4.41", "$440.94"],
+              ["8/22/2024", "NFLX", "STO", "1", "$9.10", "$909.93"],
+              ["8/16/2024", "TSLA", "STO", "1", "$13.63", "$1,362.92"],
+              ["8/07/2024", "NVDA", "Buy", "25", "$99.66", "($2,491.63)"],
+            ]}
+            faded={phase >= 2}
+            visible
+          />
           {/* Schwab CSV - drops in at phase 1 */}
-          <div
-            className="flex-1 rounded-xl bg-slate-900 ring-1 ring-slate-800 p-3 font-mono text-[10px] leading-relaxed text-slate-200 overflow-hidden transition-all duration-700"
-            style={{
-              opacity: phase >= 1 ? (phase >= 2 ? 0.35 : 1) : 0,
-              transform: phase >= 1 ? (phase >= 2 ? "scale(0.97)" : "translateY(0)") : "translateY(20px)",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[9px] font-bold tracking-widest text-sky-400">SCHWAB_EXPORT.CSV</span>
-            </div>
-            <div className="text-amber-300 truncate">Date|Action|Description|Qty|Price|Amount</div>
-            {schwabRows.map((r, i) => (
-              <div key={i} className="truncate text-slate-300">{r}</div>
-            ))}
-          </div>
+          <ExcelSheet
+            name="SCHWAB_EXPORT.CSV"
+            tabColor="sky"
+            headers={["Date", "Action", "Description", "Qty", "Price", "Amount"]}
+            rows={[
+              ["08/26/24", "SELL_TO_OPEN", "MSFT 09/20 420C", "2", "6.85", "+1370.00"],
+              ["08/21/24", "BUY", "AMZN", "10", "178.40", "-1784.00"],
+              ["08/15/24", "BUY_TO_CLOSE", "SPY 08/30 545P", "3", "2.10", "-630.00"],
+              ["08/12/24", "SELL", "GOOGL", "5", "164.20", "+821.00"],
+              ["08/04/24", "SELL_TO_OPEN", "META 09/06 500P", "1", "9.40", "+940.00"],
+            ]}
+            faded={phase >= 2}
+            visible={phase >= 1}
+          />
+
         </div>
 
         {/* Right: unified table emerging */}
@@ -1007,8 +1111,41 @@ function DashboardScene({ active }: { active: boolean }) {
             ))}
           </div>
         </div>
+
+        {/* Distribution doughnuts */}
+        <div className={`grid grid-cols-2 gap-3 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "1040ms", animationFillMode: "both" }}>
+          <div className="rounded-xl ring-1 ring-slate-200 bg-white p-4">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-2">CALL vs PUT</p>
+            <Doughnut
+              total={6}
+              centerLabel="TRADES"
+              centerValue="6"
+              data={[
+                { label: "Calls", value: 4, color: "#10b981" },
+                { label: "Puts",  value: 2, color: "#f43f5e" },
+              ]}
+            />
+          </div>
+          <div className="rounded-xl ring-1 ring-slate-200 bg-white p-4">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-2">BY STOCK</p>
+            <Doughnut
+              total={6}
+              centerLabel="SYMBOLS"
+              centerValue="6"
+              data={[
+                { label: "TSLA", value: 1, color: "#2563eb" },
+                { label: "NVDA", value: 1, color: "#8b5cf6" },
+                { label: "SPY",  value: 1, color: "#06b6d4" },
+                { label: "AAPL", value: 1, color: "#f59e0b" },
+                { label: "META", value: 1, color: "#ec4899" },
+                { label: "AMZN", value: 1, color: "#14b8a6" },
+              ]}
+            />
+          </div>
+        </div>
       </div>
     </div>
+
   );
 }
 
