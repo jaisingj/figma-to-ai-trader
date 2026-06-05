@@ -466,265 +466,370 @@ function GettingStartedDialog({
 }
 
 /* =========================================================
-   Demo Panel — Claude-style cycling product demo
+   Demo Panel — narrated product walkthrough
    ========================================================= */
 
 const DEMO_SCENES = [
-  { key: "upload", label: "Import broker CSV" },
+  { key: "finder", label: "Import your trades" },
   { key: "dashboard", label: "Unified dashboard" },
-  { key: "ai", label: "Ask OptiX AI" },
-  { key: "insight", label: "Behaviour insights" },
+  { key: "checklist", label: "What OptiX can do" },
 ] as const;
+
+const SCENE_DURATION = 6500;
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
+  const [tick, setTick] = useState(0); // forces scene re-mount to restart sub-animations
   useEffect(() => {
-    const id = setInterval(() => setScene((s) => (s + 1) % DEMO_SCENES.length), 4500);
+    const id = setInterval(() => {
+      setScene((s) => (s + 1) % DEMO_SCENES.length);
+      setTick((t) => t + 1);
+    }, SCENE_DURATION);
     return () => clearInterval(id);
   }, []);
 
   return (
-    <div className="hidden lg:flex relative min-h-screen w-full items-center justify-center overflow-hidden border-l border-slate-200/70 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 px-8 py-16">
-      {/* ambient glow */}
-      <div className="pointer-events-none absolute -top-32 -right-24 h-[460px] w-[460px] rounded-full bg-blue-300/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-24 h-[460px] w-[460px] rounded-full bg-violet-300/25 blur-3xl" />
-
-      <div className="relative w-full max-w-[640px] aspect-[5/6]">
+    <div className="hidden lg:flex relative min-h-screen w-full items-center justify-center overflow-hidden border-l border-slate-200/70 bg-slate-50 px-10 py-16">
+      <div className="relative w-full max-w-[720px] aspect-[4/3]">
         {DEMO_SCENES.map((s, i) => {
           const isActive = scene === i;
           return (
             <div
               key={s.key}
-              className={`absolute inset-0 transition-all ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                isActive
-                  ? "opacity-100 scale-100 duration-[1200ms]"
-                  : "opacity-0 scale-[1.08] duration-700 pointer-events-none"
+              className={`absolute inset-0 transition-all duration-700 ease-out ${
+                isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
               }`}
             >
-              <div
-                className={`h-full w-full rounded-[2rem] bg-white ring-1 ring-slate-200/80 shadow-[0_50px_120px_-30px_rgba(15,40,120,0.35)] p-10 flex flex-col origin-center ${
-                  isActive ? "animate-kenburns" : ""
-                }`}
-              >
-                {i === 0 && <UploadScene active={isActive} />}
-                {i === 1 && <DashboardScene active={isActive} />}
-                {i === 2 && <AIScene active={isActive} />}
-                {i === 3 && <InsightScene active={isActive} />}
+              <div className="h-full w-full rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_40px_100px_-30px_rgba(15,40,120,0.25)] overflow-hidden flex flex-col">
+                {i === 0 && <FinderScene key={`finder-${tick}`} active={isActive} />}
+                {i === 1 && <DashboardScene key={`dash-${tick}`} active={isActive} />}
+                {i === 2 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Dot indicators */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-10">
-        {DEMO_SCENES.map((s, i) => (
-          <button
-            key={s.key}
-            onClick={() => setScene(i)}
-            aria-label={s.label}
-            className={`h-2 rounded-full transition-all ${
-              scene === i ? "w-8 bg-blue-600" : "w-2 bg-slate-300 hover:bg-slate-400"
-            }`}
-          />
-        ))}
+      {/* Scene label + dots */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-10">
+        <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
+          {DEMO_SCENES[scene].label}
+        </p>
+        <div className="flex items-center gap-2.5">
+          {DEMO_SCENES.map((s, i) => (
+            <button
+              key={s.key}
+              onClick={() => { setScene(i); setTick((t) => t + 1); }}
+              aria-label={s.label}
+              className={`h-2 rounded-full transition-all ${
+                scene === i ? "w-8 bg-slate-900" : "w-2 bg-slate-300 hover:bg-slate-400"
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ----- Scene 1: CSV upload ----- */
-function UploadScene({ active }: { active: boolean }) {
-  const [pct, setPct] = useState(0);
+/* ---------- Scene 1: Finder picker ---------- */
+function FinderScene({ active }: { active: boolean }) {
+  // Timeline (ms): 0 cursor moves to Browse, 900 click, 1100 finder opens,
+  // 2200 cursor to file, 3000 click file, 3300 file highlighted, 4000 Open click, 4500 success
+  const [phase, setPhase] = useState(0);
   useEffect(() => {
-    if (!active) { setPct(0); return; }
-    let p = 0;
+    if (!active) return;
+    const timers = [
+      setTimeout(() => setPhase(1), 900),   // browse clicked
+      setTimeout(() => setPhase(2), 1100),  // finder open
+      setTimeout(() => setPhase(3), 3000),  // file selected
+      setTimeout(() => setPhase(4), 4400),  // open clicked
+      setTimeout(() => setPhase(5), 4700),  // success
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [active]);
+
+  return (
+    <div className="relative h-full w-full bg-slate-100 p-8 flex flex-col items-center justify-center">
+      {/* Upload card behind */}
+      <div className="w-full max-w-[420px] rounded-2xl bg-white ring-1 ring-slate-200 p-8 shadow-sm">
+        <p className="text-[11px] font-semibold tracking-widest text-slate-400">STEP 1 — IMPORT</p>
+        <h3 className="mt-2 text-xl font-semibold text-slate-900">Upload your broker CSV</h3>
+        <p className="mt-1.5 text-sm text-slate-500">We'll parse and normalize 482 trades in seconds.</p>
+
+        <div className="mt-6 rounded-xl border-2 border-dashed border-slate-300 p-6 flex flex-col items-center text-center">
+          <Upload className="h-7 w-7 text-slate-400" />
+          <p className="mt-2 text-sm text-slate-600">Drag a file here, or</p>
+          <button
+            className={`relative mt-3 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              phase >= 1 ? "bg-slate-900 text-white scale-95" : "bg-slate-900 text-white hover:bg-slate-800"
+            }`}
+          >
+            Browse files
+            {phase === 1 && (
+              <span className="absolute inset-0 rounded-lg ring-4 ring-blue-400/40 animate-ping" />
+            )}
+          </button>
+        </div>
+
+        {phase >= 5 && (
+          <div className="mt-5 flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700 animate-fade-in">
+            <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
+          </div>
+        )}
+      </div>
+
+      {/* Mac Finder window */}
+      {phase >= 2 && phase < 5 && (
+        <div className="absolute left-1/2 top-1/2 w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-[0_30px_80px_-10px_rgba(0,0,0,0.35)] ring-1 ring-black/10 overflow-hidden animate-fade-in">
+          {/* title bar */}
+          <div className="h-9 bg-gradient-to-b from-slate-100 to-slate-200 border-b border-slate-300 flex items-center px-3 gap-2">
+            <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+            <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+            <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+            <div className="flex-1 flex items-center justify-center gap-2 text-[12px] font-semibold text-slate-700">
+              <Folder className="h-3.5 w-3.5" /> Downloads
+            </div>
+          </div>
+          {/* toolbar */}
+          <div className="h-9 bg-slate-50 border-b border-slate-200 flex items-center px-3 gap-2">
+            <ArrowLeft className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+            <div className="ml-auto flex items-center gap-1.5 rounded-md bg-white ring-1 ring-slate-200 px-2 py-1 text-[11px] text-slate-400">
+              <Search className="h-3 w-3" /> Search
+            </div>
+          </div>
+          {/* body */}
+          <div className="flex h-[240px]">
+            <div className="w-32 bg-slate-50 border-r border-slate-200 p-2 space-y-1 text-[11px]">
+              {["AirDrop", "Recents", "Applications", "Desktop", "Documents", "Downloads"].map((it) => (
+                <div key={it} className={`px-2 py-1 rounded ${it === "Downloads" ? "bg-blue-500 text-white" : "text-slate-600"}`}>{it}</div>
+              ))}
+            </div>
+            <div className="flex-1 p-3 space-y-1">
+              {[
+                { n: "screenshot_2026.png", t: "PNG", sel: false },
+                { n: "robinhood_options_2026.csv", t: "CSV · 1.2 MB", sel: true },
+                { n: "tax_summary.pdf", t: "PDF", sel: false },
+                { n: "schwab_export.xlsx", t: "Excel", sel: false },
+              ].map((f) => {
+                const highlighted = f.sel && phase >= 3;
+                return (
+                  <div
+                    key={f.n}
+                    className={`flex items-center gap-2 rounded px-2 py-1.5 text-[12px] transition-colors ${
+                      highlighted ? "bg-blue-500 text-white" : "text-slate-700"
+                    }`}
+                  >
+                    <FileText className={`h-3.5 w-3.5 ${highlighted ? "text-white" : "text-slate-400"}`} />
+                    <span className="flex-1 truncate">{f.n}</span>
+                    <span className={`text-[10px] ${highlighted ? "text-white/80" : "text-slate-400"}`}>{f.t}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* footer */}
+          <div className="h-11 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 px-3">
+            <button className="rounded-md px-3 py-1 text-[12px] font-medium text-slate-700 ring-1 ring-slate-300 bg-white">Cancel</button>
+            <button className={`relative rounded-md px-3 py-1 text-[12px] font-semibold text-white bg-blue-600 ${phase === 4 ? "scale-95" : ""}`}>
+              Open
+              {phase === 4 && <span className="absolute inset-0 rounded-md ring-4 ring-blue-400/40 animate-ping" />}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Animated cursor */}
+      <Cursor phase={phase} />
+    </div>
+  );
+}
+
+function Cursor({ phase }: { phase: number }) {
+  // approximate target points in % of container
+  const positions = [
+    { x: 50, y: 64 },  // 0 — over Browse
+    { x: 50, y: 64 },  // 1 — click Browse
+    { x: 50, y: 50 },  // 2 — moving to finder
+    { x: 56, y: 52 },  // 3 — on file (after selection)
+    { x: 70, y: 78 },  // 4 — Open button
+    { x: 70, y: 78 },  // 5 — done
+  ];
+  const p = positions[Math.min(phase, positions.length - 1)];
+  return (
+    <div
+      className="absolute pointer-events-none transition-all duration-700 ease-[cubic-bezier(0.4,0.2,0.2,1)] z-20"
+      style={{ left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -50%)" }}
+    >
+      <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
+    </div>
+  );
+}
+
+/* ---------- Scene 2: Slick dashboard ---------- */
+function DashboardScene({ active }: { active: boolean }) {
+  const kpis = [
+    { tag: "REALIZED P/L", value: "+$1,860", sub: "+12.4% MTD", pos: true },
+    { tag: "WIN RATE", value: "71%", sub: "vs 64% prior", pos: true },
+    { tag: "SHARPE", value: "1.82", sub: "strong risk-adj.", pos: true },
+    { tag: "OPEN POSITIONS", value: "7", sub: "net delta +24", pos: true },
+  ];
+  return (
+    <div className="h-full w-full flex flex-col bg-white">
+      {/* top bar */}
+      <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
+        <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600" />
+        <p className="text-sm font-semibold text-slate-900">OptiX Dashboard</p>
+        <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" /> Live · Robinhood
+        </div>
+      </div>
+
+      <div className="flex-1 p-6 space-y-5 overflow-hidden">
+        {/* KPIs */}
+        <div className="grid grid-cols-4 gap-3">
+          {kpis.map((k, i) => (
+            <div
+              key={k.tag}
+              className={`rounded-xl ring-1 ring-slate-200 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`}
+              style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}
+            >
+              <p className="text-[9px] font-semibold tracking-widest text-slate-400">{k.tag}</p>
+              <p className={`mt-1 text-lg font-bold ${k.pos ? "text-emerald-600" : "text-rose-600"}`}>{k.value}</p>
+              <p className="text-[10px] text-slate-500">{k.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Chart + side panel */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className={`col-span-2 rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "560ms", animationFillMode: "both" }}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold tracking-widest text-slate-400">EQUITY CURVE · 30D</p>
+              <p className="text-[11px] text-emerald-600 font-semibold">↗ +12.4%</p>
+            </div>
+            <svg viewBox="0 0 300 90" className="mt-2 w-full h-24">
+              <defs>
+                <linearGradient id="dashGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M0,70 L30,62 L60,66 L90,48 L120,52 L150,36 L180,42 L210,26 L240,30 L270,14 L300,10 L300,90 L0,90 Z" fill="url(#dashGrad)" />
+              <path
+                d="M0,70 L30,62 L60,66 L90,48 L120,52 L150,36 L180,42 L210,26 L240,30 L270,14 L300,10"
+                fill="none" stroke="#2563eb" strokeWidth="2"
+                strokeDasharray="600" strokeDashoffset={active ? "0" : "600"}
+                style={{ transition: "stroke-dashoffset 1.6s ease-out 0.6s" }}
+              />
+            </svg>
+          </div>
+
+          <div className={`rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "720ms", animationFillMode: "both" }}>
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400">TOP SYMBOLS</p>
+            <div className="mt-2 space-y-2">
+              {[
+                { s: "TSLA", v: "+$640", pos: true },
+                { s: "NVDA", v: "+$420", pos: true },
+                { s: "AAPL", v: "-$120", pos: false },
+                { s: "SPY",  v: "+$310", pos: true },
+              ].map((r) => (
+                <div key={r.s} className="flex items-center justify-between text-[12px]">
+                  <span className="font-medium text-slate-700">{r.s}</span>
+                  <span className={r.pos ? "text-emerald-600 font-semibold" : "text-rose-600 font-semibold"}>{r.v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* recent trades */}
+        <div className={`rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "880ms", animationFillMode: "both" }}>
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400">RECENT TRADES</p>
+          <div className="mt-2 grid grid-cols-4 gap-2 text-[11px] text-slate-500 font-medium">
+            <span>Symbol</span><span>Side</span><span>Qty</span><span className="text-right">P/L</span>
+          </div>
+          <div className="mt-1 space-y-1.5 text-[12px]">
+            {[
+              { s: "TSLA 250C", d: "BUY", q: "5", v: "+$240", pos: true },
+              { s: "NVDA 900P", d: "SELL", q: "3", v: "+$180", pos: true },
+              { s: "SPY 510C",  d: "BUY", q: "10", v: "-$60", pos: false },
+            ].map((t) => (
+              <div key={t.s} className="grid grid-cols-4 gap-2 items-center py-1 border-t border-slate-100">
+                <span className="font-medium text-slate-800">{t.s}</span>
+                <span className={t.d === "BUY" ? "text-blue-600" : "text-violet-600"}>{t.d}</span>
+                <span className="text-slate-600">{t.q}</span>
+                <span className={`text-right font-semibold ${t.pos ? "text-emerald-600" : "text-rose-600"}`}>{t.v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Scene 3: Checklist ---------- */
+function ChecklistScene({ active }: { active: boolean }) {
+  const items = [
+    "Unified view of all your trading data",
+    "AI-driven assessment of your strategy",
+    "Detailed transaction history & filters",
+    "Track investment progress over time",
+    "Behaviour profile & personality insights",
+    "Tax-ready P/L exports in one click",
+  ];
+  const [checked, setChecked] = useState(0);
+  useEffect(() => {
+    if (!active) { setChecked(0); return; }
+    let i = 0;
     const id = setInterval(() => {
-      p = Math.min(100, p + 6);
-      setPct(p);
-      if (p >= 100) clearInterval(id);
-    }, 90);
+      i += 1;
+      setChecked(i);
+      if (i >= items.length) clearInterval(id);
+    }, 550);
     return () => clearInterval(id);
   }, [active]);
 
   return (
-    <div className="flex flex-col h-full">
-      <p className="text-xs font-semibold tracking-widest text-slate-400">STEP 1 — IMPORT</p>
-      <h3 className="mt-1 text-lg font-semibold text-slate-900">Drop your broker CSV</h3>
+    <div className="h-full w-full flex flex-col bg-white p-10">
+      <p className="text-[11px] font-semibold tracking-widest text-slate-400">WHAT OPTIX CAN DO</p>
+      <h3 className="mt-2 text-2xl font-semibold text-slate-900">Everything your portfolio needs</h3>
+      <p className="mt-1.5 text-sm text-slate-500">One workspace for trades, insight, and progress.</p>
 
-      <div className="mt-5 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/50 p-6 flex flex-col items-center justify-center">
-        <div className="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30">
-          <Upload className="h-5 w-5" />
-        </div>
-        <p className="mt-3 text-sm font-medium text-slate-700">robinhood_options_2026.csv</p>
-        <p className="text-[11px] text-slate-500">1.2 MB · 482 trades</p>
-      </div>
+      <ul className="mt-6 space-y-3 flex-1">
+        {items.map((label, i) => {
+          const isChecked = i < checked;
+          return (
+            <li
+              key={label}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 ring-1 transition-all duration-500 ${
+                isChecked ? "ring-emerald-200 bg-emerald-50/60" : "ring-slate-200 bg-white"
+              }`}
+            >
+              <span
+                className={`flex h-6 w-6 items-center justify-center rounded-md ring-1 transition-all ${
+                  isChecked ? "bg-emerald-600 ring-emerald-600" : "bg-white ring-slate-300"
+                }`}
+              >
+                {isChecked && <Check className="h-4 w-4 text-white" />}
+              </span>
+              <span className={`text-sm font-medium transition-colors ${isChecked ? "text-slate-900" : "text-slate-500"}`}>
+                {label}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
 
-      <div className="mt-5 space-y-2">
-        <div className="flex justify-between text-[11px] text-slate-500">
-          <span>Parsing trades…</span>
-          <span className="font-semibold text-slate-700">{pct}%</span>
-        </div>
-        <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-          <div className="h-full bg-blue-600 transition-all duration-150" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {["Robinhood", "Schwab", "Fidelity", "SnapTrade"].map((b) => (
-          <span key={b} className="rounded-full bg-white ring-1 ring-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 flex items-center gap-1.5">
-            <FileSpreadsheet className="h-3 w-3 text-slate-400" /> {b}
-          </span>
-        ))}
-      </div>
-
-      {pct >= 100 && (
-        <div className="mt-auto flex items-center gap-2 text-[12px] font-medium text-emerald-600 animate-fade-in">
-          <Check className="h-4 w-4" /> 482 trades imported & normalized
+      {checked >= items.length && (
+        <div className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-blue-600 animate-fade-in">
+          <Sparkles className="h-4 w-4" /> Ready when you are.
         </div>
       )}
     </div>
   );
 }
 
-/* ----- Scene 2: Dashboard ----- */
-function DashboardScene({ active }: { active: boolean }) {
-  const kpis = [
-    { tag: "REALIZED P/L", value: "+$1,860", sub: "after tax +$1,720", pos: true },
-    { tag: "WIN RATE", value: "71%", sub: "vs 64% last month", pos: true },
-    { tag: "SHARPE", value: "1.82", sub: "strong risk-adj.", pos: true },
-    { tag: "OPEN POSITIONS", value: "7", sub: "net delta +24", pos: true },
-  ];
-  return (
-    <div className="flex flex-col h-full">
-      <p className="text-xs font-semibold tracking-widest text-slate-400">DASHBOARD</p>
-      <h3 className="mt-1 text-lg font-semibold text-slate-900">Everything, unified</h3>
-
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        {kpis.map((k, i) => (
-          <div
-            key={k.tag}
-            className={`rounded-xl bg-white ring-1 ring-slate-200 p-3 ${active ? "animate-fade-in" : ""}`}
-            style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}
-          >
-            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{k.tag}</p>
-            <p className={`mt-1 text-xl font-bold ${k.pos ? "text-emerald-600" : "text-rose-600"}`}>{k.value}</p>
-            <p className="text-[10px] text-slate-500">{k.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* mini line chart */}
-      <div className="mt-4 rounded-xl bg-white ring-1 ring-slate-200 p-3">
-        <div className="flex justify-between items-center">
-          <p className="text-[9px] font-semibold tracking-widest text-slate-400">EQUITY CURVE · 30D</p>
-          <p className="text-[10px] text-emerald-600 font-semibold">↗ +12.4%</p>
-        </div>
-        <svg viewBox="0 0 200 60" className="mt-2 w-full h-16">
-          <defs>
-            <linearGradient id="gradLine" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d="M0,45 L20,40 L40,42 L60,30 L80,33 L100,22 L120,26 L140,16 L160,18 L180,10 L200,8 L200,60 L0,60 Z" fill="url(#gradLine)" />
-          <path d="M0,45 L20,40 L40,42 L60,30 L80,33 L100,22 L120,26 L140,16 L160,18 L180,10 L200,8" fill="none" stroke="#2563eb" strokeWidth="2" />
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-/* ----- Scene 3: AI chat ----- */
-function AIScene({ active }: { active: boolean }) {
-  const fullAnswer = "You exit winners 2.3× faster than losers. On TSLA, your average winning trade lasted 38 min, while losers ran 4h 12m. Tightening your loss cutoff to 1.5× ATR could reclaim ~$640 over the last 30 days.";
-  const [typed, setTyped] = useState("");
-  useEffect(() => {
-    if (!active) { setTyped(""); return; }
-    let i = 0;
-    const id = setInterval(() => {
-      i += 3;
-      setTyped(fullAnswer.slice(0, i));
-      if (i >= fullAnswer.length) clearInterval(id);
-    }, 30);
-    return () => clearInterval(id);
-  }, [active]);
-
-  return (
-    <div className="flex flex-col h-full">
-      <p className="text-xs font-semibold tracking-widest text-slate-400">ASK OPTIX AI</p>
-      <h3 className="mt-1 text-lg font-semibold text-slate-900">Talk to your trades</h3>
-
-      <div className="mt-4 flex-1 space-y-3 overflow-hidden">
-        <div className="flex justify-end">
-          <div className="max-w-[80%] rounded-2xl rounded-br-md bg-blue-600 text-white px-4 py-2.5 text-sm">
-            Why am I losing on TSLA lately?
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <div className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
-            <Sparkles className="h-3.5 w-3.5 text-white" />
-          </div>
-          <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5 text-sm text-slate-700 leading-relaxed">
-            {typed}
-            <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-slate-400 align-middle animate-pulse" />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex items-center gap-2 rounded-full ring-1 ring-slate-200 bg-white px-3 py-2">
-        <MessageSquare className="h-4 w-4 text-slate-400" />
-        <span className="text-[12px] text-slate-400 flex-1">Ask about any symbol, strategy, or day…</span>
-        <button className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center">
-          <ArrowUp className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ----- Scene 4: Behaviour insight ----- */
-function InsightScene({ active }: { active: boolean }) {
-  return (
-    <div className="flex flex-col h-full">
-      <p className="text-xs font-semibold tracking-widest text-slate-400">BEHAVIOUR</p>
-      <h3 className="mt-1 text-lg font-semibold text-slate-900">Your trader personality</h3>
-
-      <div className={`mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-blue-50 ring-1 ring-violet-200/60 p-5 ${active ? "animate-fade-in" : ""}`}>
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <BrainCircuit className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold tracking-widest text-violet-600">PROFILE</p>
-            <p className="text-xl font-bold text-slate-900">Reactive Optimizer</p>
-          </div>
-        </div>
-        <p className="mt-4 text-sm text-slate-600 leading-relaxed">
-          You frequently re-balance positions on short-term signals. Strong at capturing momentum, prone to overtrading on red days.
-        </p>
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-2.5">
-        {[
-          { l: "Discipline", v: 72, c: "bg-emerald-500" },
-          { l: "Patience", v: 41, c: "bg-amber-500" },
-          { l: "Risk Mgmt", v: 86, c: "bg-blue-500" },
-        ].map((m, i) => (
-          <div key={m.l} className={`rounded-xl bg-white ring-1 ring-slate-200 p-3 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: `${200 + i * 120}ms`, animationFillMode: "both" }}>
-            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{m.l.toUpperCase()}</p>
-            <p className="mt-1 text-lg font-bold text-slate-900">{m.v}</p>
-            <div className="mt-1.5 h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div className={`h-full ${m.c}`} style={{ width: `${m.v}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-auto pt-3 flex items-center gap-2 text-[11px] text-blue-600 font-semibold">
-        <Sparkles className="h-3.5 w-3.5" /> Personalized to your last 482 trades
-      </div>
-    </div>
-  );
-}
 
