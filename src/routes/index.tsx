@@ -47,12 +47,13 @@ function Index() {
   const [step, setStep] = useState(0);
   const openGuide = () => { setStep(0); setGuideOpen(true); };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="min-h-screen bg-white">
       <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
 
       {/* Nav — Claude-style minimal */}
       <header className="flex items-center justify-between px-8 lg:px-12 py-5">
-        <img src={optixProLogo.url} alt="OptiXPro" className="h-20 w-auto" />
+        <img src={optixProLogo.url} alt="OptiXPro" className="h-32 w-auto" />
+
         <div className="flex items-center gap-6">
           <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
             About
