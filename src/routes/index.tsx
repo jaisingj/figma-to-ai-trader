@@ -844,7 +844,7 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATIONS = [7600, 5500, 9500, 3500, 10000, 5500];
+const SCENE_DURATIONS = [7600, 5500, 11500, 3500, 10000, 5500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
@@ -1271,18 +1271,18 @@ function CsvTransformScene({ active }: { active: boolean }) {
 
           {/* Dashboard preview overlay slides up at phase 3 */}
           <div
-            className={`absolute inset-x-3 bottom-16 rounded-xl bg-white ring-1 ring-blue-200 text-slate-900 p-4 shadow-[0_12px_32px_-12px_rgba(37,99,235,0.35)] transition-all duration-700 ${
-              phase >= 3 ? "translate-y-0 opacity-100" : "translate-y-[120%] opacity-0"
+            className={`absolute inset-x-6 top-1/2 -translate-y-1/2 rounded-2xl bg-white ring-1 ring-blue-200 text-slate-900 p-6 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.4)] transition-all duration-700 ${
+              phase >= 3 ? "opacity-100 scale-100" : "opacity-0 scale-95"
             }`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-[9px] font-semibold tracking-widest text-blue-600">UNIFIED DASHBOARD READY</p>
-              <Sparkles className="h-3.5 w-3.5 text-blue-500" />
+              <p className="text-[12px] font-semibold tracking-widest text-blue-600">UNIFIED DASHBOARD READY</p>
+              <Sparkles className="h-5 w-5 text-blue-500" />
             </div>
-            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-              <div><p className="text-[9px] text-slate-400">TRADES</p><p className="font-bold text-blue-700">482</p></div>
-              <div><p className="text-[9px] text-slate-400">P/L</p><p className="font-bold text-blue-700">+$1,860</p></div>
-              <div><p className="text-[9px] text-slate-400">WIN</p><p className="font-bold text-blue-700">71%</p></div>
+            <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+              <div><p className="text-[11px] text-slate-400">TRADES</p><p className="text-2xl font-bold text-blue-700">482</p></div>
+              <div><p className="text-[11px] text-slate-400">P/L</p><p className="text-2xl font-bold text-blue-700">+$1,860</p></div>
+              <div><p className="text-[11px] text-slate-400">WIN</p><p className="text-2xl font-bold text-blue-700">71%</p></div>
             </div>
           </div>
         </div>
@@ -1310,8 +1310,8 @@ function DashboardScene({ active }: { active: boolean }) {
   return (
     <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
       {/* top bar — slimmer */}
-      <div className="h-20 px-5 border-b border-blue-100 bg-white flex items-center gap-3">
-        <img src={optixProLogo} alt="OptiX" className="h-16 w-auto" />
+      <div className="h-28 px-6 border-b border-blue-100 bg-white flex items-center gap-4">
+        <img src={optixProLogo} alt="OptiX" className="h-24 w-auto" />
         <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
           <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Live · Robinhood
         </div>
@@ -1540,9 +1540,9 @@ function AIScene({ active }: { active: boolean }) {
       >
         <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
       </div>
-      <div className="h-16 px-5 border-b border-slate-200 flex items-center gap-3">
-        <Sparkles className="h-6 w-6 text-violet-600" />
-        <p className="text-2xl font-extrabold tracking-tight text-slate-900">Ask OptiX</p>
+      <div className="h-20 px-5 border-b border-slate-200 flex items-center gap-3">
+        <img src={optixProLogo} alt="OptiX" className="h-14 w-auto" />
+        <p className="text-2xl font-semibold tracking-tight text-slate-900">Ask OptiX</p>
         <div className="ml-auto flex items-center gap-1.5">
           {["Claude", "ChatGPT", "Gemini"].map((m) => (
             <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
