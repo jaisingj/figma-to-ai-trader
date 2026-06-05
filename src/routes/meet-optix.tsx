@@ -45,13 +45,13 @@ function MeetOptixPage() {
       {/* Top bar */}
       <header className="flex items-center justify-between px-6 lg:px-12 py-5 border-b border-slate-100">
         <Link to="/" className="flex items-center gap-3">
-          <img src={optixProLogo} alt="OptiX" className="h-12 w-auto" />
+          <img src={optixProLogo} alt="OptiX" className="h-56 w-auto" />
         </Link>
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition"
+          className="inline-flex items-center gap-1.5 text-base font-medium text-slate-600 hover:text-slate-900 transition"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           Back to home
         </Link>
       </header>
