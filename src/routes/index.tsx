@@ -64,20 +64,24 @@ function Index() {
         </div>
       </header>
 
-      <ScrollingFeatureWall />
-
       {/* Hero — Claude-style split layout */}
-      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-12 pt-6 pb-20 max-w-[1600px] mx-auto items-start">
-        {/* Left: headline + signup card */}
+      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-12 pt-2 pb-20 max-w-[1600px] mx-auto items-start">
+        {/* Left: headline + carousel + signup card */}
         <div className="flex flex-col items-center text-center">
           <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight">
             Your trades,<br />decoded in seconds.
           </h1>
           <p className="mt-6 text-base text-slate-600 max-w-md">
-            Import your broker data — OptiX decodes your patterns instantly across Robinhood, Schwab, and Fidelity.
+            Import your broker data — OptiX decodes your patterns instantly across Robinhood, Schwab, Etrade and Fidelity into fresh AI-powered trading insights.
           </p>
 
-          <div className="mt-10 w-full max-w-sm rounded-2xl border border-slate-200 bg-white/60 backdrop-blur p-5 shadow-sm">
+          <div className="mt-8 w-full max-w-md grid grid-cols-3 gap-2">
+            <ScrollColumn direction="up" delay="0s" compact />
+            <ScrollColumn direction="down" delay="-6s" compact />
+            <ScrollColumn direction="up" delay="-12s" compact />
+          </div>
+
+          <div className="mt-8 w-full max-w-sm rounded-2xl border border-slate-200 bg-white/60 backdrop-blur p-5 shadow-sm">
             <button
               onClick={openGuide}
               className="w-full flex items-center justify-center gap-2.5 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50 transition"
@@ -117,6 +121,8 @@ function Index() {
 
 
       </section>
+
+
 
       {/* How it works */}
       <section className="px-8 pt-4 pb-24 max-w-7xl mx-auto">
