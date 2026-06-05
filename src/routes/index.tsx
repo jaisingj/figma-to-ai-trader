@@ -756,18 +756,18 @@ function FinderScene({ active }: { active: boolean }) {
   }, [active]);
 
   return (
-    <div className="relative h-full w-full bg-slate-100 p-8 flex flex-col items-center justify-center">
+    <div className="relative h-full w-full bg-slate-100 px-8 pt-4 pb-8 flex flex-col items-center justify-start">
       {/* Upload card behind */}
-      <div className="w-full max-w-[540px] rounded-2xl bg-white ring-1 ring-slate-200 p-10 shadow-sm">
+      <div className="w-full max-w-[600px] rounded-2xl bg-white ring-1 ring-slate-200 p-10 pb-12 shadow-sm">
         <p className="text-[11px] font-semibold tracking-widest text-slate-400">STEP 1 — IMPORT</p>
         <h3 className="mt-2 text-2xl font-semibold text-slate-900">Upload your broker CSV</h3>
         <p className="mt-2 text-sm text-slate-500">We'll parse and normalize 482 trades in seconds.</p>
 
-        <div className="mt-7 rounded-xl border-2 border-dashed border-slate-300 p-10 flex flex-col items-center text-center">
-          <Upload className="h-10 w-10 text-slate-400" />
-          <p className="mt-3 text-base text-slate-600">Drag a file here, or</p>
+        <div className="mt-7 rounded-xl border-2 border-dashed border-slate-300 px-10 py-16 flex flex-col items-center text-center">
+          <Upload className="h-12 w-12 text-slate-400" />
+          <p className="mt-4 text-base text-slate-600">Drag a file here, or</p>
           <button
-            className={`relative mt-4 rounded-lg px-6 py-2.5 text-base font-semibold transition-all ${
+            className={`relative mt-5 rounded-lg px-7 py-3 text-base font-semibold transition-all ${
               phase >= 1 ? "bg-slate-900 text-white scale-95" : "bg-slate-900 text-white hover:bg-slate-800"
             }`}
           >
