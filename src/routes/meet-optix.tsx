@@ -10,8 +10,14 @@ import {
   TrendingUp,
   FileText,
   Zap,
+  LayoutDashboard,
+  Send,
 } from "lucide-react";
 import optixProLogo from "@/assets/optixpro-transparent.png";
+import claudeLogo from "@/assets/claude.webp.asset.json";
+import chatgptLogo from "@/assets/chatgpt.webp.asset.json";
+import geminiLogo from "@/assets/gemini.webp.asset.json";
+import llamaLogo from "@/assets/llama.svg.asset.json";
 
 export const Route = createFileRoute("/meet-optix")({
   head: () => ({
@@ -39,13 +45,13 @@ function MeetOptixPage() {
       {/* Top bar */}
       <header className="flex items-center justify-between px-6 lg:px-12 py-5 border-b border-slate-100">
         <Link to="/" className="flex items-center gap-3">
-          <img src={optixProLogo} alt="OptiX" className="h-12 w-auto" />
+          <img src={optixProLogo} alt="OptiX" className="h-56 w-auto" />
         </Link>
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition"
+          className="inline-flex items-center gap-1.5 text-base font-medium text-slate-600 hover:text-slate-900 transition"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           Back to home
         </Link>
       </header>
@@ -63,7 +69,7 @@ function MeetOptixPage() {
         <p className="mt-5 text-sm text-slate-500">Published June 5, 2026 · 4 min read</p>
 
         {/* Lead */}
-        <p className="mt-10 text-lg leading-relaxed text-slate-700">
+        <p className="mt-10 text-xl leading-relaxed text-slate-700">
           OptiX is a unified options-trading dashboard with an AI co-pilot. Connect your
           brokers — Robinhood, Schwab, Fidelity, E*TRADE — and OptiX pulls every trade into one
           clean view. Then you can simply ask it:
@@ -76,7 +82,7 @@ function MeetOptixPage() {
           ].map((q) => (
             <div
               key={q}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm italic text-slate-700"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base italic text-slate-700"
             >
               "{q}"
             </div>
@@ -89,8 +95,8 @@ function MeetOptixPage() {
             <AlertTriangle className="h-5 w-5" />
             <span className="text-xs font-semibold tracking-[0.2em] uppercase">The problem</span>
           </div>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight">The Excel problem</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">The Excel problem</h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             We built OptiX because we lived the alternative. Every serious retail options trader
             we knew kept some version of the same spreadsheet — and it always broke in the same
             ways.
@@ -113,7 +119,7 @@ function MeetOptixPage() {
             ))}
           </ul>
 
-          <p className="mt-6 text-slate-700 leading-relaxed">
+          <p className="mt-6 text-xl leading-relaxed text-slate-700">
             It worked — until it didn't. The spreadsheet got slower, the data got messier, and
             the insight you actually wanted{" "}
             <span className="italic text-slate-900">
@@ -129,8 +135,8 @@ function MeetOptixPage() {
             <Sparkles className="h-5 w-5" />
             <span className="text-xs font-semibold tracking-[0.2em] uppercase">The fix</span>
           </div>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight">What OptiX does differently</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">What OptiX does differently</h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             OptiX replaces the entire spreadsheet workflow with two things: a unified dashboard
             and a chat interface that understands your trades.
           </p>
@@ -149,16 +155,68 @@ function MeetOptixPage() {
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 font-semibold text-slate-900">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{f.body}</p>
+                <p className="mt-2 text-base leading-relaxed text-slate-600">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* See it in action — Dashboard + Chat */}
+        <section className="mt-24">
+          <div className="flex items-center gap-2 text-blue-600">
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="text-xs font-semibold tracking-[0.2em] uppercase">See it</span>
+          </div>
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">
+            One clean dashboard. One smart chat.
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
+            Your unified P/L, win rate, and exposure on the left. An AI co-pilot on the right that
+            has read every fill you've ever made.
+          </p>
+
+          <DashboardChatPreview />
+        </section>
+
+        {/* AI models */}
+        <section className="mt-24">
+          <div className="flex items-center gap-2 text-blue-600">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-xs font-semibold tracking-[0.2em] uppercase">Bring your own AI</span>
+          </div>
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">
+            Works with every major model
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
+            Plug in your own API key from Anthropic, OpenAI, Google, or Meta. Switch models any
+            time — your trade data never leaves your control.
+          </p>
+
+          <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { name: "Claude", src: claudeLogo.url, by: "Anthropic" },
+              { name: "ChatGPT", src: chatgptLogo.url, by: "OpenAI" },
+              { name: "Gemini", src: geminiLogo.url, by: "Google" },
+              { name: "LLaMA", src: llamaLogo.url, by: "Meta" },
+            ].map((m) => (
+              <div
+                key={m.name}
+                className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-[0_8px_24px_-12px_rgba(37,99,235,0.25)] transition"
+              >
+                <img src={m.src} alt={m.name} className="h-12 w-12 object-contain" />
+                <p className="mt-3 text-base font-semibold text-slate-900">{m.name}</p>
+                <p className="text-xs text-slate-500">{m.by}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* Built for traders */}
-        <section className="mt-20">
-          <h2 className="text-3xl font-bold tracking-tight">Built for traders, not accountants</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+        <section className="mt-24">
+          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">
+            Built for traders, not accountants
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             Existing portfolio trackers were built for buy-and-hold equity investors. They treat
             options as an afterthought — a single line item with no notion of legs, strikes, or
             expiration. OptiX was designed options-first from day one, so the dashboard speaks
@@ -167,19 +225,18 @@ function MeetOptixPage() {
         </section>
 
         {/* Privacy */}
-        <section className="mt-20">
-          <h2 className="text-3xl font-bold tracking-tight">Your data, your models</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+        <section className="mt-24">
+          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">Your data, your models</h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             OptiX is privacy-first. Your trade data is encrypted and never used to train shared
-            models. You bring your own LLM API key — Claude, ChatGPT, Gemini, or LLaMA — and
-            OptiX uses it to power the chat. You stay in control of which model sees your trades
-            and what it costs.
+            models. You bring your own LLM API key and OptiX uses it to power the chat. You stay
+            in control of which model sees your trades and what it costs.
           </p>
         </section>
 
         {/* CTA */}
         <div className="mt-20 rounded-3xl bg-slate-900 text-white p-10 lg:p-14 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Stop wrangling spreadsheets.</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">Stop wrangling spreadsheets.</h2>
           <p className="mt-3 text-slate-300 max-w-xl mx-auto">
             Connect your broker in a minute and let OptiX tell you what your trades have been
             trying to tell you.
@@ -363,6 +420,133 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-[9px] tracking-widest text-slate-400">{label}</p>
       <p className="text-base font-bold text-blue-700">{value}</p>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- */
+/* Dashboard + AI Chat preview                                     */
+/* --------------------------------------------------------------- */
+function DashboardChatPreview() {
+  return (
+    <div className="mt-10 grid gap-4 lg:grid-cols-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 lg:p-6">
+      {/* Dashboard */}
+      <div className="lg:col-span-3 rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+            <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
+              Unified dashboard
+            </p>
+          </div>
+          <span className="text-[10px] font-medium text-slate-400">Live · 4 brokers</span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <DashStat label="REALIZED P/L" value="+$1,860" sub="+12.4% MTD" tone="emerald" />
+          <DashStat label="WIN RATE" value="71%" sub="vs 64% prior" tone="blue" />
+          <DashStat label="TRADES" value="482" sub="this quarter" tone="slate" />
+        </div>
+
+        {/* tiny chart */}
+        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-end justify-between h-24 gap-1.5">
+            {[40, 55, 35, 70, 50, 80, 60, 95, 75, 110, 90, 130].map((h, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t-md bg-gradient-to-t from-blue-500 to-blue-300"
+                style={{ height: `${h}%` }}
+              />
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between text-[10px] text-slate-400">
+            <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span>
+          </div>
+        </div>
+
+        {/* recent trades */}
+        <div className="mt-4 space-y-1.5">
+          {[
+            { d: "8/16", s: "TSLA", t: "STO", pl: "+$1,363", c: "text-emerald-600" },
+            { d: "8/15", s: "SPY", t: "BTC", pl: "-$630", c: "text-rose-600" },
+            { d: "8/12", s: "GOOGL", t: "SELL", pl: "+$821", c: "text-emerald-600" },
+          ].map((r) => (
+            <div
+              key={r.d}
+              className="grid grid-cols-4 items-center text-xs px-3 py-2 rounded-lg bg-slate-50 border border-slate-100"
+            >
+              <span className="text-slate-500">{r.d}</span>
+              <span className="font-semibold text-slate-900">{r.s}</span>
+              <span className="text-slate-500">{r.t}</span>
+              <span className={`text-right font-semibold ${r.c}`}>{r.pl}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat */}
+      <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Ask OptiX</p>
+            <p className="text-[10px] text-slate-400">Powered by your LLM</p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex-1 space-y-3">
+          <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-3.5 py-2 text-sm text-white">
+            Why am I down on Mondays?
+          </div>
+          <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-slate-100 px-3.5 py-2.5 text-sm text-slate-800">
+            Across the last 12 weeks, your Monday trades show a{" "}
+            <span className="font-semibold text-rose-600">-$412 avg P/L</span>. You tend to open
+            larger 0DTE positions before noon. Tue–Thu the same setup is{" "}
+            <span className="font-semibold text-emerald-600">+$280 avg</span>.
+          </div>
+          <div className="max-w-[60%] rounded-2xl rounded-tl-sm bg-slate-100 px-3.5 py-2 text-xs text-slate-500 italic">
+            Want me to flag this next Monday?
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
+          <input
+            disabled
+            placeholder="Ask anything about your trades…"
+            className="flex-1 bg-transparent text-xs text-slate-500 outline-none"
+          />
+          <button className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white">
+            <Send className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DashStat({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  tone: "emerald" | "blue" | "slate";
+}) {
+  const toneMap = {
+    emerald: "text-emerald-600",
+    blue: "text-blue-600",
+    slate: "text-slate-900",
+  };
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-[10px] font-semibold tracking-widest text-slate-400">{label}</p>
+      <p className={`mt-1 text-lg font-bold ${toneMap[tone]}`}>{value}</p>
+      <p className="text-[10px] text-slate-500">{sub}</p>
     </div>
   );
 }
