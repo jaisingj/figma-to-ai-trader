@@ -379,7 +379,7 @@ function GettingStartedDialog({
         <div className="p-8">
           <div className="flex items-center gap-3">
             {step === 0 ? (
-              <img src={optixProLogo.url} alt="OptiX" className="h-10 w-auto" />
+              <img src={optixProLogo} alt="OptiX" className="h-10 w-auto" />
             ) : (
               <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
                 <KeyRound className="h-5 w-5 text-blue-600" />
