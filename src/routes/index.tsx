@@ -1469,6 +1469,13 @@ function AIScene({ active }: { active: boolean }) {
   const [typing, setTyping] = useState(false);
   const [inputChars, setInputChars] = useState(0);
   const [cursorAt, setCursorAt] = useState<"rest" | "shortcut" | "gone">("rest");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+  }, [messages, typing]);
 
   useEffect(() => {
     if (!active) {
