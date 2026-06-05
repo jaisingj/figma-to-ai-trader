@@ -227,6 +227,267 @@ function Index() {
           ))}
         </div>
       </section>
+
+      <WhatOptixOffers />
     </div>
   );
 }
+
+const OFFERS = [
+  {
+    title: "Success and Progress Analysis",
+    desc: "Track your growth with clear profit and performance insights.",
+    icon: TrendingUp,
+    iconBg: "from-emerald-400 to-emerald-600",
+    dot: "bg-emerald-500",
+  },
+  {
+    title: "Trading Activity Analysis",
+    desc: "Get a detailed view of your trading behavior and execution.",
+    icon: PieChart,
+    iconBg: "from-blue-400 to-blue-600",
+    dot: "bg-blue-500",
+  },
+  {
+    title: "Investment Analysis",
+    desc: "Keep track of open trades and overall capital utilization.",
+    icon: DollarSign,
+    iconBg: "from-amber-400 to-orange-500",
+    dot: "bg-orange-500",
+  },
+  {
+    title: "AI Driven Behaviour Analysis",
+    desc: "Use AI insights to improve trading discipline and consistency.",
+    icon: BarChart3,
+    iconBg: "from-violet-400 to-violet-600",
+    dot: "bg-violet-500",
+  },
+];
+
+function WhatOptixOffers() {
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setActive((a) => (a + 1) % OFFERS.length), 3500);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <section className="px-8 pb-24 max-w-7xl mx-auto">
+      <h2 className="text-4xl font-bold text-slate-900 text-center">What OptiX offers</h2>
+      <p className="mt-4 text-slate-600 text-center max-w-3xl mx-auto">
+        Comprehensive analytics to help you understand your performance, trading activity, and trading behavior.
+      </p>
+
+      <div className="mt-14 rounded-3xl bg-slate-50/80 ring-1 ring-slate-200/70 p-8 md:p-12">
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          {/* Left: timeline */}
+          <div className="relative">
+            <div className="absolute left-[22px] top-6 bottom-6 w-px bg-slate-200" />
+            <ul className="space-y-10">
+              {OFFERS.map((o, i) => {
+                const isActive = i === active;
+                const Icon = o.icon;
+                return (
+                  <li
+                    key={o.title}
+                    className="relative flex gap-5 cursor-pointer"
+                    onClick={() => setActive(i)}
+                  >
+                    <div className="relative z-10 shrink-0">
+                      <div
+                        className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${o.iconBg} flex items-center justify-center shadow-sm ring-1 ring-white transition-transform ${isActive ? "scale-110" : "scale-100 opacity-90"}`}
+                      >
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                      <span
+                        className={`absolute -left-6 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full transition-all ${isActive ? o.dot : "bg-slate-300"}`}
+                      />
+                    </div>
+                    <div className="pt-1">
+                      <h3
+                        className={`text-xl font-bold transition-colors ${isActive ? "text-slate-900" : "text-slate-400"}`}
+                      >
+                        {o.title}
+                      </h3>
+                      <p
+                        className={`mt-2 max-w-md leading-relaxed transition-colors ${isActive ? "text-slate-600" : "text-slate-400"}`}
+                      >
+                        {o.desc}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Right: rotating visuals */}
+          <div className="relative min-h-[420px]">
+            {OFFERS.map((_, i) => (
+              <div
+                key={i}
+                className={`absolute inset-0 transition-all duration-700 ${active === i ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}
+              >
+                {i === 0 && <SuccessVisual />}
+                {i === 1 && <TradingVisual />}
+                {i === 2 && <InvestmentVisual />}
+                {i === 3 && <AIVisual />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-2xl bg-white ring-1 ring-slate-200/80 shadow-[0_10px_30px_-18px_rgba(15,40,120,0.18)] p-4 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function SuccessVisual() {
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <div className="space-y-4 col-span-1">
+        <Card>
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400">REALIZED P/L</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-600">+$1,860</p>
+          <p className="mt-1 text-[11px] text-slate-500">After Tax: <span className="text-emerald-600 font-semibold">+$1,720</span></p>
+        </Card>
+        <Card>
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400">WIN RATE</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">71%</p>
+          <p className="mt-1 text-[10px] text-slate-500">Avg win <span className="text-emerald-600 font-semibold">$240</span> · Loss <span className="text-rose-600 font-semibold">-$410</span></p>
+        </Card>
+        <Card>
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400">PREMIUM</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-600">+$2,320</p>
+          <p className="mt-1 text-[11px] text-rose-600">↘ 10% <span className="text-slate-500">last week</span></p>
+        </Card>
+      </div>
+      <Card className="col-span-2 flex flex-col">
+        <svg viewBox="0 0 300 180" className="w-full h-full">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0,140 L30,150 L60,120 L90,110 L120,90 L150,70 L180,55 L210,45 L240,35 L270,25 L300,20 L300,180 L0,180 Z" fill="url(#g1)" />
+          <path d="M0,140 L30,150 L60,120 L90,110 L120,90 L150,70 L180,55 L210,45 L240,35 L270,25 L300,20" fill="none" stroke="#059669" strokeWidth="2" />
+        </svg>
+        <div className="mt-2 flex justify-between text-[10px] text-slate-400">
+          <span>Jan 1</span><span>Jan 15</span><span>Feb 5</span><span>Feb 26</span>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function TradingVisual() {
+  const rows = [
+    { sym: "NVDA $480 Put", status: "ASSIGNED", color: "bg-slate-100 text-slate-600", pl: "+$2,100", plColor: "text-emerald-600" },
+    { sym: "AAPL $680 Call", status: "OPEN", color: "bg-amber-100 text-amber-700", pl: "-$1,500", plColor: "text-rose-600" },
+    { sym: "AAPL $650 Call", status: "CLOSED", color: "bg-slate-100 text-slate-600", pl: "+$1,300", plColor: "text-emerald-600" },
+    { sym: "TSLA $150 Put", status: "EXERCISED", color: "bg-blue-100 text-blue-700", pl: "+$14,400", plColor: "text-emerald-600" },
+  ];
+  return (
+    <div className="space-y-4">
+      <Card>
+        <div className="space-y-2.5">
+          {rows.map((r) => (
+            <div key={r.sym} className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-slate-800">{r.sym}</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${r.color}`}>{r.status}</span>
+              <span className={`font-semibold ${r.plColor}`}>{r.pl}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { t: "BUYS VS SELLS", a: "Buys 12", b: "Sells 32", ring: "border-blue-500 border-r-blue-200 border-b-blue-200" },
+          { t: "CALLS VS PUTS", a: "Calls 16", b: "Puts 20", ring: "border-blue-300 border-t-blue-600" },
+          { t: "PROFIT BY SYMBOL", a: "AAPL", b: "+$980", ring: "border-blue-600 border-b-blue-300 border-l-blue-400" },
+        ].map((c) => (
+          <Card key={c.t}>
+            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{c.t}</p>
+            <div className="mt-2 flex justify-center">
+              <div className={`h-14 w-14 rounded-full border-[8px] ${c.ring}`} />
+            </div>
+            <p className="mt-2 text-center text-[10px] text-slate-500">{c.a} · {c.b}</p>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InvestmentVisual() {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400">OPEN POSITIONS</p>
+          <p className="mt-1 text-3xl font-bold text-slate-900">7</p>
+          <p className="mt-1 text-[11px] text-slate-500">Net delta <span className="font-semibold text-slate-900">+24</span></p>
+        </Card>
+        <Card>
+          <p className="text-[10px] font-semibold tracking-widest text-slate-400">CAPITAL DEPLOYED</p>
+          <p className="mt-1 text-3xl font-bold text-slate-900">$48.2k</p>
+          <p className="mt-1 text-[11px] text-emerald-600">↗ 62% utilization</p>
+        </Card>
+      </div>
+      <Card>
+        <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-3">EXPOSURE BY SYMBOL</p>
+        {[
+          { s: "AAPL", v: 80, c: "bg-blue-600" },
+          { s: "TSLA", v: 60, c: "bg-blue-500" },
+          { s: "NVDA", v: 45, c: "bg-blue-400" },
+          { s: "NFLX", v: 25, c: "bg-blue-300" },
+        ].map((r) => (
+          <div key={r.s} className="flex items-center gap-3 my-2 text-xs">
+            <span className="w-12 font-semibold text-slate-700">{r.s}</span>
+            <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className={`h-full ${r.c} rounded-full`} style={{ width: `${r.v}%` }} />
+            </div>
+            <span className="w-12 text-right text-slate-500">{r.v}%</span>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+function AIVisual() {
+  return (
+    <div className="space-y-4">
+      <Card>
+        <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
+        <p className="mt-1 text-xl font-bold text-slate-900">Reactive Optimizer</p>
+        <p className="mt-2 text-sm text-slate-600 leading-relaxed">You frequently adjust positions based on short-term signals rather than planned exits.</p>
+        <p className="mt-3 text-[11px] text-blue-600 font-semibold">✦ Deep dive →</p>
+      </Card>
+      <Card>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-500 to-violet-500" />
+          <p className="text-sm font-semibold text-slate-900">Ask OptiX</p>
+        </div>
+        <div className="space-y-1.5">
+          {[
+            "Which trades contributed most to my performance?",
+            "How are my sell vs buy strategies performing?",
+            "What is my current exposure from open positions?",
+          ].map((q) => (
+            <div key={q} className="rounded-md bg-slate-50 px-3 py-1.5 text-[11px] text-slate-600">{q}</div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
