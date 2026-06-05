@@ -1277,7 +1277,7 @@ function CsvTransformScene({ active }: { active: boolean }) {
 
           {/* Dashboard preview overlay slides up at phase 3 */}
           <div
-            className={`absolute inset-x-6 top-1/2 -translate-y-1/2 rounded-2xl bg-white ring-1 ring-blue-200 text-slate-900 p-6 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.4)] transition-all duration-700 ${
+            className={`absolute inset-x-6 top-[65%] -translate-y-1/2 rounded-2xl bg-white ring-1 ring-blue-200 text-slate-900 p-6 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.4)] transition-all duration-700 ${
               phase >= 3 ? "opacity-100 scale-100" : "opacity-0 scale-95"
             }`}
           >
