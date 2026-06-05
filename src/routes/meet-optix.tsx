@@ -95,8 +95,8 @@ function MeetOptixPage() {
             <AlertTriangle className="h-5 w-5" />
             <span className="text-xs font-semibold tracking-[0.2em] uppercase">The problem</span>
           </div>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight">The Excel problem</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">The Excel problem</h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             We built OptiX because we lived the alternative. Every serious retail options trader
             we knew kept some version of the same spreadsheet — and it always broke in the same
             ways.
@@ -119,7 +119,7 @@ function MeetOptixPage() {
             ))}
           </ul>
 
-          <p className="mt-6 text-slate-700 leading-relaxed">
+          <p className="mt-6 text-xl leading-relaxed text-slate-700">
             It worked — until it didn't. The spreadsheet got slower, the data got messier, and
             the insight you actually wanted{" "}
             <span className="italic text-slate-900">
@@ -135,8 +135,8 @@ function MeetOptixPage() {
             <Sparkles className="h-5 w-5" />
             <span className="text-xs font-semibold tracking-[0.2em] uppercase">The fix</span>
           </div>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight">What OptiX does differently</h2>
-          <p className="mt-4 text-slate-700 leading-relaxed">
+          <h2 className="mt-3 text-3xl lg:text-4xl font-bold tracking-tight">What OptiX does differently</h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-700">
             OptiX replaces the entire spreadsheet workflow with two things: a unified dashboard
             and a chat interface that understands your trades.
           </p>
@@ -155,7 +155,7 @@ function MeetOptixPage() {
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 font-semibold text-slate-900">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{f.body}</p>
+                <p className="mt-2 text-base leading-relaxed text-slate-600">{f.body}</p>
               </div>
             ))}
           </div>
@@ -236,7 +236,7 @@ function MeetOptixPage() {
 
         {/* CTA */}
         <div className="mt-20 rounded-3xl bg-slate-900 text-white p-10 lg:p-14 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Stop wrangling spreadsheets.</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">Stop wrangling spreadsheets.</h2>
           <p className="mt-3 text-slate-300 max-w-xl mx-auto">
             Connect your broker in a minute and let OptiX tell you what your trades have been
             trying to tell you.
