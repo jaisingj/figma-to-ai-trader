@@ -64,7 +64,7 @@ function Index() {
       </header>
 
       {/* Hero — Claude-style split layout */}
-      <section className="grid lg:grid-cols-2 gap-12 px-8 lg:px-20 pt-20 pb-24 max-w-7xl mx-auto items-start">
+      <section className="grid lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] gap-10 px-8 lg:px-12 pt-20 pb-24 max-w-[1600px] mx-auto items-start">
         {/* Left: headline + signup card */}
         <div className="flex flex-col items-center text-center lg:pt-16">
           <h1 className="font-serif text-5xl lg:text-6xl text-slate-900 leading-[1.05] tracking-tight">
