@@ -226,10 +226,10 @@ const WALL_CARDS = [
   { tag: "OPEN POS", v: "7", sub: "Active legs", c: "text-blue-600" },
 ];
 
-function ScrollColumn({ direction, delay }: { direction: "up" | "down"; delay: string }) {
+function ScrollColumn({ direction, delay, compact = false }: { direction: "up" | "down"; delay: string; compact?: boolean }) {
   const list = [...WALL_CARDS, ...WALL_CARDS];
   return (
-    <div className="relative h-[420px] overflow-hidden">
+    <div className={`relative overflow-hidden ${compact ? "h-[260px]" : "h-[420px]"}`}>
       <div
         className={direction === "up" ? "animate-marquee-y" : "animate-marquee-y-reverse"}
         style={{ animationDelay: delay }}
@@ -237,43 +237,22 @@ function ScrollColumn({ direction, delay }: { direction: "up" | "down"; delay: s
         {list.map((c, i) => (
           <div
             key={`${c.tag}-${i}`}
-            className="mb-3 rounded-xl bg-white ring-1 ring-slate-200 shadow-[0_8px_24px_-12px_rgba(15,40,120,0.15)] p-4"
+            className={`mb-2 rounded-xl bg-white ring-1 ring-slate-200 shadow-[0_8px_24px_-12px_rgba(15,40,120,0.15)] ${compact ? "p-2" : "p-4"}`}
           >
-            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{c.tag}</p>
-            <p className={`mt-1 text-lg font-bold ${c.c}`}>{c.v}</p>
-            <p className="text-[10px] text-slate-500">{c.sub}</p>
+            <p className={`font-semibold tracking-widest text-slate-400 ${compact ? "text-[8px]" : "text-[9px]"}`}>{c.tag}</p>
+            <p className={`mt-0.5 font-bold ${c.c} ${compact ? "text-sm" : "text-lg"}`}>{c.v}</p>
+            <p className={`text-slate-500 ${compact ? "text-[9px]" : "text-[10px]"}`}>{c.sub}</p>
           </div>
         ))}
       </div>
       {/* fade masks */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
     </div>
   );
 }
 
-function ScrollingFeatureWall() {
-  return (
-    <section className="px-8 pb-12 max-w-7xl mx-auto">
-      <div className="grid lg:grid-cols-2 gap-10 items-center">
-        <div>
-          <p className="text-xs font-semibold tracking-widest text-blue-600">AI DRIVEN INSIGHTS</p>
-          <h2 className="mt-3 text-4xl font-bold text-slate-900 leading-tight">
-            Live insights from<br />every trade you make.
-          </h2>
-          <p className="mt-4 text-slate-600 max-w-md">
-            P/L, win rates, exposure, dividends, option legs — OptiX surfaces hundreds of signals from your broker data and keeps them fresh, automatically.
-          </p>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <ScrollColumn direction="up" delay="0s" />
-          <ScrollColumn direction="down" delay="-6s" />
-          <ScrollColumn direction="up" delay="-12s" />
-        </div>
-      </div>
-    </section>
-  );
-}
+
 
 
 const OFFERS = [
