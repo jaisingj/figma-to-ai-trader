@@ -1540,9 +1540,9 @@ function AIScene({ active }: { active: boolean }) {
       >
         <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
       </div>
-      <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
-        <Sparkles className="h-4 w-4 text-violet-600" />
-        <p className="text-sm font-semibold text-slate-900">OptiX AI</p>
+      <div className="h-16 px-5 border-b border-slate-200 flex items-center gap-3">
+        <Sparkles className="h-6 w-6 text-violet-600" />
+        <p className="text-2xl font-extrabold tracking-tight text-slate-900">Ask OptiX</p>
         <div className="ml-auto flex items-center gap-1.5">
           {["Claude", "ChatGPT", "Gemini"].map((m) => (
             <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
