@@ -1594,7 +1594,54 @@ function AIScene({ active }: { active: boolean }) {
                     ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-sm shadow-[0_8px_24px_-12px_rgba(37,99,235,0.5)]"
                     : "bg-white ring-1 ring-slate-200/80 text-slate-800 rounded-tl-sm shadow-[0_6px_20px_-12px_rgba(15,40,120,0.18)]"
                 }`}>
-                  {m.text}
+                  {m.text && <p className={m.table ? "mb-3" : ""}>{m.text}</p>}
+                  {m.table && (
+                    <div className="rounded-xl ring-1 ring-blue-100 overflow-hidden bg-gradient-to-b from-blue-50/60 to-white">
+                      <div className="px-3 py-2 text-[10px] font-semibold tracking-widest text-blue-700 uppercase border-b border-blue-100 bg-white">
+                        {m.table.title}
+                      </div>
+                      <table className="w-full text-[12px]">
+                        <thead>
+                          <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500 bg-white">
+                            {m.table.headers.map((h, hi) => (
+                              <th key={hi} className={`px-3 py-1.5 font-semibold ${hi === m.table!.headers.length - 1 ? "text-right" : ""}`}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {m.table.rows.map((row, ri) => (
+                            <tr key={ri} className="border-t border-blue-100/70">
+                              {row.map((cell, ci) => {
+                                const isObj = typeof cell !== "string";
+                                const text = isObj ? cell.v : cell;
+                                const isLast = ci === row.length - 1;
+                                return (
+                                  <td
+                                    key={ci}
+                                    className={`px-3 py-1.5 ${isLast ? "text-right font-semibold text-blue-700" : "text-slate-700"}`}
+                                  >
+                                    {text}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                        {m.table.footer && (
+                          <tfoot>
+                            <tr className="border-t border-blue-200 bg-blue-50/70">
+                              <td colSpan={m.table.headers.length - 1} className="px-3 py-2 text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
+                                {m.table.footer.label}
+                              </td>
+                              <td className="px-3 py-2 text-right text-[13px] font-bold text-blue-700">
+                                {m.table.footer.value}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
