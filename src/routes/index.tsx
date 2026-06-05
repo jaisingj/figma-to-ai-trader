@@ -747,22 +747,30 @@ function DashboardScene({ active }: { active: boolean }) {
           </div>
         </div>
 
-        {/* recent trades */}
+        {/* transactions detail table */}
         <div className={`rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "880ms", animationFillMode: "both" }}>
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400">RECENT TRADES</p>
-          <div className="mt-2 grid grid-cols-4 gap-2 text-[11px] text-slate-500 font-medium">
-            <span>Symbol</span><span>Side</span><span>Qty</span><span className="text-right">P/L</span>
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400">TRANSACTION DETAIL</p>
+            <p className="text-[10px] text-slate-400">Last 30 days · 482 trades</p>
           </div>
-          <div className="mt-1 space-y-1.5 text-[12px]">
+          <div className="mt-2 grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1.5 border-b border-slate-100">
+            <span>Symbol</span><span>Type</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
+          </div>
+          <div className="mt-1 text-[11.5px]">
             {[
-              { s: "TSLA 250C", d: "BUY", q: "5", v: "+$240", pos: true },
-              { s: "NVDA 900P", d: "SELL", q: "3", v: "+$180", pos: true },
-              { s: "SPY 510C",  d: "BUY", q: "10", v: "-$60", pos: false },
+              { s: "TSLA 250C 12/20",  t: "CALL", d: "BUY",  q: "5",  p: "$3.45",  v: "+$240", pos: true },
+              { s: "NVDA 900P 12/13",  t: "PUT",  d: "SELL", q: "3",  p: "$12.10", v: "+$180", pos: true },
+              { s: "SPY 510C 01/17",   t: "CALL", d: "BUY",  q: "10", p: "$4.20",  v: "-$60",  pos: false },
+              { s: "AAPL 200C 12/27",  t: "CALL", d: "STC",  q: "4",  p: "$2.80",  v: "+$112", pos: true },
+              { s: "META 580P 01/10",  t: "PUT",  d: "BTO",  q: "2",  p: "$8.50",  v: "-$40",  pos: false },
+              { s: "AMZN 220C 12/20",  t: "CALL", d: "STC",  q: "6",  p: "$1.95",  v: "+$96",  pos: true },
             ].map((t) => (
-              <div key={t.s} className="grid grid-cols-4 gap-2 items-center py-1 border-t border-slate-100">
-                <span className="font-medium text-slate-800">{t.s}</span>
-                <span className={t.d === "BUY" ? "text-blue-600" : "text-violet-600"}>{t.d}</span>
+              <div key={t.s} className="grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 items-center py-1.5 border-b border-slate-50 last:border-0">
+                <span className="font-medium text-slate-800 truncate">{t.s}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold w-fit ${t.t === "CALL" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{t.t}</span>
+                <span className="text-slate-600 font-medium">{t.d}</span>
                 <span className="text-slate-600">{t.q}</span>
+                <span className="text-slate-600">{t.p}</span>
                 <span className={`text-right font-semibold ${t.pos ? "text-emerald-600" : "text-rose-600"}`}>{t.v}</span>
               </div>
             ))}
@@ -772,6 +780,83 @@ function DashboardScene({ active }: { active: boolean }) {
     </div>
   );
 }
+
+/* ---------- Scene 3: AI chat ---------- */
+function AIScene({ active }: { active: boolean }) {
+  const messages = [
+    { role: "user", model: "You", text: "Why did I lose money on TSLA puts last month?" },
+    { role: "assistant", model: "Claude", text: "Looking at your 14 TSLA put trades in November: you opened most of them within 2 days of earnings, and held through IV crush. Average loss was -$310 per trade driven by vega decay, not direction — TSLA actually dropped 4%." },
+    { role: "user", model: "You", text: "What should I do differently?" },
+    { role: "assistant", model: "ChatGPT", text: "Three patterns to fix: 1) Avoid opening short-dated options 48h pre-earnings, 2) Your win rate on debit spreads is 73% vs 41% on naked puts — lean into spreads, 3) You exit winners too early (avg 22% of max profit). Want me to draft new trade rules?" },
+  ];
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (!active) { setShown(0); return; }
+    let i = 0;
+    setShown(1);
+    const id = setInterval(() => {
+      i += 1;
+      setShown(i + 1);
+      if (i + 1 >= messages.length) clearInterval(id);
+    }, 1600);
+    return () => clearInterval(id);
+  }, [active]);
+
+  return (
+    <div className="h-full w-full flex flex-col bg-white">
+      <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
+        <Sparkles className="h-4 w-4 text-violet-600" />
+        <p className="text-sm font-semibold text-slate-900">OptiX AI</p>
+        <div className="ml-auto flex items-center gap-1.5">
+          {["Claude", "ChatGPT", "Gemini"].map((m) => (
+            <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white">
+        {messages.slice(0, shown).map((m, i) => {
+          const isUser = m.role === "user";
+          const badgeColor = m.model === "Claude" ? "bg-orange-100 text-orange-700" : m.model === "ChatGPT" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700";
+          return (
+            <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
+              <div className={`max-w-[80%] ${isUser ? "items-end" : "items-start"} flex flex-col gap-1.5`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isUser ? "bg-blue-100 text-blue-700" : badgeColor}`}>
+                  {m.model}
+                </span>
+                <div className={`rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${
+                  isUser ? "bg-blue-600 text-white rounded-tr-sm" : "bg-white ring-1 ring-slate-200 text-slate-800 rounded-tl-sm shadow-sm"
+                }`}>
+                  {m.text}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {shown < messages.length && (
+          <div className="flex justify-start">
+            <div className="bg-white ring-1 ring-slate-200 rounded-2xl px-4 py-3 flex gap-1">
+              <span className="h-2 w-2 rounded-full bg-slate-300 animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-slate-300 animate-pulse" style={{ animationDelay: "150ms" }} />
+              <span className="h-2 w-2 rounded-full bg-slate-300 animate-pulse" style={{ animationDelay: "300ms" }} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="px-6 py-4 border-t border-slate-200">
+        <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
+          <MessageSquare className="h-4 w-4 text-slate-400" />
+          <span className="text-[12px] text-slate-400 flex-1">Ask anything about your trading history…</span>
+          <button className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center">
+            <ArrowUp className="h-3.5 w-3.5 text-white" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 /* ---------- Scene 3: Checklist ---------- */
 function ChecklistScene({ active }: { active: boolean }) {
