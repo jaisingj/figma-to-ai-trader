@@ -130,23 +130,38 @@ function Index() {
             {
               frontIcon: <Plug className="h-6 w-6 text-blue-600" />,
               frontIconBg: "from-blue-100 to-blue-50",
-              title: "Connect your broker data",
+              title: "Import your Broker data",
               image: featureConnect,
-              back: "Import your trading data by uploading a report from Robinhood, Fidelity, or Schwab — or link your broker account securely via SnapTrade. One-click sync keeps trades, fills, and option legs up to date automatically.",
+              back: [
+                "Upload reports from Robinhood, Fidelity, or Schwab",
+                "Link your broker securely via SnapTrade",
+                "One-click sync keeps trades and fills up to date",
+                "Option legs and assignments auto-normalized",
+              ],
             },
             {
               frontIcon: <BrainCircuit className="h-6 w-6 text-violet-600" />,
               frontIconBg: "from-violet-100 to-violet-50",
               title: "Uncover trading insights",
               image: featureInsights,
-              back: "Get deeper insights into your trading. See patterns, exposure, and behaviour clearly. Ask OptiX AI why a strategy worked, spot recurring mistakes, and get personalized suggestions grounded in your real history.",
+              back: [
+                "See patterns, exposure, and behaviour clearly",
+                "Ask OptiX AI why a strategy worked",
+                "Spot recurring mistakes across your history",
+                "Get personalized suggestions grounded in real trades",
+              ],
             },
             {
               frontIcon: <LineChart className="h-6 w-6 text-emerald-600" />,
               frontIconBg: "from-emerald-100 to-emerald-50",
               title: "Track performance over time",
               image: featurePerformance,
-              back: "See how your trading performance evolves through clear trends, visual breakdowns, and deeper insights. Compare P/L, win rate, and exposure week-over-week. Spot your peak periods and drawdowns at a glance.",
+              back: [
+                "Clear trends and visual breakdowns of every period",
+                "Compare P/L, win rate, and exposure week-over-week",
+                "Spot peak periods and drawdowns at a glance",
+                "Benchmark current results against your prior self",
+              ],
             },
           ].map((c, i) => (
             <div key={i} className="perspective-1200 h-[460px] group">
@@ -171,12 +186,20 @@ function Index() {
                     </div>
                     <h3 className="text-xl font-semibold text-slate-600 whitespace-nowrap">{c.title}</h3>
                   </div>
-                  <p className="mt-5 text-slate-700 leading-relaxed text-base">{c.back}</p>
+                  <ul className="mt-5 space-y-3 text-slate-700 leading-relaxed text-[15px]">
+                    {c.back.map((b) => (
+                      <li key={b} className="flex gap-3">
+                        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
           ))}
         </div>
+
       </section>
 
       <WhatOptixOffers />
