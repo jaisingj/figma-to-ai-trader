@@ -52,7 +52,7 @@ function Index() {
 
       {/* Nav — Claude-style minimal */}
       <header className="flex items-center justify-between px-8 lg:px-12 py-5">
-        <img src={optixProLogo} alt="OptiXPro" className="h-34 w-auto" />
+        <img src={optixProLogo} alt="OptiXPro" className="h-44 w-auto" />
 
         <div className="flex items-center gap-6">
           <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
