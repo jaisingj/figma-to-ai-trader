@@ -1531,7 +1531,20 @@ function AIScene({ active }: { active: boolean }) {
   }, [active]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-white">
+    <div className="relative h-full w-full flex flex-col bg-white">
+      {/* Traveling cursor — slowly glides to the shortcut */}
+      <div
+        className="absolute pointer-events-none z-30"
+        style={{
+          left: cursorAt === "rest" ? "55%" : cursorAt === "shortcut" ? "14%" : "14%",
+          top: cursorAt === "rest" ? "94%" : cursorAt === "shortcut" ? "78%" : "78%",
+          opacity: cursorAt === "gone" ? 0 : 1,
+          transform: "translate(-50%, -50%)",
+          transition: "left 1100ms cubic-bezier(0.4,0.2,0.2,1), top 1100ms cubic-bezier(0.4,0.2,0.2,1), opacity 300ms ease",
+        }}
+      >
+        <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
+      </div>
       <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
         <Sparkles className="h-4 w-4 text-violet-600" />
         <p className="text-sm font-semibold text-slate-900">OptiX AI</p>
