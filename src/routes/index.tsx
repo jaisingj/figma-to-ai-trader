@@ -42,6 +42,52 @@ function FloatCard({ className = "", delay, children }: CardProps) {
   );
 }
 
+function NavDropdown({ label, content, panelClassName = "" }: { label: string; content: React.ReactNode; panelClassName?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition rounded-full">
+        {label}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className={`absolute left-1/2 top-full z-50 pt-3 ${panelClassName}`}>
+          <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_30px_80px_-20px_rgba(15,40,120,0.25)] overflow-hidden animate-fade-in">
+            {content}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DropdownGroup({ title, items }: { title: string; items: { label: string; external?: boolean }[] }) {
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-3">{title}</p>
+      <ul className="space-y-2.5">
+        {items.map((it) => (
+          <li key={it.label}>
+            <a href="#" className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
+              {it.label}
+              {it.external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function DropdownLink({ label, external = false }: { label: string; external?: boolean }) {
+  return (
+    <a href="#" className="group flex items-center justify-between rounded-lg px-3 py-2 text-[15px] font-medium text-slate-900 hover:bg-slate-50 hover:text-blue-600 transition">
+      <span>{label}</span>
+      {external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+    </a>
+  );
+}
+
 function Index() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [step, setStep] = useState(0);
