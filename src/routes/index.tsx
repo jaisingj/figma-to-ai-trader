@@ -1310,9 +1310,9 @@ function DashboardScene({ active }: { active: boolean }) {
   return (
     <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
       {/* top bar — slimmer */}
-      <div className="h-10 px-4 border-b border-blue-100 bg-white flex items-center gap-3">
-        <img src={optixProLogo} alt="OptiX" className="h-8 w-auto" />
-        <div className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
+      <div className="h-20 px-5 border-b border-blue-100 bg-white flex items-center gap-3">
+        <img src={optixProLogo} alt="OptiX" className="h-16 w-auto" />
+        <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
           <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Live · Robinhood
         </div>
       </div>
@@ -1540,9 +1540,9 @@ function AIScene({ active }: { active: boolean }) {
       >
         <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
       </div>
-      <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
-        <Sparkles className="h-4 w-4 text-violet-600" />
-        <p className="text-sm font-semibold text-slate-900">OptiX AI</p>
+      <div className="h-16 px-5 border-b border-slate-200 flex items-center gap-3">
+        <Sparkles className="h-6 w-6 text-violet-600" />
+        <p className="text-2xl font-extrabold tracking-tight text-slate-900">Ask OptiX</p>
         <div className="ml-auto flex items-center gap-1.5">
           {["Claude", "ChatGPT", "Gemini"].map((m) => (
             <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
