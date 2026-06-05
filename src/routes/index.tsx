@@ -844,7 +844,7 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATIONS = [7600, 5500, 6500, 3500, 10000, 5500];
+const SCENE_DURATIONS = [7600, 5500, 7500, 3500, 10000, 5500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
