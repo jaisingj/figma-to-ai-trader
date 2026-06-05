@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3 } from "lucide-react";
+import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, BookOpen, KeyRound, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
 import featureConnect from "@/assets/feature-connect.jpg";
