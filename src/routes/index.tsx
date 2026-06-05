@@ -183,6 +183,68 @@ function Index() {
   );
 }
 
+const WALL_CARDS = [
+  { tag: "WIN RATE", v: "71%", sub: "Last 30d", c: "text-emerald-600" },
+  { tag: "TSLA", v: "+$640", sub: "Realized", c: "text-emerald-600" },
+  { tag: "AAPL CALL", v: "STO · $4.41", sub: "11/15 $245", c: "text-slate-700" },
+  { tag: "NVDA", v: "+$420", sub: "Weekly P/L", c: "text-emerald-600" },
+  { tag: "SHARPE", v: "1.82", sub: "Risk-adj", c: "text-blue-600" },
+  { tag: "DELTA", v: "+24", sub: "Net exposure", c: "text-violet-600" },
+  { tag: "AMZN PUT", v: "BTC · $1.84", sub: "9/20 $190", c: "text-slate-700" },
+  { tag: "REALIZED P/L", v: "+$1,860", sub: "MTD", c: "text-emerald-600" },
+  { tag: "DIV INCOME", v: "+$56", sub: "Citigroup", c: "text-emerald-600" },
+  { tag: "OPEN POS", v: "7", sub: "Active legs", c: "text-blue-600" },
+];
+
+function ScrollColumn({ direction, delay }: { direction: "up" | "down"; delay: string }) {
+  const list = [...WALL_CARDS, ...WALL_CARDS];
+  return (
+    <div className="relative h-[420px] overflow-hidden">
+      <div
+        className={direction === "up" ? "animate-marquee-y" : "animate-marquee-y-reverse"}
+        style={{ animationDelay: delay }}
+      >
+        {list.map((c, i) => (
+          <div
+            key={`${c.tag}-${i}`}
+            className="mb-3 rounded-xl bg-white ring-1 ring-slate-200 shadow-[0_8px_24px_-12px_rgba(15,40,120,0.15)] p-4"
+          >
+            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{c.tag}</p>
+            <p className={`mt-1 text-lg font-bold ${c.c}`}>{c.v}</p>
+            <p className="text-[10px] text-slate-500">{c.sub}</p>
+          </div>
+        ))}
+      </div>
+      {/* fade masks */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
+    </div>
+  );
+}
+
+function ScrollingFeatureWall() {
+  return (
+    <section className="px-8 pb-20 max-w-7xl mx-auto">
+      <div className="grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <p className="text-xs font-semibold tracking-widest text-blue-600">LIVE INSIGHTS</p>
+          <h2 className="mt-3 text-4xl font-bold text-slate-900 leading-tight">
+            A living view of<br />your trading life.
+          </h2>
+          <p className="mt-4 text-slate-600 max-w-md">
+            P/L, win rates, exposure, dividends, option legs — OptiX surfaces hundreds of signals from your CSV and keeps them fresh, automatically.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <ScrollColumn direction="up" delay="0s" />
+          <ScrollColumn direction="down" delay="-6s" />
+          <ScrollColumn direction="up" delay="-12s" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const OFFERS = [
   {
     title: "Success and Progress Analysis",
