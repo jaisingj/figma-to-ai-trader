@@ -57,9 +57,10 @@ function Index() {
           <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
             About
           </a>
-          <button className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
+          <button onClick={openGuide} className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition">
             Sign up for free
           </button>
+
         </div>
       </header>
 
