@@ -756,21 +756,8 @@ function Cursor({ phase }: { phase: number }) {
 
 /* ---------- Scene 2: CSV → Dashboard transformation ---------- */
 function CsvTransformScene({ active }: { active: boolean }) {
-  // Two broker CSVs with very different shapes
-  const robinhoodRows = [
-    `"8/28/2024","COST","Buy","12","$892.51","($10,710.12)"`,
-    `"8/27/2024","AAPL","STO","1","$4.41","$440.94"`,
-    `"8/22/2024","NFLX","STO","1","$9.10","$909.93"`,
-    `"8/16/2024","TSLA","STO","1","$13.63","$1,362.92"`,
-    `"8/07/2024","NVDA","Buy","25","$99.66","($2,491.63)"`,
-  ];
-  const schwabRows = [
-    `08/26/24|SELL_TO_OPEN|MSFT 09/20 420C|2|6.85|+1370.00`,
-    `08/21/24|BUY|AMZN|10|178.40|-1784.00`,
-    `08/15/24|BUY_TO_CLOSE|SPY 08/30 545P|3|2.10|-630.00`,
-    `08/12/24|SELL|GOOGL|5|164.20|+821.00`,
-    `08/04/24|SELL_TO_OPEN|META 09/06 500P|1|9.40|+940.00`,
-  ];
+  // Two broker CSVs are rendered as Excel sheets below
+
   const unified = [
     { d: "8/28", sym: "COST",  side: "BUY", qty: "12", px: "$892.51", amt: "-$10,710", pos: false, br: "RH" },
     { d: "8/27", sym: "AAPL",  side: "STO", qty: "1",  px: "$4.41",   amt: "+$441",    pos: true,  br: "RH" },
