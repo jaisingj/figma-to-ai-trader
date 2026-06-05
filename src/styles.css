@@ -19,14 +19,6 @@
   animation: slide-in-card 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes marquee-x {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
-}
-@utility animate-marquee-x {
-  animation: marquee-x 60s linear infinite;
-}
-
 @keyframes marquee-y {
   0% { transform: translateY(0); }
   100% { transform: translateY(-50%); }
