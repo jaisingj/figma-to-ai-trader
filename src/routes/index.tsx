@@ -673,7 +673,129 @@ function Cursor({ phase }: { phase: number }) {
   );
 }
 
-/* ---------- Scene 2: Slick dashboard ---------- */
+/* ---------- Scene 2: CSV → Dashboard transformation ---------- */
+function CsvTransformScene({ active }: { active: boolean }) {
+  // Raw CSV rows (subset of user's file)
+  const csvRows = [
+    `"8/28/2024","COST","Buy","12","$892.51","($10,710.12)"`,
+    `"8/27/2024","AAPL","STO","1","$4.41","$440.94"`,
+    `"8/22/2024","NFLX","STO","1","$9.10","$909.93"`,
+    `"8/22/2024","NVDA","STO","1","$2.99","$298.95"`,
+    `"8/16/2024","TSLA","STO","1","$13.63","$1,362.92"`,
+    `"8/16/2024","NVDA","STO","1","$3.95","$394.94"`,
+    `"8/7/2024","NVDA","Buy","25","$99.66","($2,491.63)"`,
+    `"8/5/2024","TSLA","STO","1","$6.02","$601.94"`,
+  ];
+  const parsed = [
+    { d: "8/28", sym: "COST", side: "BUY",  qty: "12", px: "$892.51",  amt: "-$10,710", pos: false },
+    { d: "8/27", sym: "AAPL", side: "STO",  qty: "1",  px: "$4.41",    amt: "+$441",    pos: true  },
+    { d: "8/22", sym: "NFLX", side: "STO",  qty: "1",  px: "$9.10",    amt: "+$910",    pos: true  },
+    { d: "8/22", sym: "NVDA", side: "STO",  qty: "1",  px: "$2.99",    amt: "+$299",    pos: true  },
+    { d: "8/16", sym: "TSLA", side: "STO",  qty: "1",  px: "$13.63",   amt: "+$1,363",  pos: true  },
+    { d: "8/16", sym: "NVDA", side: "STO",  qty: "1",  px: "$3.95",    amt: "+$395",    pos: true  },
+    { d: "8/7",  sym: "NVDA", side: "BUY",  qty: "25", px: "$99.66",   amt: "-$2,492",  pos: false },
+    { d: "8/5",  sym: "TSLA", side: "STO",  qty: "1",  px: "$6.02",    amt: "+$602",    pos: true  },
+  ];
+
+  // phase 0: csv only, 1: morphing, 2: dashboard preview
+  const [phase, setPhase] = useState(0);
+  useEffect(() => {
+    if (!active) { setPhase(0); return; }
+    const t1 = setTimeout(() => setPhase(1), 2200);
+    const t2 = setTimeout(() => setPhase(2), 4200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [active]);
+
+  return (
+    <div className="h-full w-full flex flex-col bg-slate-50">
+      <div className="h-12 px-5 border-b border-slate-200 bg-white flex items-center gap-3">
+        <FileSpreadsheet className="h-4 w-4 text-blue-600" />
+        <p className="text-sm font-semibold text-slate-900">robinhood_options_2024.csv</p>
+        <span className="ml-auto text-[10px] text-slate-500">Parsing · normalizing · enriching</span>
+      </div>
+
+      <div className="flex-1 p-5 grid grid-cols-2 gap-4 overflow-hidden">
+        {/* Left: raw CSV */}
+        <div className="rounded-xl bg-slate-900 ring-1 ring-slate-800 p-4 font-mono text-[10.5px] leading-relaxed text-slate-200 overflow-hidden">
+          <p className="text-[9px] tracking-widest text-slate-500 mb-2">RAW CSV</p>
+          <div className="text-amber-300 truncate">"Date","Symbol","Code","Qty","Price","Amount"</div>
+          {csvRows.map((r, i) => (
+            <div
+              key={i}
+              className="truncate text-slate-300 transition-all"
+              style={{
+                opacity: active ? 1 : 0,
+                transform: phase >= 1 ? `translateX(${20 + i * 2}%) scale(0.96)` : "translateX(0)",
+                filter: phase >= 1 ? "blur(0.5px)" : "none",
+                transitionDelay: `${i * 60}ms`,
+                transitionDuration: "900ms",
+              }}
+            >
+              {r}
+            </div>
+          ))}
+        </div>
+
+        {/* Right: structured table emerging */}
+        <div className="relative rounded-xl bg-white ring-1 ring-slate-200 p-4 overflow-hidden">
+          <p className="text-[9px] tracking-widest text-slate-400 mb-2 font-semibold">STRUCTURED TRADES</p>
+          <div className="grid grid-cols-[0.6fr_0.7fr_0.6fr_0.5fr_0.8fr_0.9fr] gap-2 text-[9px] text-slate-400 font-semibold uppercase tracking-wider pb-1.5 border-b border-slate-100">
+            <span>Date</span><span>Sym</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">Amount</span>
+          </div>
+          <div className="mt-1 text-[11px]">
+            {parsed.map((t, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-[0.6fr_0.7fr_0.6fr_0.5fr_0.8fr_0.9fr] gap-2 items-center py-1 border-b border-slate-50 last:border-0 transition-all duration-700"
+                style={{
+                  opacity: phase >= 1 ? 1 : 0,
+                  transform: phase >= 1 ? "translateY(0)" : "translateY(8px)",
+                  transitionDelay: `${800 + i * 90}ms`,
+                }}
+              >
+                <span className="text-slate-500">{t.d}</span>
+                <span className="font-semibold text-slate-800">{t.sym}</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold w-fit ${
+                  t.side === "BUY" ? "bg-blue-50 text-blue-700" : "bg-violet-50 text-violet-700"
+                }`}>{t.side}</span>
+                <span className="text-slate-600">{t.qty}</span>
+                <span className="text-slate-600">{t.px}</span>
+                <span className={`text-right font-semibold ${t.pos ? "text-emerald-600" : "text-rose-600"}`}>{t.amt}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Dashboard preview overlay slides up at phase 2 */}
+          <div
+            className={`absolute inset-x-3 bottom-3 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white p-4 shadow-xl transition-all duration-700 ${
+              phase >= 2 ? "translate-y-0 opacity-100" : "translate-y-[120%] opacity-0"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] font-semibold tracking-widest opacity-80">DASHBOARD READY</p>
+              <Sparkles className="h-3.5 w-3.5" />
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+              <div><p className="text-[9px] opacity-70">TRADES</p><p className="font-bold">482</p></div>
+              <div><p className="text-[9px] opacity-70">P/L</p><p className="font-bold">+$1,860</p></div>
+              <div><p className="text-[9px] opacity-70">WIN</p><p className="font-bold">71%</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* arrow indicator */}
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 rounded-full bg-white ring-1 ring-slate-200 shadow-lg pointer-events-none transition-opacity duration-500"
+        style={{ opacity: phase === 1 ? 1 : 0 }}
+      >
+        <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Scene 3: Slick dashboard ---------- */
 function DashboardScene({ active }: { active: boolean }) {
   const kpis = [
     { tag: "REALIZED P/L", value: "+$1,860", sub: "+12.4% MTD", pos: true },
