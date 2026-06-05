@@ -259,21 +259,31 @@ import claudeLogo from "@/assets/claude.webp.asset.json";
 import llamaLogo from "@/assets/llama.svg.asset.json";
 
 const AI_LOGOS = [
-  { name: "Claude", src: claudeLogo.url },
-  { name: "ChatGPT", src: chatgptLogo.url },
-  { name: "Gemini", src: geminiLogo.url },
-  { name: "LLaMA", src: llamaLogo.url },
-  { name: "Perplexity", src: perplexityLogo.url },
+  { name: "Claude", src: claudeLogo.url, rot: -8 },
+  { name: "ChatGPT", src: chatgptLogo.url, rot: 6 },
+  { name: "Gemini", src: geminiLogo.url, rot: -5 },
+  { name: "LLaMA", src: llamaLogo.url, rot: 9 },
+  { name: "Perplexity", src: perplexityLogo.url, rot: -7 },
 ];
 
-// Timeline (ms)
-const T_TAGLINE_END = 5500;  // tagline animates + holds 5s
-const PER_LOGO = 1800;        // slow appear/disappear per logo
-const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO; // 14500
-const T_CAROUSEL_END = T_LOGOS_END + 3500;                       // 18000
+// Typewriter timing
+const LINE1 = "Scattered trades in.";
+const LINE2 = "OptiX AI insights out.";
+const TYPE_MS_PER_CHAR = 55;
+const LINE1_MS = LINE1.length * TYPE_MS_PER_CHAR;          // ~1100ms
+const LINE2_MS = LINE2.length * TYPE_MS_PER_CHAR;          // ~1210ms
+const LINE_GAP = 250;
+const TYPE_DURATION = LINE1_MS + LINE_GAP + LINE2_MS;      // ~2560ms
+const HOLD_MS = 4000;
+const T_TAGLINE_END = TYPE_DURATION + HOLD_MS;              // ~6560ms
+
+// Slow logo zoom
+const PER_LOGO = 2400;
+const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO;
+const CAROUSEL_MS = 6500;
+const T_CAROUSEL_END = T_LOGOS_END + CAROUSEL_MS;
 
 function HeroReveal() {
-  // Phases: 0 = tagline (hold 5s), 1 = AI logos, 2 = carousel
   const [phase, setPhase] = useState(0);
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -287,31 +297,44 @@ function HeroReveal() {
 
   return (
     <div className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-      {/* Phase 0: tagline animates in and holds */}
+      {/* Phase 0: typewriter tagline */}
       {phase === 0 && (
-        <div key={`t-${tick}`} className="absolute inset-0 flex items-center justify-center px-6">
-          <p className="text-center text-xl lg:text-2xl font-bold text-slate-900">
-            <span className="inline-block text-slate-500 animate-[fade-in_0.7s_ease-out_both]">Scattered trades in.</span>{" "}
-            <span className="inline-block bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent animate-[fade-in_0.8s_ease-out_0.7s_both]">
-              OptiX AI insights out.
-            </span>
-          </p>
+        <div key={`t-${tick}`} className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6">
+          <span
+            className="typewriter text-slate-500 text-xl lg:text-2xl font-bold"
+            style={{
+              width: `${LINE1.length}ch`,
+              animation: `tw-type ${LINE1_MS}ms steps(${LINE1.length}, end) both, tw-caret 700ms steps(1, end) ${LINE1_MS}ms 2`,
+            }}
+          >
+            {LINE1}
+          </span>
+          <span
+            className="typewriter text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
+            style={{
+              width: `${LINE2.length}ch`,
+              animation: `tw-type ${LINE2_MS}ms steps(${LINE2.length}, end) ${LINE1_MS + LINE_GAP}ms both, tw-caret 700ms steps(1, end) ${LINE1_MS + LINE_GAP + LINE2_MS}ms infinite`,
+            }}
+          >
+            {LINE2}
+          </span>
         </div>
       )}
 
-      {/* Phase 1: AI logos slow zoom in then slow zoom out, one at a time */}
+      {/* Phase 1: AI logos — bigger, angled, slow zoom in/out */}
       {phase === 1 && (
         <div key={`l-${tick}`} className="absolute inset-0">
           {AI_LOGOS.map((logo, i) => (
             <div
               key={logo.name}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0"
+              className="absolute left-1/2 top-1/2 opacity-0"
               style={{
-                animation: `ai-pulse ${PER_LOGO}ms ${i * PER_LOGO}ms cubic-bezier(0.4, 0, 0.2, 1) both`,
+                ["--rot" as never]: `${logo.rot}deg`,
+                animation: `ai-pulse ${PER_LOGO}ms ${i * PER_LOGO}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
               }}
             >
-              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-xl px-6 py-4">
-                <img src={logo.src} alt={logo.name} className="h-16 w-auto max-w-[180px] object-contain" />
+              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-8 py-5">
+                <img src={logo.src} alt={logo.name} className="h-24 w-auto max-w-[240px] object-contain" />
               </div>
             </div>
           ))}
@@ -327,12 +350,26 @@ function HeroReveal() {
       )}
 
       <style>{`
+        .typewriter {
+          display: inline-block;
+          overflow: hidden;
+          white-space: nowrap;
+          border-right: 2px solid currentColor;
+          max-width: 100%;
+        }
+        @keyframes tw-type {
+          from { width: 0; }
+        }
+        @keyframes tw-caret {
+          0%, 50% { border-right-color: currentColor; }
+          51%, 100% { border-right-color: transparent; }
+        }
         @keyframes ai-pulse {
-          0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-          30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
-          55%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          75%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+          0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(var(--rot)); }
+          25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot)); }
+          50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
+          70%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6) rotate(var(--rot)); }
         }
       `}</style>
     </div>
