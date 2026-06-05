@@ -369,10 +369,10 @@ function HeroReveal() {
         }
         @keyframes ai-pulse {
           0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(var(--rot)); }
-          25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot)); }
-          50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
-          70%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6) rotate(var(--rot)); }
+          20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot)); }
+          45%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
+          60%  { opacity: 1; transform: translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1.2) rotate(var(--rot)); }
+          100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4) rotate(var(--spin)); }
         }
       `}</style>
     </div>
