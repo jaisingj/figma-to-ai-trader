@@ -208,7 +208,9 @@ function Index() {
             );
           })()}
         </div>
+        </div>
       </section>
+
 
       {/* How it works */}
       <section className="px-8 pt-4 pb-24 max-w-7xl mx-auto">
