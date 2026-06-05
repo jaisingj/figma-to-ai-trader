@@ -455,14 +455,17 @@ function HeroReveal() {
 
 /* ---------- Scene 0: Tagline + AI logos burst ---------- */
 function TaglineLogosScene({ active }: { active: boolean }) {
-  // 0: typing, 1: hold, 2: logos in, 3: logos out
+  // 0: typing
+  // 1: logos mounted at far corners (hidden) — about to converge
+  // 2: logos converged in center fan, Claude on top
+  // 3: logos disperse slowly back to where they came from
   const [phase, setPhase] = useState(0);
   useEffect(() => {
     if (!active) { setPhase(0); return; }
     const timers = [
-      setTimeout(() => setPhase(1), TYPE_DURATION),
-      setTimeout(() => setPhase(2), TYPE_DURATION + 700),
-      setTimeout(() => setPhase(3), TYPE_DURATION + 700 + 1600),
+      setTimeout(() => setPhase(1), TYPE_DURATION),               // mount at corners
+      setTimeout(() => setPhase(2), TYPE_DURATION + 80),          // trigger converge transition
+      setTimeout(() => setPhase(3), TYPE_DURATION + 80 + 2400),   // hold longer, then disperse
     ];
     return () => timers.forEach(clearTimeout);
   }, [active]);
@@ -491,30 +494,35 @@ function TaglineLogosScene({ active }: { active: boolean }) {
         </span>
       </div>
 
-      {/* Logos burst — all in together from corners, then back */}
-      {phase >= 2 && (
+      {/* Logos — converge in then disperse slowly */}
+      {phase >= 1 && (
         <div className="absolute inset-0">
-          {AI_LOGOS.map((logo) => (
-            <div
-              key={logo.name}
-              className="absolute left-1/2 top-1/2"
-              style={{
-                ["--rot" as never]: `${logo.rot}deg`,
-                ["--tx" as never]: `${logo.tx}px`,
-                ["--ty" as never]: `${logo.ty}px`,
-                transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 700ms ease",
-                transform:
-                  phase === 2
-                    ? `translate(-50%, -50%) scale(1.15) rotate(var(--rot))`
-                    : `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.3) rotate(var(--rot))`,
-                opacity: phase === 2 ? 1 : 0,
-              }}
-            >
-              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-7 py-4">
-                <img src={logo.src} alt={logo.name} className="h-20 w-auto max-w-[200px] object-contain" />
+          {AI_LOGOS.map((logo) => {
+            const atCorner =
+              `translate(calc(-50% + ${logo.tx}px), calc(-50% + ${logo.ty}px)) scale(0.35) rotate(${logo.rot}deg)`;
+            const atCenter =
+              `translate(calc(-50% + ${logo.cx}px), calc(-50% + ${logo.cy}px)) scale(1) rotate(${logo.rot}deg)`;
+            const isCenter = phase === 2;
+            return (
+              <div
+                key={logo.name}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  zIndex: logo.z,
+                  // slower disperse than converge so all logos stay visible
+                  transition: isCenter
+                    ? "transform 950ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease"
+                    : "transform 1600ms cubic-bezier(0.5, 0, 0.2, 1), opacity 1200ms ease",
+                  transform: isCenter ? atCenter : atCorner,
+                  opacity: isCenter ? 1 : 0,
+                }}
+              >
+                <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-6 py-3.5">
+                  <img src={logo.src} alt={logo.name} className="h-16 w-auto max-w-[170px] object-contain" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
