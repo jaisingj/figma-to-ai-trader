@@ -52,7 +52,7 @@ function Index() {
 
       {/* Nav — Claude-style minimal */}
       <header className="flex items-center justify-between px-8 lg:px-12 py-5">
-        <img src={optixProLogo.url} alt="OptiXPro" className="h-12 w-auto" />
+        <img src={optixProLogo.url} alt="OptiXPro" className="h-20 w-auto" />
         <div className="flex items-center gap-6">
           <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
             About
@@ -64,7 +64,7 @@ function Index() {
       </header>
 
       {/* Hero — Claude-style split layout */}
-      <section className="grid lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] gap-10 px-8 lg:px-12 pt-20 pb-24 max-w-[1600px] mx-auto items-start">
+      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-12 pt-20 pb-24 max-w-[1600px] mx-auto items-start">
         {/* Left: headline + signup card */}
         <div className="flex flex-col items-center text-center lg:pt-16">
           <h1 className="font-serif text-5xl lg:text-6xl text-slate-900 leading-[1.05] tracking-tight">
@@ -815,6 +815,21 @@ function AIScene({ active }: { active: boolean }) {
       </div>
 
       <div className="flex-1 overflow-hidden px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white">
+        {/* Trader personality card */}
+        <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-start gap-4 animate-fade-in">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
+            <h4 className="mt-1 text-lg font-bold text-slate-900">Reactive Optimizer</h4>
+            <p className="mt-1 text-[12px] text-slate-600 leading-relaxed">
+              You frequently adjust positions based on short-term signals rather than planned exits.
+            </p>
+            <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+              <Sparkles className="h-3 w-3" /> <span className="underline">Deep dive</span>
+            </div>
+          </div>
+          <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-20 w-auto shrink-0" />
+        </div>
+
         {messages.slice(0, shown).map((m, i) => {
           const isUser = m.role === "user";
           const badgeColor = m.model === "Claude" ? "bg-orange-100 text-orange-700" : m.model === "ChatGPT" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700";
