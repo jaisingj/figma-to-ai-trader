@@ -472,6 +472,7 @@ function GettingStartedDialog({
 
 const DEMO_SCENES = [
   { key: "finder", label: "Import your trades" },
+  { key: "transform", label: "CSV → structured trades" },
   { key: "dashboard", label: "Unified dashboard" },
   { key: "ai", label: "Ask AI about your trades" },
   { key: "checklist", label: "What OptiX can do" },
