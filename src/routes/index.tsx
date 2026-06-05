@@ -754,7 +754,119 @@ function Cursor({ phase }: { phase: number }) {
   );
 }
 
+/* ---------- Excel-style spreadsheet ---------- */
+function ExcelSheet({
+  name, tabColor, headers, rows, faded, visible,
+}: {
+  name: string;
+  tabColor: "emerald" | "sky";
+  headers: string[];
+  rows: string[][];
+  faded: boolean;
+  visible: boolean;
+}) {
+  const colLetters = ["A", "B", "C", "D", "E", "F", "G"];
+  const tabColorClass = tabColor === "emerald" ? "bg-emerald-600" : "bg-sky-600";
+  return (
+    <div
+      className="flex-1 rounded-lg bg-white ring-1 ring-slate-300 shadow-sm overflow-hidden flex flex-col transition-all duration-700"
+      style={{
+        opacity: visible ? (faded ? 0.4 : 1) : 0,
+        transform: visible ? (faded ? "scale(0.97)" : "translateY(0)") : "translateY(20px)",
+      }}
+    >
+      {/* Excel-like title bar */}
+      <div className={`h-6 ${tabColorClass} text-white flex items-center px-2.5 text-[9px] font-semibold tracking-wider`}>
+        <FileSpreadsheet className="h-3 w-3 mr-1.5" />
+        {name}
+      </div>
+      {/* Formula bar */}
+      <div className="h-5 bg-slate-50 border-b border-slate-200 flex items-center px-2 gap-1.5 text-[8px] text-slate-500 font-mono">
+        <span className="px-1 rounded bg-white ring-1 ring-slate-200">A1</span>
+        <span className="italic text-slate-400">fx</span>
+        <span className="truncate">{headers[0]}</span>
+      </div>
+      {/* Grid */}
+      <div className="flex-1 overflow-hidden">
+        {/* Column header row */}
+        <div className="grid bg-slate-100 border-b border-slate-300" style={{ gridTemplateColumns: `20px repeat(${headers.length}, minmax(0, 1fr))` }}>
+          <div className="text-[8px] text-slate-500 text-center border-r border-slate-300 py-0.5"></div>
+          {headers.map((_, i) => (
+            <div key={i} className="text-[8px] text-slate-600 font-semibold text-center border-r border-slate-300 py-0.5">{colLetters[i]}</div>
+          ))}
+        </div>
+        {/* Header data row */}
+        <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: `20px repeat(${headers.length}, minmax(0, 1fr))` }}>
+          <div className="text-[8px] text-slate-500 text-center bg-slate-100 border-r border-slate-300 py-0.5">1</div>
+          {headers.map((h, i) => (
+            <div key={i} className="text-[9px] font-bold text-slate-800 px-1.5 py-0.5 border-r border-slate-200 truncate">{h}</div>
+          ))}
+        </div>
+        {/* Data rows */}
+        {rows.map((row, r) => (
+          <div key={r} className="grid border-b border-slate-100" style={{ gridTemplateColumns: `20px repeat(${headers.length}, minmax(0, 1fr))` }}>
+            <div className="text-[8px] text-slate-500 text-center bg-slate-100 border-r border-slate-300 py-0.5">{r + 2}</div>
+            {row.map((cell, c) => (
+              <div key={c} className="text-[9px] text-slate-700 px-1.5 py-0.5 border-r border-slate-200 truncate font-mono">{cell}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* Sheet tabs */}
+      <div className="h-4 bg-slate-100 border-t border-slate-300 flex items-center px-1 gap-0.5">
+        <span className="px-1.5 text-[7px] font-semibold text-slate-700 bg-white rounded-sm border border-slate-300 border-b-0 leading-3">Sheet1</span>
+        <span className="px-1.5 text-[7px] text-slate-500 leading-3">Sheet2</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Doughnut chart ---------- */
+function Doughnut({ data, total, centerLabel, centerValue }: {
+  data: { label: string; value: number; color: string }[];
+  total: number;
+  centerLabel: string;
+  centerValue: string;
+}) {
+  const R = 32, r = 20, C = 2 * Math.PI * R;
+  let offset = 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative shrink-0">
+        <svg viewBox="-40 -40 80 80" className="h-24 w-24 -rotate-90">
+          <circle cx="0" cy="0" r={R} fill="none" stroke="#f1f5f9" strokeWidth={R - r} />
+          {data.map((d, i) => {
+            const len = (d.value / total) * C;
+            const dash = `${len} ${C - len}`;
+            const dashoffset = -offset;
+            offset += len;
+            return (
+              <circle key={i} cx="0" cy="0" r={R} fill="none"
+                stroke={d.color} strokeWidth={R - r}
+                strokeDasharray={dash} strokeDashoffset={dashoffset} />
+            );
+          })}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <p className="text-[8px] text-slate-400 font-semibold tracking-wider">{centerLabel}</p>
+          <p className="text-sm font-bold text-slate-900">{centerValue}</p>
+        </div>
+      </div>
+      <div className="flex-1 space-y-1 min-w-0">
+        {data.map((d, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-[10px]">
+            <span className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: d.color }} />
+            <span className="text-slate-600 truncate flex-1">{d.label}</span>
+            <span className="text-slate-800 font-semibold">{Math.round((d.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Scene 2: CSV → Dashboard transformation ---------- */
+
 function CsvTransformScene({ active }: { active: boolean }) {
   // Two broker CSVs are rendered as Excel sheets below
 
