@@ -423,12 +423,14 @@ import perplexityLogo from "@/assets/perplexity.webp.asset.json";
 import claudeLogo from "@/assets/claude.webp.asset.json";
 import llamaLogo from "@/assets/llama.svg.asset.json";
 
+// cx/cy = converged position around center (in px). z controls stacking.
 const AI_LOGOS = [
-  { name: "Claude", src: claudeLogo.url, rot: -8, tx: -260, ty: -160, spin: -540 },
-  { name: "ChatGPT", src: chatgptLogo.url, rot: 6, tx: 280, ty: -140, spin: 720 },
-  { name: "Gemini", src: geminiLogo.url, rot: -5, tx: -300, ty: 180, spin: -720 },
-  { name: "LLaMA", src: llamaLogo.url, rot: 9, tx: 290, ty: 190, spin: 540 },
-  { name: "Perplexity", src: perplexityLogo.url, rot: -7, tx: 0, ty: -260, spin: 900 },
+  { name: "ChatGPT",    src: chatgptLogo.url,    rot:  6, tx:  280, ty: -140, cx:  150, cy:   10, z: 30 },
+  { name: "Gemini",     src: geminiLogo.url,     rot: -5, tx: -300, ty:  180, cx: -150, cy:   10, z: 30 },
+  { name: "LLaMA",      src: llamaLogo.url,      rot:  9, tx:  290, ty:  190, cx:   80, cy:   85, z: 20 },
+  { name: "Perplexity", src: perplexityLogo.url, rot: -7, tx:    0, ty: -260, cx:  -80, cy:   85, z: 20 },
+  // Claude rendered last so it sits on top
+  { name: "Claude",     src: claudeLogo.url,     rot: -4, tx: -260, ty: -160, cx:    0, cy:  -70, z: 50 },
 ];
 
 // Typewriter timing
@@ -453,14 +455,17 @@ function HeroReveal() {
 
 /* ---------- Scene 0: Tagline + AI logos burst ---------- */
 function TaglineLogosScene({ active }: { active: boolean }) {
-  // 0: typing, 1: hold, 2: logos in, 3: logos out
+  // 0: typing
+  // 1: logos mounted at far corners (hidden) — about to converge
+  // 2: logos converged in center fan, Claude on top
+  // 3: logos disperse slowly back to where they came from
   const [phase, setPhase] = useState(0);
   useEffect(() => {
     if (!active) { setPhase(0); return; }
     const timers = [
-      setTimeout(() => setPhase(1), TYPE_DURATION),
-      setTimeout(() => setPhase(2), TYPE_DURATION + 700),
-      setTimeout(() => setPhase(3), TYPE_DURATION + 700 + 1600),
+      setTimeout(() => setPhase(1), TYPE_DURATION),               // mount at corners
+      setTimeout(() => setPhase(2), TYPE_DURATION + 80),          // trigger converge transition
+      setTimeout(() => setPhase(3), TYPE_DURATION + 80 + 2400),   // hold longer, then disperse
     ];
     return () => timers.forEach(clearTimeout);
   }, [active]);
@@ -489,30 +494,35 @@ function TaglineLogosScene({ active }: { active: boolean }) {
         </span>
       </div>
 
-      {/* Logos burst — all in together from corners, then back */}
-      {phase >= 2 && (
+      {/* Logos — converge in then disperse slowly */}
+      {phase >= 1 && (
         <div className="absolute inset-0">
-          {AI_LOGOS.map((logo) => (
-            <div
-              key={logo.name}
-              className="absolute left-1/2 top-1/2"
-              style={{
-                ["--rot" as never]: `${logo.rot}deg`,
-                ["--tx" as never]: `${logo.tx}px`,
-                ["--ty" as never]: `${logo.ty}px`,
-                transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 700ms ease",
-                transform:
-                  phase === 2
-                    ? `translate(-50%, -50%) scale(1.15) rotate(var(--rot))`
-                    : `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.3) rotate(var(--rot))`,
-                opacity: phase === 2 ? 1 : 0,
-              }}
-            >
-              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-7 py-4">
-                <img src={logo.src} alt={logo.name} className="h-20 w-auto max-w-[200px] object-contain" />
+          {AI_LOGOS.map((logo) => {
+            const atCorner =
+              `translate(calc(-50% + ${logo.tx}px), calc(-50% + ${logo.ty}px)) scale(0.35) rotate(${logo.rot}deg)`;
+            const atCenter =
+              `translate(calc(-50% + ${logo.cx}px), calc(-50% + ${logo.cy}px)) scale(1) rotate(${logo.rot}deg)`;
+            const isCenter = phase === 2;
+            return (
+              <div
+                key={logo.name}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  zIndex: logo.z,
+                  // slower disperse than converge so all logos stay visible
+                  transition: isCenter
+                    ? "transform 950ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease"
+                    : "transform 1600ms cubic-bezier(0.5, 0, 0.2, 1), opacity 1200ms ease",
+                  transform: isCenter ? atCenter : atCorner,
+                  opacity: isCenter ? 1 : 0,
+                }}
+              >
+                <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-6 py-3.5">
+                  <img src={logo.src} alt={logo.name} className="h-16 w-auto max-w-[170px] object-contain" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -834,7 +844,7 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATIONS = [6500, 7500, 9000, 7500, 14000, 7500];
+const SCENE_DURATIONS = [7600, 7500, 9000, 7500, 14000, 7500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
@@ -1366,7 +1376,7 @@ function DashboardScene({ active }: { active: boolean }) {
         </div>
 
         {/* transactions detail table */}
-        <div className={`rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "760ms", animationFillMode: "both" }}>
+        <div className={`flex-1 rounded-xl ring-1 ring-blue-100 bg-white p-3.5 flex flex-col min-h-0 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "760ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TRANSACTION DETAIL</p>
             <p className="text-[10px] text-slate-400">Last 30 days · 482 trades</p>
@@ -1374,13 +1384,16 @@ function DashboardScene({ active }: { active: boolean }) {
           <div className="mt-1.5 grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1 border-b border-blue-100">
             <span>Symbol</span><span>Type</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
           </div>
-          <div className="mt-1 text-[11.5px]">
+          <div className="mt-1 text-[11.5px] flex-1 overflow-hidden">
             {[
               { s: "TSLA 250C 12/20",  t: "CALL", d: "BUY",  q: "5",  p: "$3.45",  v: "+$240" },
               { s: "NVDA 900P 12/13",  t: "PUT",  d: "SELL", q: "3",  p: "$12.10", v: "+$180" },
               { s: "SPY 510C 01/17",   t: "CALL", d: "BUY",  q: "10", p: "$4.20",  v: "+$140" },
               { s: "AAPL 200C 12/27",  t: "CALL", d: "STC",  q: "4",  p: "$2.80",  v: "+$112" },
               { s: "AMZN 220C 12/20",  t: "CALL", d: "STC",  q: "6",  p: "$1.95",  v: "+$96"  },
+              { s: "MSFT 410C 01/03",  t: "CALL", d: "BTO",  q: "3",  p: "$5.60",  v: "+$84"  },
+              { s: "GOOGL 175P 12/27", t: "PUT",  d: "STC",  q: "4",  p: "$1.85",  v: "+$72"  },
+              { s: "META 580C 01/10",  t: "CALL", d: "BUY",  q: "2",  p: "$9.40",  v: "+$60"  },
             ].map((t) => (
               <div key={t.s} className="grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
                 <span className="font-medium text-slate-800 truncate">{t.s}</span>
