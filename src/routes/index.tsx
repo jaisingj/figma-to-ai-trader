@@ -64,15 +64,17 @@ function Index() {
         </div>
       </header>
 
+      <ScrollingFeatureWall />
+
       {/* Hero — Claude-style split layout */}
-      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-12 pt-20 pb-24 max-w-[1600px] mx-auto items-start">
+      <section className="grid lg:grid-cols-2 gap-10 px-8 lg:px-12 pt-6 pb-20 max-w-[1600px] mx-auto items-start">
         {/* Left: headline + signup card */}
-        <div className="flex flex-col items-center text-center lg:pt-16">
+        <div className="flex flex-col items-center text-center">
           <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight">
             Your trades,<br />decoded in seconds.
           </h1>
           <p className="mt-6 text-base text-slate-600 max-w-md">
-            Drop a CSV from Robinhood, Schwab, or Fidelity — OptiX decodes your patterns instantly.
+            Import your broker data — OptiX decodes your patterns instantly across Robinhood, Schwab, and Fidelity.
           </p>
 
           <div className="mt-10 w-full max-w-sm rounded-2xl border border-slate-200 bg-white/60 backdrop-blur p-5 shadow-sm">
@@ -113,9 +115,8 @@ function Index() {
         {/* Right: Claude-style demo panel with cycling feature scenes */}
         <DemoPanel />
 
-      </section>
 
-      <ScrollingFeatureWall />
+      </section>
 
       {/* How it works */}
       <section className="px-8 pt-4 pb-24 max-w-7xl mx-auto">
@@ -129,23 +130,38 @@ function Index() {
             {
               frontIcon: <Plug className="h-6 w-6 text-blue-600" />,
               frontIconBg: "from-blue-100 to-blue-50",
-              title: "Connect your broker data",
+              title: "Import your Broker data",
               image: featureConnect,
-              back: "Import your trading data by uploading a report from Robinhood, Fidelity, or Schwab — or link your broker account securely via SnapTrade. One-click sync keeps trades, fills, and option legs up to date automatically.",
+              back: [
+                "Upload reports from Robinhood, Fidelity, or Schwab",
+                "Link your broker securely via SnapTrade",
+                "One-click sync keeps trades and fills up to date",
+                "Option legs and assignments auto-normalized",
+              ],
             },
             {
               frontIcon: <BrainCircuit className="h-6 w-6 text-violet-600" />,
               frontIconBg: "from-violet-100 to-violet-50",
               title: "Uncover trading insights",
               image: featureInsights,
-              back: "Get deeper insights into your trading. See patterns, exposure, and behaviour clearly. Ask OptiX AI why a strategy worked, spot recurring mistakes, and get personalized suggestions grounded in your real history.",
+              back: [
+                "See patterns, exposure, and behaviour clearly",
+                "Ask OptiX AI why a strategy worked",
+                "Spot recurring mistakes across your history",
+                "Get personalized suggestions grounded in real trades",
+              ],
             },
             {
               frontIcon: <LineChart className="h-6 w-6 text-emerald-600" />,
               frontIconBg: "from-emerald-100 to-emerald-50",
               title: "Track performance over time",
               image: featurePerformance,
-              back: "See how your trading performance evolves through clear trends, visual breakdowns, and deeper insights. Compare P/L, win rate, and exposure week-over-week. Spot your peak periods and drawdowns at a glance.",
+              back: [
+                "Clear trends and visual breakdowns of every period",
+                "Compare P/L, win rate, and exposure week-over-week",
+                "Spot peak periods and drawdowns at a glance",
+                "Benchmark current results against your prior self",
+              ],
             },
           ].map((c, i) => (
             <div key={i} className="perspective-1200 h-[460px] group">
@@ -170,12 +186,20 @@ function Index() {
                     </div>
                     <h3 className="text-xl font-semibold text-slate-600 whitespace-nowrap">{c.title}</h3>
                   </div>
-                  <p className="mt-5 text-slate-700 leading-relaxed text-base">{c.back}</p>
+                  <ul className="mt-5 space-y-3 text-slate-700 leading-relaxed text-[15px]">
+                    {c.back.map((b) => (
+                      <li key={b} className="flex gap-3">
+                        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
           ))}
         </div>
+
       </section>
 
       <WhatOptixOffers />
@@ -224,15 +248,15 @@ function ScrollColumn({ direction, delay }: { direction: "up" | "down"; delay: s
 
 function ScrollingFeatureWall() {
   return (
-    <section className="px-8 pb-20 max-w-7xl mx-auto">
+    <section className="px-8 pb-12 max-w-7xl mx-auto">
       <div className="grid lg:grid-cols-2 gap-10 items-center">
         <div>
-          <p className="text-xs font-semibold tracking-widest text-blue-600">LIVE INSIGHTS</p>
+          <p className="text-xs font-semibold tracking-widest text-blue-600">AI DRIVEN INSIGHTS</p>
           <h2 className="mt-3 text-4xl font-bold text-slate-900 leading-tight">
-            A living view of<br />your trading life.
+            Live insights from<br />every trade you make.
           </h2>
           <p className="mt-4 text-slate-600 max-w-md">
-            P/L, win rates, exposure, dividends, option legs — OptiX surfaces hundreds of signals from your CSV and keeps them fresh, automatically.
+            P/L, win rates, exposure, dividends, option legs — OptiX surfaces hundreds of signals from your broker data and keeps them fresh, automatically.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -244,6 +268,7 @@ function ScrollingFeatureWall() {
     </section>
   );
 }
+
 
 const OFFERS = [
   {
@@ -642,10 +667,16 @@ function FinderScene({ active }: { active: boolean }) {
         </div>
 
         {phase >= 5 && (
-          <div className="mt-5 flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700 animate-fade-in">
-            <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
+          <div className="mt-5 space-y-1.5 animate-fade-in">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+              <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+              <Check className="h-4 w-4" /> schwab_export.csv loaded
+            </div>
           </div>
         )}
+
       </div>
 
       {/* Mac Finder window */}
@@ -680,8 +711,9 @@ function FinderScene({ active }: { active: boolean }) {
                 { n: "screenshot_2026.png", t: "PNG", sel: false },
                 { n: "robinhood_options_2026.csv", t: "CSV · 1.2 MB", sel: true },
                 { n: "tax_summary.pdf", t: "PDF", sel: false },
-                { n: "schwab_export.xlsx", t: "Excel", sel: false },
+                { n: "schwab_export.csv", t: "CSV · 0.9 MB", sel: true },
               ].map((f) => {
+
                 const highlighted = f.sel && phase >= 3;
                 return (
                   <div
@@ -895,9 +927,9 @@ function DashboardScene({ active }: { active: boolean }) {
   return (
     <div className="h-full w-full flex flex-col bg-white">
       {/* top bar */}
-      <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
-        <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600" />
-        <p className="text-sm font-semibold text-slate-900">OptiX Dashboard</p>
+      <div className="h-14 px-5 border-b border-slate-200 flex items-center gap-3">
+        <img src={optixProLogo} alt="OptiX" className="h-12 w-auto" />
+
         <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
           <span className="h-2 w-2 rounded-full bg-emerald-500" /> Live · Robinhood
         </div>
