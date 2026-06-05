@@ -439,14 +439,9 @@ const LINE1_MS = LINE1.length * TYPE_MS_PER_CHAR;          // ~1100ms
 const LINE2_MS = LINE2.length * TYPE_MS_PER_CHAR;          // ~1210ms
 const LINE_GAP = 250;
 const TYPE_DURATION = LINE1_MS + LINE_GAP + LINE2_MS;      // ~2560ms
-const HOLD_MS = 4000;
-const T_TAGLINE_END = TYPE_DURATION + HOLD_MS;              // ~6560ms
-
-// Slow logo zoom
-const PER_LOGO = 1800;
-const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO;
-const CAROUSEL_MS = 6500;
-const T_CAROUSEL_END = T_LOGOS_END + CAROUSEL_MS;
+const HOLD_MS = 1500;
+const T_TAGLINE_END = TYPE_DURATION + HOLD_MS;
+void T_TAGLINE_END;
 
 function HeroReveal() {
   return (
