@@ -269,7 +269,7 @@ const OFFERS = [
 function WhatOptixOffers() {
   const [active, setActive] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setActive((a) => (a + 1) % OFFERS.length), 3500);
+    const id = setInterval(() => setActive((a) => (a + 1) % OFFERS.length), 5000);
     return () => clearInterval(id);
   }, []);
 
