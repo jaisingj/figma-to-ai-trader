@@ -43,8 +43,13 @@ function FloatCard({ className = "", delay, children }: CardProps) {
 }
 
 function Index() {
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const openGuide = () => { setStep(0); setGuideOpen(true); };
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
+
       {/* Nav */}
       <header className="flex items-center justify-between px-8 py-3 border-b border-slate-200/60 bg-white/70 backdrop-blur">
         <img src={optixProLogo.url} alt="OptiXPro" className="h-32 w-auto" />
