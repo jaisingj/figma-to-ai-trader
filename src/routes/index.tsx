@@ -1279,10 +1279,10 @@ function CsvTransformScene({ active }: { active: boolean }) {
               <p className="text-[12px] font-semibold tracking-widest text-blue-600">UNIFIED DASHBOARD READY</p>
               <Sparkles className="h-5 w-5 text-blue-500" />
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-              <div><p className="text-[11px] text-slate-400">TRADES</p><p className="text-2xl font-bold text-blue-700">482</p></div>
-              <div><p className="text-[11px] text-slate-400">P/L</p><p className="text-2xl font-bold text-blue-700">+$1,860</p></div>
-              <div><p className="text-[11px] text-slate-400">WIN</p><p className="text-2xl font-bold text-blue-700">71%</p></div>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div className="min-w-0"><p className="text-[10px] text-slate-400">TRADES</p><p className="text-base font-bold text-blue-700 truncate">482</p></div>
+              <div className="min-w-0"><p className="text-[10px] text-slate-400">P/L</p><p className="text-base font-bold text-blue-700 truncate">+$1,860</p></div>
+              <div className="min-w-0"><p className="text-[10px] text-slate-400">WIN</p><p className="text-base font-bold text-blue-700 truncate">71%</p></div>
             </div>
           </div>
         </div>
