@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
+import optixProLogo from "@/assets/optixpro-transparent.png";
 import featureConnect from "@/assets/feature-connect.jpg";
 import featureInsights from "@/assets/feature-insights.jpg";
 import featurePerformance from "@/assets/feature-performance.jpg";
