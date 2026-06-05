@@ -200,14 +200,14 @@ function Index() {
               <div className="relative h-full w-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                 {/* Front */}
                 <div className="absolute inset-0 backface-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_8px_30px_-12px_rgba(15,40,120,0.10)] flex flex-col">
-                  <div className="flex-1 rounded-2xl overflow-hidden bg-white -mt-2">
-                    <img src={c.image} alt={c.title} loading="lazy" width={1024} height={1024} className="h-full w-full object-contain scale-110" />
-                  </div>
-                  <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-3">
                     <div className={`h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br ${c.frontIconBg} flex items-center justify-center ring-1 ring-white shadow-sm`}>
                       {c.frontIcon}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 whitespace-nowrap">{c.title}</h3>
+                  </div>
+                  <div className="mt-3 flex-1 rounded-2xl overflow-hidden bg-white">
+                    <img src={c.image} alt={c.title} loading="lazy" width={1024} height={1024} className="h-full w-full object-contain scale-110" />
                   </div>
                 </div>
                 {/* Back */}
