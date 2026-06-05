@@ -61,17 +61,23 @@ function NavDropdown({ label, content, panelClassName = "" }: { label: string; c
   );
 }
 
-function DropdownGroup({ title, items }: { title: string; items: { label: string; external?: boolean }[] }) {
+function DropdownGroup({ title, items }: { title: string; items: { label: string; external?: boolean; to?: string }[] }) {
   return (
     <div>
       <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-3">{title}</p>
       <ul className="space-y-2.5">
         {items.map((it) => (
           <li key={it.label}>
-            <a href="#" className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
-              {it.label}
-              {it.external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
-            </a>
+            {it.to ? (
+              <Link to={it.to} className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
+                {it.label}
+              </Link>
+            ) : (
+              <a href="#" className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
+                {it.label}
+                {it.external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+              </a>
+            )}
           </li>
         ))}
       </ul>
@@ -107,10 +113,10 @@ function Index() {
             content={
               <div className="grid grid-cols-3 gap-10 p-7">
                 <DropdownGroup title="Products" items={[
-                  { label: "OptiX" },
-                  { label: "OptiX Pro" },
-                  { label: "OptiX Mobile" },
-                  { label: "OptiX for Teams" },
+                  { label: "OptiX", to: "/meet-optix" },
+                  { label: "OptiX Pro", to: "/meet-optix" },
+                  { label: "OptiX Mobile", to: "/meet-optix" },
+                  { label: "OptiX for Teams", to: "/meet-optix" },
                 ]} />
                 <DropdownGroup title="Features" items={[
                   { label: "Broker import" },
