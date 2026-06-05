@@ -834,6 +834,7 @@ function GettingStartedDialog({
    ========================================================= */
 
 const DEMO_SCENES = [
+  { key: "tagline", label: "Scattered trades in, AI insights out" },
   { key: "finder", label: "Import your trades" },
   { key: "transform", label: "CSV → structured trades" },
   { key: "dashboard", label: "Unified dashboard" },
@@ -841,7 +842,7 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATIONS = [7500, 9000, 7500, 13000, 7500];
+const SCENE_DURATIONS = [6500, 7500, 9000, 7500, 14000, 7500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
