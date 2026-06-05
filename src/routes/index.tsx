@@ -472,10 +472,11 @@ function GettingStartedDialog({
 const DEMO_SCENES = [
   { key: "finder", label: "Import your trades" },
   { key: "dashboard", label: "Unified dashboard" },
+  { key: "ai", label: "Ask AI about your trades" },
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATION = 6500;
+const SCENE_DURATION = 7500;
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
@@ -489,8 +490,8 @@ function DemoPanel() {
   }, []);
 
   return (
-    <div className="hidden lg:flex relative min-h-screen w-full items-center justify-center overflow-hidden border-l border-slate-200/70 bg-slate-50 px-10 py-16">
-      <div className="relative w-full max-w-[720px] aspect-[4/3]">
+    <div className="hidden lg:flex relative w-full flex-col items-center bg-slate-50 rounded-3xl ring-1 ring-slate-200/70 px-6 py-8 shadow-[0_30px_80px_-40px_rgba(15,40,120,0.25)]">
+      <div className="relative w-full h-[820px]">
         {DEMO_SCENES.map((s, i) => {
           const isActive = scene === i;
           return (
@@ -503,7 +504,8 @@ function DemoPanel() {
               <div className="h-full w-full rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_40px_100px_-30px_rgba(15,40,120,0.25)] overflow-hidden flex flex-col">
                 {i === 0 && <FinderScene key={`finder-${tick}`} active={isActive} />}
                 {i === 1 && <DashboardScene key={`dash-${tick}`} active={isActive} />}
-                {i === 2 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
+                {i === 2 && <AIScene key={`ai-${tick}`} active={isActive} />}
+                {i === 3 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
               </div>
             </div>
           );
@@ -511,7 +513,7 @@ function DemoPanel() {
       </div>
 
       {/* Scene label + dots */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-10">
+      <div className="mt-6 flex flex-col items-center gap-3">
         <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
           {DEMO_SCENES[scene].label}
         </p>
@@ -531,6 +533,7 @@ function DemoPanel() {
     </div>
   );
 }
+
 
 /* ---------- Scene 1: Finder picker ---------- */
 function FinderScene({ active }: { active: boolean }) {
