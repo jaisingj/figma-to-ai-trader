@@ -280,7 +280,7 @@ function Index() {
         </div>
 
         {/* Right: Claude-style demo panel with cycling feature scenes */}
-        <DemoPanel />
+        <div className="lg:-mt-10 lg:translate-x-6"><DemoPanel /></div>
 
 
       </section>
@@ -439,81 +439,80 @@ const LINE1_MS = LINE1.length * TYPE_MS_PER_CHAR;          // ~1100ms
 const LINE2_MS = LINE2.length * TYPE_MS_PER_CHAR;          // ~1210ms
 const LINE_GAP = 250;
 const TYPE_DURATION = LINE1_MS + LINE_GAP + LINE2_MS;      // ~2560ms
-const HOLD_MS = 4000;
-const T_TAGLINE_END = TYPE_DURATION + HOLD_MS;              // ~6560ms
-
-// Slow logo zoom
-const PER_LOGO = 1800;
-const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO;
-const CAROUSEL_MS = 6500;
-const T_CAROUSEL_END = T_LOGOS_END + CAROUSEL_MS;
 
 function HeroReveal() {
-  const [phase, setPhase] = useState(0);
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    setPhase(0);
-    timers.push(setTimeout(() => setPhase(1), T_TAGLINE_END));
-    timers.push(setTimeout(() => setPhase(2), T_LOGOS_END));
-    timers.push(setTimeout(() => setTick((t) => t + 1), T_CAROUSEL_END));
-    return () => timers.forEach(clearTimeout);
-  }, [tick]);
-
   return (
     <div className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-      {/* Phase 0: typewriter tagline */}
-      {phase === 0 && (
-        <div key={`t-${tick}`} className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6">
-          <span
-            className="typewriter text-slate-500 text-xl lg:text-2xl font-bold"
-            style={{
-              width: `${LINE1.length}ch`,
-              animation: `tw-type ${LINE1_MS}ms steps(${LINE1.length}, end) both, tw-caret 700ms steps(1, end) ${LINE1_MS}ms 2`,
-            }}
-          >
-            {LINE1}
-          </span>
-          <span
-            className="typewriter text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
-            style={{
-              width: `${LINE2.length}ch`,
-              animation: `tw-type ${LINE2_MS}ms steps(${LINE2.length}, end) ${LINE1_MS + LINE_GAP}ms both, tw-caret 700ms steps(1, end) ${LINE1_MS + LINE_GAP + LINE2_MS}ms infinite`,
-            }}
-          >
-            {LINE2}
-          </span>
-        </div>
-      )}
+      <div className="absolute inset-0 grid grid-cols-2 gap-2 p-3">
+        <ScrollColumn direction="up" delay="0s" compact />
+        <ScrollColumn direction="down" delay="-6s" compact />
+      </div>
+    </div>
+  );
+}
 
-      {/* Phase 1: AI logos — bigger, angled, slow zoom in/out */}
-      {phase === 1 && (
-        <div key={`l-${tick}`} className="absolute inset-0">
-          {AI_LOGOS.map((logo, i) => (
+/* ---------- Scene 0: Tagline + AI logos burst ---------- */
+function TaglineLogosScene({ active }: { active: boolean }) {
+  // 0: typing, 1: hold, 2: logos in, 3: logos out
+  const [phase, setPhase] = useState(0);
+  useEffect(() => {
+    if (!active) { setPhase(0); return; }
+    const timers = [
+      setTimeout(() => setPhase(1), TYPE_DURATION),
+      setTimeout(() => setPhase(2), TYPE_DURATION + 700),
+      setTimeout(() => setPhase(3), TYPE_DURATION + 700 + 1600),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [active]);
+
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+      {/* Tagline */}
+      <div className={`absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 px-8 transition-opacity duration-500 ${phase >= 2 ? "opacity-0" : "opacity-100"}`}>
+        <span
+          className="typewriter text-slate-700 text-3xl font-bold"
+          style={{
+            width: `${LINE1.length}ch`,
+            animation: `tw-type ${LINE1_MS}ms steps(${LINE1.length}, end) both, tw-caret 700ms steps(1, end) ${LINE1_MS}ms 2`,
+          }}
+        >
+          {LINE1}
+        </span>
+        <span
+          className="typewriter text-3xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
+          style={{
+            width: `${LINE2.length}ch`,
+            animation: `tw-type ${LINE2_MS}ms steps(${LINE2.length}, end) ${LINE1_MS + LINE_GAP}ms both, tw-caret 700ms steps(1, end) ${LINE1_MS + LINE_GAP + LINE2_MS}ms infinite`,
+          }}
+        >
+          {LINE2}
+        </span>
+      </div>
+
+      {/* Logos burst — all in together from corners, then back */}
+      {phase >= 2 && (
+        <div className="absolute inset-0">
+          {AI_LOGOS.map((logo) => (
             <div
               key={logo.name}
-              className="absolute left-1/2 top-1/2 opacity-0"
+              className="absolute left-1/2 top-1/2"
               style={{
                 ["--rot" as never]: `${logo.rot}deg`,
                 ["--tx" as never]: `${logo.tx}px`,
                 ["--ty" as never]: `${logo.ty}px`,
-                ["--spin" as never]: `${logo.spin}deg`,
-                animation: `ai-pulse ${PER_LOGO}ms ${i * PER_LOGO}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
+                transition: "transform 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 700ms ease",
+                transform:
+                  phase === 2
+                    ? `translate(-50%, -50%) scale(1.15) rotate(var(--rot))`
+                    : `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.3) rotate(var(--rot))`,
+                opacity: phase === 2 ? 1 : 0,
               }}
             >
-              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-8 py-5">
-                <img src={logo.src} alt={logo.name} className="h-24 w-auto max-w-[240px] object-contain" />
+              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-7 py-4">
+                <img src={logo.src} alt={logo.name} className="h-20 w-auto max-w-[200px] object-contain" />
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Phase 2: carousel */}
-      {phase === 2 && (
-        <div key={`c-${tick}`} className="absolute inset-0 grid grid-cols-2 gap-2 p-3 animate-[fade-in_0.5s_ease-out_both]">
-          <ScrollColumn direction="up" delay="0s" compact />
-          <ScrollColumn direction="down" delay="-6s" compact />
         </div>
       )}
 
@@ -525,19 +524,10 @@ function HeroReveal() {
           border-right: 2px solid currentColor;
           max-width: 100%;
         }
-        @keyframes tw-type {
-          from { width: 0; }
-        }
+        @keyframes tw-type { from { width: 0; } }
         @keyframes tw-caret {
           0%, 50% { border-right-color: currentColor; }
           51%, 100% { border-right-color: transparent; }
-        }
-        @keyframes ai-pulse {
-          0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(var(--rot)); }
-          20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot)); }
-          45%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(var(--rot)); }
-          60%  { opacity: 1; transform: translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1.2) rotate(var(--rot)); }
-          100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4) rotate(var(--spin)); }
         }
       `}</style>
     </div>
@@ -836,6 +826,7 @@ function GettingStartedDialog({
    ========================================================= */
 
 const DEMO_SCENES = [
+  { key: "tagline", label: "Scattered trades in, AI insights out" },
   { key: "finder", label: "Import your trades" },
   { key: "transform", label: "CSV → structured trades" },
   { key: "dashboard", label: "Unified dashboard" },
@@ -843,7 +834,7 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATIONS = [7500, 9000, 7500, 13000, 7500];
+const SCENE_DURATIONS = [6500, 7500, 9000, 7500, 14000, 7500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
@@ -869,11 +860,12 @@ function DemoPanel() {
               }`}
             >
               <div className="h-full w-full rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_40px_100px_-30px_rgba(15,40,120,0.25)] overflow-hidden flex flex-col">
-                {i === 0 && <FinderScene key={`finder-${tick}`} active={isActive} />}
-                {i === 1 && <CsvTransformScene key={`xform-${tick}`} active={isActive} />}
-                {i === 2 && <DashboardScene key={`dash-${tick}`} active={isActive} />}
-                {i === 3 && <AIScene key={`ai-${tick}`} active={isActive} />}
-                {i === 4 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
+                {i === 0 && <TaglineLogosScene key={`tag-${tick}`} active={isActive} />}
+                {i === 1 && <FinderScene key={`finder-${tick}`} active={isActive} />}
+                {i === 2 && <CsvTransformScene key={`xform-${tick}`} active={isActive} />}
+                {i === 3 && <DashboardScene key={`dash-${tick}`} active={isActive} />}
+                {i === 4 && <AIScene key={`ai-${tick}`} active={isActive} />}
+                {i === 5 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
               </div>
             </div>
           );
@@ -1465,20 +1457,22 @@ function AIScene({ active }: { active: boolean }) {
   };
 
   // Timeline (ms)
-  const T_HIGHLIGHT  = 300;
-  const T_MSG1       = 900;   // user bubble from shortcut
-  const T_TYPING1    = 1100;
-  const T_ANSWER1    = 2100;
-  const T_TYPE_START = 3000;  // typewriter in input
-  const T_TYPE_END   = T_TYPE_START + TYPED_QUESTION.length * 28; // ~1900ms total
-  const T_MSG2       = T_TYPE_END + 200;
-  const T_TYPING2    = T_MSG2 + 200;
-  const T_ANSWER2    = T_TYPING2 + 1100;
+  const T_CURSOR_MOVE = 200;   // cursor begins traveling to shortcut
+  const T_HIGHLIGHT   = 1400;  // cursor arrives + click ring
+  const T_MSG1        = 1900;
+  const T_TYPING1     = 2100;
+  const T_ANSWER1     = 3100;
+  const T_TYPE_START  = 3800;
+  const T_TYPE_END    = T_TYPE_START + TYPED_QUESTION.length * 28;
+  const T_MSG2        = T_TYPE_END + 200;
+  const T_TYPING2     = T_MSG2 + 200;
+  const T_ANSWER2     = T_TYPING2 + 1100;
 
   const [highlight, setHighlight] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [typing, setTyping] = useState(false);
-  const [inputChars, setInputChars] = useState(0); // typewriter chars
+  const [inputChars, setInputChars] = useState(0);
+  const [cursorAt, setCursorAt] = useState<"rest" | "shortcut" | "gone">("rest");
 
   useEffect(() => {
     if (!active) {
@@ -1486,12 +1480,15 @@ function AIScene({ active }: { active: boolean }) {
       setMessages([]);
       setTyping(false);
       setInputChars(0);
+      setCursorAt("rest");
       return;
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => setCursorAt("shortcut"), T_CURSOR_MOVE));
     timers.push(setTimeout(() => setHighlight(true), T_HIGHLIGHT));
     timers.push(setTimeout(() => {
       setHighlight(false);
+      setCursorAt("gone");
       setMessages([{ role: "user", model: "You", text: PICKED_SHORTCUT }]);
     }, T_MSG1));
     timers.push(setTimeout(() => setTyping(true), T_TYPING1));
@@ -1526,7 +1523,20 @@ function AIScene({ active }: { active: boolean }) {
   }, [active]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-white">
+    <div className="relative h-full w-full flex flex-col bg-white">
+      {/* Traveling cursor — slowly glides to the shortcut */}
+      <div
+        className="absolute pointer-events-none z-30"
+        style={{
+          left: cursorAt === "rest" ? "55%" : cursorAt === "shortcut" ? "14%" : "14%",
+          top: cursorAt === "rest" ? "94%" : cursorAt === "shortcut" ? "78%" : "78%",
+          opacity: cursorAt === "gone" ? 0 : 1,
+          transform: "translate(-50%, -50%)",
+          transition: "left 1100ms cubic-bezier(0.4,0.2,0.2,1), top 1100ms cubic-bezier(0.4,0.2,0.2,1), opacity 300ms ease",
+        }}
+      >
+        <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
+      </div>
       <div className="h-12 px-5 border-b border-slate-200 flex items-center gap-3">
         <Sparkles className="h-4 w-4 text-violet-600" />
         <p className="text-sm font-semibold text-slate-900">OptiX AI</p>
@@ -1599,10 +1609,7 @@ function AIScene({ active }: { active: boolean }) {
               >
                 {p}
                 {isPicked && (
-                  <>
-                    <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
-                    <MousePointer2 className="absolute -right-3 -bottom-3 h-4 w-4 text-slate-800 fill-white drop-shadow" />
-                  </>
+                  <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
                 )}
               </button>
             );
