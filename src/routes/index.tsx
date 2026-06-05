@@ -1465,20 +1465,22 @@ function AIScene({ active }: { active: boolean }) {
   };
 
   // Timeline (ms)
-  const T_HIGHLIGHT  = 300;
-  const T_MSG1       = 900;   // user bubble from shortcut
-  const T_TYPING1    = 1100;
-  const T_ANSWER1    = 2100;
-  const T_TYPE_START = 3000;  // typewriter in input
-  const T_TYPE_END   = T_TYPE_START + TYPED_QUESTION.length * 28; // ~1900ms total
-  const T_MSG2       = T_TYPE_END + 200;
-  const T_TYPING2    = T_MSG2 + 200;
-  const T_ANSWER2    = T_TYPING2 + 1100;
+  const T_CURSOR_MOVE = 200;   // cursor begins traveling to shortcut
+  const T_HIGHLIGHT   = 1400;  // cursor arrives + click ring
+  const T_MSG1        = 1900;
+  const T_TYPING1     = 2100;
+  const T_ANSWER1     = 3100;
+  const T_TYPE_START  = 3800;
+  const T_TYPE_END    = T_TYPE_START + TYPED_QUESTION.length * 28;
+  const T_MSG2        = T_TYPE_END + 200;
+  const T_TYPING2     = T_MSG2 + 200;
+  const T_ANSWER2     = T_TYPING2 + 1100;
 
   const [highlight, setHighlight] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [typing, setTyping] = useState(false);
-  const [inputChars, setInputChars] = useState(0); // typewriter chars
+  const [inputChars, setInputChars] = useState(0);
+  const [cursorAt, setCursorAt] = useState<"rest" | "shortcut" | "gone">("rest");
 
   useEffect(() => {
     if (!active) {
@@ -1486,12 +1488,15 @@ function AIScene({ active }: { active: boolean }) {
       setMessages([]);
       setTyping(false);
       setInputChars(0);
+      setCursorAt("rest");
       return;
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => setCursorAt("shortcut"), T_CURSOR_MOVE));
     timers.push(setTimeout(() => setHighlight(true), T_HIGHLIGHT));
     timers.push(setTimeout(() => {
       setHighlight(false);
+      setCursorAt("gone");
       setMessages([{ role: "user", model: "You", text: PICKED_SHORTCUT }]);
     }, T_MSG1));
     timers.push(setTimeout(() => setTyping(true), T_TYPING1));
