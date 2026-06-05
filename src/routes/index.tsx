@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, ChevronDown, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -844,7 +844,7 @@ const DEMO_SCENES = [
   { key: "checklist", label: "What OptiX can do" },
 ] as const;
 
-const SCENE_DURATIONS = [7600, 7500, 9000, 7500, 14000, 7500];
+const SCENE_DURATIONS = [7600, 5500, 6500, 5500, 12000, 5500];
 
 function DemoPanel() {
   const [scene, setScene] = useState(0);
@@ -1469,6 +1469,13 @@ function AIScene({ active }: { active: boolean }) {
   const [typing, setTyping] = useState(false);
   const [inputChars, setInputChars] = useState(0);
   const [cursorAt, setCursorAt] = useState<"rest" | "shortcut" | "gone">("rest");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
+  }, [messages, typing]);
 
   useEffect(() => {
     if (!active) {
@@ -1543,21 +1550,23 @@ function AIScene({ active }: { active: boolean }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white">
-        {/* Trader personality card */}
-        <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-center gap-5 animate-fade-in">
-          <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-32 w-32 rounded-xl object-cover shrink-0 ring-1 ring-slate-200" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
-            <h4 className="mt-1 text-xl font-bold text-slate-900">Reactive Optimizer</h4>
-            <p className="mt-1.5 text-[12.5px] text-slate-600 leading-relaxed">
-              You frequently adjust positions based on short-term signals rather than planned exits.
-            </p>
-            <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
-              <Sparkles className="h-3 w-3" /> <span className="underline">Deep dive</span>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white scroll-smooth">
+        {/* Trader personality card — fades out once chat fills up */}
+        {messages.length < 2 && (
+          <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-center gap-5 animate-fade-in">
+            <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-32 w-32 rounded-xl object-cover shrink-0 ring-1 ring-slate-200" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
+              <h4 className="mt-1 text-xl font-bold text-slate-900">Reactive Optimizer</h4>
+              <p className="mt-1.5 text-[12.5px] text-slate-600 leading-relaxed">
+                You frequently adjust positions based on short-term signals rather than planned exits.
+              </p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+                <Sparkles className="h-3 w-3" /> <span className="underline">Deep dive</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {messages.map((m, i) => {
           const isUser = m.role === "user";
@@ -1698,7 +1707,7 @@ function ChecklistScene({ active }: { active: boolean }) {
       i += 1;
       setChecked(i);
       if (i >= items.length) clearInterval(id);
-    }, 550);
+    }, 320);
     return () => clearInterval(id);
   }, [active]);
 
