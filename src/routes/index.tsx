@@ -6,6 +6,8 @@ import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
 import featureConnect from "@/assets/feature-connect.jpg";
 import featureInsights from "@/assets/feature-insights.jpg";
 import featurePerformance from "@/assets/feature-performance.jpg";
+import reactiveOptimizerImg from "@/assets/reactive-optimizer.png";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
