@@ -631,16 +631,16 @@ function FinderScene({ active }: { active: boolean }) {
   return (
     <div className="relative h-full w-full bg-slate-100 p-8 flex flex-col items-center justify-center">
       {/* Upload card behind */}
-      <div className="w-full max-w-[420px] rounded-2xl bg-white ring-1 ring-slate-200 p-8 shadow-sm">
+      <div className="w-full max-w-[540px] rounded-2xl bg-white ring-1 ring-slate-200 p-10 shadow-sm">
         <p className="text-[11px] font-semibold tracking-widest text-slate-400">STEP 1 — IMPORT</p>
-        <h3 className="mt-2 text-xl font-semibold text-slate-900">Upload your broker CSV</h3>
-        <p className="mt-1.5 text-sm text-slate-500">We'll parse and normalize 482 trades in seconds.</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-900">Upload your broker CSV</h3>
+        <p className="mt-2 text-sm text-slate-500">We'll parse and normalize 482 trades in seconds.</p>
 
-        <div className="mt-6 rounded-xl border-2 border-dashed border-slate-300 p-6 flex flex-col items-center text-center">
-          <Upload className="h-7 w-7 text-slate-400" />
-          <p className="mt-2 text-sm text-slate-600">Drag a file here, or</p>
+        <div className="mt-7 rounded-xl border-2 border-dashed border-slate-300 p-10 flex flex-col items-center text-center">
+          <Upload className="h-10 w-10 text-slate-400" />
+          <p className="mt-3 text-base text-slate-600">Drag a file here, or</p>
           <button
-            className={`relative mt-3 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+            className={`relative mt-4 rounded-lg px-6 py-2.5 text-base font-semibold transition-all ${
               phase >= 1 ? "bg-slate-900 text-white scale-95" : "bg-slate-900 text-white hover:bg-slate-800"
             }`}
           >
@@ -652,17 +652,18 @@ function FinderScene({ active }: { active: boolean }) {
         </div>
 
         {phase >= 5 && (
-          <div className="mt-5 space-y-1.5 animate-fade-in">
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+          <div className="mt-6 space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2.5 text-sm font-medium text-emerald-700">
               <Check className="h-4 w-4" /> robinhood_options_2026.csv loaded
             </div>
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2 text-[13px] font-medium text-emerald-700">
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 py-2.5 text-sm font-medium text-emerald-700">
               <Check className="h-4 w-4" /> schwab_export.csv loaded
             </div>
           </div>
         )}
 
       </div>
+
 
       {/* Mac Finder window */}
       {phase >= 2 && phase < 5 && (
