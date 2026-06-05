@@ -269,7 +269,7 @@ const OFFERS = [
 function WhatOptixOffers() {
   const [active, setActive] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setActive((a) => (a + 1) % OFFERS.length), 5000);
+    const id = setInterval(() => setActive((a) => (a + 1) % OFFERS.length), 3000);
     return () => clearInterval(id);
   }, []);
 
@@ -307,7 +307,7 @@ function WhatOptixOffers() {
                     </div>
                     <div className="pt-1">
                       <h3
-                        className={`text-xl font-bold transition-colors ${isActive ? "text-slate-900" : "text-slate-400"}`}
+                        className={`text-xl font-normal transition-colors ${isActive ? "text-slate-900" : "text-slate-400"}`}
                       >
                         {o.title}
                       </h3>
