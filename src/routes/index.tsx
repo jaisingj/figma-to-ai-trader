@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-import optixProLogo from "@/assets/optixpro.jpeg.asset.json";
+import optixProLogo from "@/assets/optixpro-transparent.png";
 import featureConnect from "@/assets/feature-connect.jpg";
 import featureInsights from "@/assets/feature-insights.jpg";
 import featurePerformance from "@/assets/feature-performance.jpg";
@@ -52,7 +52,7 @@ function Index() {
 
       {/* Nav — Claude-style minimal */}
       <header className="flex items-center justify-between px-8 lg:px-12 py-5">
-        <img src={optixProLogo.url} alt="OptiXPro" className="h-32 w-auto" />
+        <img src={optixProLogo} alt="OptiXPro" className="h-34 w-auto" />
 
         <div className="flex items-center gap-6">
           <a href="/about" className="text-sm font-medium text-slate-700 hover:text-blue-600 transition">
@@ -379,7 +379,7 @@ function GettingStartedDialog({
         <div className="p-8">
           <div className="flex items-center gap-3">
             {step === 0 ? (
-              <img src={optixProLogo.url} alt="OptiX" className="h-10 w-auto" />
+              <img src={optixProLogo} alt="OptiX" className="h-10 w-auto" />
             ) : (
               <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
                 <KeyRound className="h-5 w-5 text-blue-600" />
