@@ -252,85 +252,87 @@ function ScrollColumn({ direction, delay, compact = false }: { direction: "up" |
 
 
 
+import geminiLogo from "@/assets/gemini.webp.asset.json";
+import chatgptLogo from "@/assets/chatgpt.webp.asset.json";
+import perplexityLogo from "@/assets/perplexity.webp.asset.json";
+import claudeLogo from "@/assets/claude.webp.asset.json";
+import llamaLogo from "@/assets/llama.svg.asset.json";
+
 const AI_LOGOS = [
-  { name: "Claude", bg: "bg-orange-50", color: "text-orange-600", ring: "ring-orange-200", exit: { x: -180, y: -120, r: -25 } },
-  { name: "ChatGPT", bg: "bg-emerald-50", color: "text-emerald-700", ring: "ring-emerald-200", exit: { x: 200, y: -100, r: 20 } },
-  { name: "Gemini", bg: "bg-blue-50", color: "text-blue-600", ring: "ring-blue-200", exit: { x: -220, y: 110, r: -15 } },
-  { name: "LLaMA", bg: "bg-violet-50", color: "text-violet-600", ring: "ring-violet-200", exit: { x: 190, y: 130, r: 30 } },
-  { name: "Mistral", bg: "bg-amber-50", color: "text-amber-600", ring: "ring-amber-200", exit: { x: 0, y: -180, r: 0 } },
+  { name: "Claude", src: claudeLogo.url },
+  { name: "ChatGPT", src: chatgptLogo.url },
+  { name: "Gemini", src: geminiLogo.url },
+  { name: "LLaMA", src: llamaLogo.url },
+  { name: "Perplexity", src: perplexityLogo.url },
 ];
 
+// Timeline (ms)
+const T_TAGLINE_END = 5500;  // tagline animates + holds 5s
+const PER_LOGO = 1800;        // slow appear/disappear per logo
+const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO; // 14500
+const T_CAROUSEL_END = T_LOGOS_END + 3500;                       // 18000
+
 function HeroReveal() {
-  // Phases: 0 = AI logos (0-4s), 1 = tagline (4-6s), 2 = carousel (6-8s), then loop
+  // Phases: 0 = tagline (hold 5s), 1 = AI logos, 2 = carousel
   const [phase, setPhase] = useState(0);
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     setPhase(0);
-    timers.push(setTimeout(() => setPhase(1), 4000));
-    timers.push(setTimeout(() => setPhase(2), 6000));
-    timers.push(setTimeout(() => setTick((t) => t + 1), 8000));
+    timers.push(setTimeout(() => setPhase(1), T_TAGLINE_END));
+    timers.push(setTimeout(() => setPhase(2), T_LOGOS_END));
+    timers.push(setTimeout(() => setTick((t) => t + 1), T_CAROUSEL_END));
     return () => timers.forEach(clearTimeout);
   }, [tick]);
 
-  const perLogo = 0.75; // seconds per logo
-
   return (
     <div className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-      {/* Phase 0: AI logos zooming in center, flying out in different directions */}
+      {/* Phase 0: tagline animates in and holds */}
       {phase === 0 && (
-        <div key={`l-${tick}`} className="absolute inset-0">
-          {AI_LOGOS.map((logo, i) => (
-            <div
-              key={logo.name}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0"
-              style={{
-                animation: `ai-fly 1.1s ${i * perLogo}s cubic-bezier(0.22, 1, 0.36, 1) both`,
-                ["--fx" as never]: `${logo.exit.x}px`,
-                ["--fy" as never]: `${logo.exit.y}px`,
-                ["--fr" as never]: `${logo.exit.r}deg`,
-              }}
-            >
-              <div className={`flex flex-col items-center gap-1.5 ${logo.bg} ${logo.ring} ring-1 rounded-2xl px-4 py-3 shadow-lg`}>
-                <Sparkles className={`h-8 w-8 ${logo.color}`} />
-                <span className={`text-xs font-bold tracking-wide ${logo.color}`}>{logo.name}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Phase 1: tagline */}
-      {phase === 1 && (
         <div key={`t-${tick}`} className="absolute inset-0 flex items-center justify-center px-6">
           <p className="text-center text-xl lg:text-2xl font-bold text-slate-900">
-            <span className="inline-block text-slate-500 animate-[fade-in_0.5s_ease-out_both]">Scattered trades in.</span>{" "}
-            <span
-              className="inline-block bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent animate-[fade-in_0.6s_ease-out_0.5s_both]"
-            >
+            <span className="inline-block text-slate-500 animate-[fade-in_0.7s_ease-out_both]">Scattered trades in.</span>{" "}
+            <span className="inline-block bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent animate-[fade-in_0.8s_ease-out_0.7s_both]">
               OptiX AI insights out.
             </span>
           </p>
         </div>
       )}
 
+      {/* Phase 1: AI logos slow zoom in then slow zoom out, one at a time */}
+      {phase === 1 && (
+        <div key={`l-${tick}`} className="absolute inset-0">
+          {AI_LOGOS.map((logo, i) => (
+            <div
+              key={logo.name}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0"
+              style={{
+                animation: `ai-pulse ${PER_LOGO}ms ${i * PER_LOGO}ms cubic-bezier(0.4, 0, 0.2, 1) both`,
+              }}
+            >
+              <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-xl px-6 py-4">
+                <img src={logo.src} alt={logo.name} className="h-16 w-auto max-w-[180px] object-contain" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Phase 2: carousel */}
       {phase === 2 && (
-        <div key={`c-${tick}`} className="absolute inset-0 grid grid-cols-2 gap-2 p-3 animate-[fade-in_0.4s_ease-out_both]">
+        <div key={`c-${tick}`} className="absolute inset-0 grid grid-cols-2 gap-2 p-3 animate-[fade-in_0.5s_ease-out_both]">
           <ScrollColumn direction="up" delay="0s" compact />
           <ScrollColumn direction="down" delay="-6s" compact />
         </div>
       )}
 
       <style>{`
-        @keyframes ai-fly {
-          0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.1); }
-          35%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+        @keyframes ai-pulse {
+          0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+          30%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
           55%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% {
-            opacity: 0;
-            transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy))) scale(0.4) rotate(var(--fr));
-          }
+          75%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
         }
       `}</style>
     </div>
