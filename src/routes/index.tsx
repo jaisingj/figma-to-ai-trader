@@ -540,6 +540,38 @@ const DEMO_SCENES = [
 
 const SCENE_DURATION = 7500;
 
+function SceneCard({ sceneKey }: { sceneKey: string }) {
+  return (
+    <div className="w-[640px] h-[420px] shrink-0 rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_20px_50px_-20px_rgba(15,40,120,0.25)] overflow-hidden flex flex-col">
+      {sceneKey === "finder" && <FinderScene active={true} />}
+      {sceneKey === "transform" && <CsvTransformScene active={true} />}
+      {sceneKey === "dashboard" && <DashboardScene active={true} />}
+      {sceneKey === "ai" && <AIScene active={true} />}
+      {sceneKey === "checklist" && <ChecklistScene active={true} />}
+    </div>
+  );
+}
+
+function DemoTicker() {
+  const items = [...DEMO_SCENES, ...DEMO_SCENES];
+  return (
+    <div className="relative w-full overflow-hidden bg-slate-50 border-y border-slate-200/70 py-8">
+      <div className="flex gap-6 w-max animate-marquee-x">
+        {items.map((s, i) => (
+          <div key={`${s.key}-${i}`} className="flex flex-col items-start gap-2 px-1">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase pl-1">
+              {s.label}
+            </p>
+            <SceneCard sceneKey={s.key} />
+          </div>
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white to-transparent" />
+    </div>
+  );
+}
+
 function DemoPanel() {
   const [scene, setScene] = useState(0);
   const [tick, setTick] = useState(0); // forces scene re-mount to restart sub-animations
