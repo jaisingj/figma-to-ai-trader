@@ -711,8 +711,9 @@ function FinderScene({ active }: { active: boolean }) {
                 { n: "screenshot_2026.png", t: "PNG", sel: false },
                 { n: "robinhood_options_2026.csv", t: "CSV · 1.2 MB", sel: true },
                 { n: "tax_summary.pdf", t: "PDF", sel: false },
-                { n: "schwab_export.xlsx", t: "Excel", sel: false },
+                { n: "schwab_export.csv", t: "CSV · 0.9 MB", sel: true },
               ].map((f) => {
+
                 const highlighted = f.sel && phase >= 3;
                 return (
                   <div
