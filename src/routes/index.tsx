@@ -484,47 +484,36 @@ function DemoPanel() {
   }, []);
 
   return (
-    <div className="hidden lg:flex flex-col rounded-3xl border border-slate-200 bg-white/60 backdrop-blur shadow-[0_30px_80px_-40px_rgba(15,40,120,0.25)] h-[640px] overflow-hidden">
-      {/* Window chrome */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200/70">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
-        </div>
-        <p className="text-[11px] font-medium text-slate-400 tracking-wide">optix.app — {DEMO_SCENES[scene].label}</p>
-        <span className="h-2.5 w-2.5" />
-      </div>
-
-      {/* Scene stage */}
-      <div className="relative flex-1 overflow-hidden">
-        {DEMO_SCENES.map((s, i) => (
-          <div
-            key={s.key}
-            className={`absolute inset-0 p-6 transition-all duration-700 ${
-              scene === i ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
-            }`}
-          >
+    <div className="hidden lg:flex relative h-[640px] items-center justify-center border-l border-slate-200/70">
+      {DEMO_SCENES.map((s, i) => (
+        <div
+          key={s.key}
+          className={`absolute left-1/2 top-1/2 w-[360px] transition-all duration-700 ease-out ${
+            scene === i
+              ? "opacity-100 -translate-x-1/2 -translate-y-1/2 scale-100"
+              : "opacity-0 -translate-x-1/2 -translate-y-[40%] scale-95 pointer-events-none"
+          }`}
+        >
+          <div className="rounded-3xl bg-white ring-1 ring-slate-200 shadow-[0_30px_80px_-30px_rgba(15,40,120,0.25)] p-6 min-h-[420px] flex flex-col">
             {i === 0 && <UploadScene active={scene === 0} />}
             {i === 1 && <DashboardScene active={scene === 1} />}
             {i === 2 && <AIScene active={scene === 2} />}
             {i === 3 && <InsightScene active={scene === 3} />}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      {/* Scene tabs */}
-      <div className="flex items-center gap-2 border-t border-slate-200/70 px-4 py-3">
+      {/* Dot indicators */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
         {DEMO_SCENES.map((s, i) => (
           <button
             key={s.key}
             onClick={() => setScene(i)}
-            className={`flex-1 text-[11px] font-medium rounded-full py-1.5 transition ${
-              scene === i ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-100"
+            aria-label={s.label}
+            className={`h-1.5 rounded-full transition-all ${
+              scene === i ? "w-6 bg-blue-600" : "w-1.5 bg-slate-300 hover:bg-slate-400"
             }`}
-          >
-            {s.label}
-          </button>
+          />
         ))}
       </div>
     </div>
