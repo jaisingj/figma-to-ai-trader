@@ -46,9 +46,9 @@ function NavDropdown({ label, content, panelClassName = "" }: { label: string; c
   const [open, setOpen] = useState(false);
   return (
     <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition rounded-full">
+      <button className="flex items-center gap-1 px-4 py-2 text-base font-medium text-slate-700 hover:text-slate-900 transition rounded-full">
         {label}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className={`absolute left-1/2 top-full z-50 pt-3 ${panelClassName}`}>
@@ -1546,9 +1546,9 @@ function AIScene({ active }: { active: boolean }) {
       >
         <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
       </div>
-      <div className="h-20 px-5 border-b border-slate-200 flex items-center gap-3">
-        <img src={optixProLogo} alt="OptiX" className="h-14 w-auto" />
-        <p className="text-2xl font-semibold tracking-tight text-slate-900">Ask OptiX</p>
+      <div className="h-24 px-5 border-b border-slate-200 flex items-center gap-3">
+        <img src={optixProLogo} alt="OptiX" className="h-20 w-auto" />
+        <p className="text-3xl font-semibold tracking-tight text-slate-900">Ask OptiX</p>
         <div className="ml-auto flex items-center gap-1.5">
           {["Claude", "ChatGPT", "Gemini"].map((m) => (
             <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
