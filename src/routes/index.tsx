@@ -1381,24 +1381,25 @@ function DashboardScene({ active }: { active: boolean }) {
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TRANSACTION DETAIL</p>
             <p className="text-[10px] text-slate-400">Last 30 days · 482 trades</p>
           </div>
-          <div className="mt-1.5 grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1 border-b border-blue-100">
-            <span>Symbol</span><span>Type</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
+          <div className="mt-1.5 grid grid-cols-[1.4fr_0.6fr_0.6fr_0.7fr_0.5fr_0.7fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1 border-b border-blue-100">
+            <span>Symbol</span><span>Type</span><span>Trade</span><span>Strike</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
           </div>
           <div className="mt-1 text-[11.5px] flex-1 overflow-hidden">
             {[
-              { s: "TSLA 250C 12/20",  t: "CALL", d: "BUY",  q: "5",  p: "$3.45",  v: "+$240" },
-              { s: "NVDA 900P 12/13",  t: "PUT",  d: "SELL", q: "3",  p: "$12.10", v: "+$180" },
-              { s: "SPY 510C 01/17",   t: "CALL", d: "BUY",  q: "10", p: "$4.20",  v: "+$140" },
-              { s: "AAPL 200C 12/27",  t: "CALL", d: "STC",  q: "4",  p: "$2.80",  v: "+$112" },
-              { s: "AMZN 220C 12/20",  t: "CALL", d: "STC",  q: "6",  p: "$1.95",  v: "+$96"  },
-              { s: "MSFT 410C 01/03",  t: "CALL", d: "BTO",  q: "3",  p: "$5.60",  v: "+$84"  },
-              { s: "GOOGL 175P 12/27", t: "PUT",  d: "STC",  q: "4",  p: "$1.85",  v: "+$72"  },
-              { s: "META 580C 01/10",  t: "CALL", d: "BUY",  q: "2",  p: "$9.40",  v: "+$60"  },
+              { s: "TSLA 12/20",  t: "CALL", d: "STO", k: "$250", q: "5",  p: "$3.45",  v: "+$240" },
+              { s: "NVDA 12/13",  t: "PUT",  d: "BTC", k: "$900", q: "3",  p: "$12.10", v: "+$180" },
+              { s: "SPY 01/17",   t: "CALL", d: "BTO", k: "$510", q: "10", p: "$4.20",  v: "+$140" },
+              { s: "AAPL 12/27",  t: "CALL", d: "STC", k: "$200", q: "4",  p: "$2.80",  v: "+$112" },
+              { s: "AMZN 12/20",  t: "CALL", d: "STC", k: "$220", q: "6",  p: "$1.95",  v: "+$96"  },
+              { s: "MSFT 01/03",  t: "CALL", d: "BTO", k: "$410", q: "3",  p: "$5.60",  v: "+$84"  },
+              { s: "GOOGL 12/27", t: "PUT",  d: "STO", k: "$175", q: "4",  p: "$1.85",  v: "+$72"  },
+              { s: "META 01/10",  t: "CALL", d: "BTC", k: "$580", q: "2",  p: "$9.40",  v: "+$60"  },
             ].map((t) => (
-              <div key={t.s} className="grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
+              <div key={t.s} className="grid grid-cols-[1.4fr_0.6fr_0.6fr_0.7fr_0.5fr_0.7fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
                 <span className="font-medium text-slate-800 truncate">{t.s}</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold w-fit bg-blue-50 text-blue-700">{t.t}</span>
                 <span className="text-slate-600 font-medium">{t.d}</span>
+                <span className="text-slate-600">{t.k}</span>
                 <span className="text-slate-600">{t.q}</span>
                 <span className="text-slate-600">{t.p}</span>
                 <span className="text-right font-semibold text-blue-700">{t.v}</span>
@@ -1420,7 +1421,7 @@ function AIScene({ active }: { active: boolean }) {
     "💡 Suggest better exits",
   ];
   const PICKED_SHORTCUT = SHORTCUTS[0];
-  const TYPED_QUESTION = "Why did I lose money on TSLA puts last month?";
+  const TYPED_QUESTION = "Which stock gave me the best win rate?";
 
   type TableData = {
     title: string;
@@ -1448,7 +1449,7 @@ function AIScene({ active }: { active: boolean }) {
   const ANSWER_2: Msg = {
     role: "assistant",
     model: "ChatGPT",
-    text: "You opened most TSLA puts 48h pre-earnings and held through IV crush. Average loss -$310 was vega decay, not direction — TSLA actually dropped 4%. Switch to debit spreads here (your win rate: 73% vs 41% on naked puts).",
+    text: "NVDA leads with a 78% win rate over 18 trades (+$1,120). Your edge: selling premium into IV spikes around earnings — STO/BTC cycles closed in under 5 days averaged 82% wins. Worst: TSLA at 41%.",
   };
 
   // Timeline (ms)
