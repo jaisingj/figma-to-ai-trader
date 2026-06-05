@@ -7,6 +7,8 @@ import featureConnect from "@/assets/feature-connect.jpg";
 import featureInsights from "@/assets/feature-insights.jpg";
 import featurePerformance from "@/assets/feature-performance.jpg";
 import reactiveOptimizerImg from "@/assets/reactive-optimizer.png";
+import successAnalysis from "@/assets/success-analysis.png.asset.json";
+import investmentAnalysis from "@/assets/investment-analysis.png.asset.json";
 
 
 export const Route = createFileRoute("/")({
@@ -353,40 +355,7 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 
 function SuccessVisual() {
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <div className="space-y-4 col-span-1">
-        <Card>
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400">REALIZED P/L</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600">+$1,860</p>
-          <p className="mt-1 text-[11px] text-slate-500">After Tax: <span className="text-emerald-600 font-semibold">+$1,720</span></p>
-        </Card>
-        <Card>
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400">WIN RATE</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">71%</p>
-          <p className="mt-1 text-[10px] text-slate-500">Avg win <span className="text-emerald-600 font-semibold">$240</span> · Loss <span className="text-rose-600 font-semibold">-$410</span></p>
-        </Card>
-        <Card>
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400">PREMIUM</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600">+$2,320</p>
-          <p className="mt-1 text-[11px] text-rose-600">↘ 10% <span className="text-slate-500">last week</span></p>
-        </Card>
-      </div>
-      <Card className="col-span-2 flex flex-col">
-        <svg viewBox="0 0 300 180" className="w-full h-full">
-          <defs>
-            <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d="M0,140 L30,150 L60,120 L90,110 L120,90 L150,70 L180,55 L210,45 L240,35 L270,25 L300,20 L300,180 L0,180 Z" fill="url(#g1)" />
-          <path d="M0,140 L30,150 L60,120 L90,110 L120,90 L150,70 L180,55 L210,45 L240,35 L270,25 L300,20" fill="none" stroke="#059669" strokeWidth="2" />
-        </svg>
-        <div className="mt-2 flex justify-between text-[10px] text-slate-400">
-          <span>Jan 1</span><span>Jan 15</span><span>Feb 5</span><span>Feb 26</span>
-        </div>
-      </Card>
-    </div>
+    <img src={successAnalysis.url} alt="Success analysis dashboard" className="w-full h-auto rounded-2xl" />
   );
 }
 
@@ -431,37 +400,7 @@ function TradingVisual() {
 
 function InvestmentVisual() {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400">OPEN POSITIONS</p>
-          <p className="mt-1 text-3xl font-bold text-slate-900">7</p>
-          <p className="mt-1 text-[11px] text-slate-500">Net delta <span className="font-semibold text-slate-900">+24</span></p>
-        </Card>
-        <Card>
-          <p className="text-[10px] font-semibold tracking-widest text-slate-400">CAPITAL DEPLOYED</p>
-          <p className="mt-1 text-3xl font-bold text-slate-900">$48.2k</p>
-          <p className="mt-1 text-[11px] text-emerald-600">↗ 62% utilization</p>
-        </Card>
-      </div>
-      <Card>
-        <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-3">EXPOSURE BY SYMBOL</p>
-        {[
-          { s: "AAPL", v: 80, c: "bg-blue-600" },
-          { s: "TSLA", v: 60, c: "bg-blue-500" },
-          { s: "NVDA", v: 45, c: "bg-blue-400" },
-          { s: "NFLX", v: 25, c: "bg-blue-300" },
-        ].map((r) => (
-          <div key={r.s} className="flex items-center gap-3 my-2 text-xs">
-            <span className="w-12 font-semibold text-slate-700">{r.s}</span>
-            <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
-              <div className={`h-full ${r.c} rounded-full`} style={{ width: `${r.v}%` }} />
-            </div>
-            <span className="w-12 text-right text-slate-500">{r.v}%</span>
-          </div>
-        ))}
-      </Card>
-    </div>
+    <img src={investmentAnalysis.url} alt="Investment analysis dashboard" className="w-full h-auto rounded-2xl" />
   );
 }
 
