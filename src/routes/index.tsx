@@ -464,3 +464,265 @@ function GettingStartedDialog({
     </Dialog>
   );
 }
+
+/* =========================================================
+   Demo Panel — Claude-style cycling product demo
+   ========================================================= */
+
+const DEMO_SCENES = [
+  { key: "upload", label: "Import broker CSV" },
+  { key: "dashboard", label: "Unified dashboard" },
+  { key: "ai", label: "Ask OptiX AI" },
+  { key: "insight", label: "Behaviour insights" },
+] as const;
+
+function DemoPanel() {
+  const [scene, setScene] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setScene((s) => (s + 1) % DEMO_SCENES.length), 4500);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="hidden lg:flex flex-col rounded-3xl border border-slate-200 bg-white/60 backdrop-blur shadow-[0_30px_80px_-40px_rgba(15,40,120,0.25)] h-[640px] overflow-hidden">
+      {/* Window chrome */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200/70">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
+        </div>
+        <p className="text-[11px] font-medium text-slate-400 tracking-wide">optix.app — {DEMO_SCENES[scene].label}</p>
+        <span className="h-2.5 w-2.5" />
+      </div>
+
+      {/* Scene stage */}
+      <div className="relative flex-1 overflow-hidden">
+        {DEMO_SCENES.map((s, i) => (
+          <div
+            key={s.key}
+            className={`absolute inset-0 p-6 transition-all duration-700 ${
+              scene === i ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+            }`}
+          >
+            {i === 0 && <UploadScene active={scene === 0} />}
+            {i === 1 && <DashboardScene active={scene === 1} />}
+            {i === 2 && <AIScene active={scene === 2} />}
+            {i === 3 && <InsightScene active={scene === 3} />}
+          </div>
+        ))}
+      </div>
+
+      {/* Scene tabs */}
+      <div className="flex items-center gap-2 border-t border-slate-200/70 px-4 py-3">
+        {DEMO_SCENES.map((s, i) => (
+          <button
+            key={s.key}
+            onClick={() => setScene(i)}
+            className={`flex-1 text-[11px] font-medium rounded-full py-1.5 transition ${
+              scene === i ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ----- Scene 1: CSV upload ----- */
+function UploadScene({ active }: { active: boolean }) {
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    if (!active) { setPct(0); return; }
+    let p = 0;
+    const id = setInterval(() => {
+      p = Math.min(100, p + 6);
+      setPct(p);
+      if (p >= 100) clearInterval(id);
+    }, 90);
+    return () => clearInterval(id);
+  }, [active]);
+
+  return (
+    <div className="flex flex-col h-full">
+      <p className="text-xs font-semibold tracking-widest text-slate-400">STEP 1 — IMPORT</p>
+      <h3 className="mt-1 text-lg font-semibold text-slate-900">Drop your broker CSV</h3>
+
+      <div className="mt-5 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/50 p-6 flex flex-col items-center justify-center">
+        <div className="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30">
+          <Upload className="h-5 w-5" />
+        </div>
+        <p className="mt-3 text-sm font-medium text-slate-700">robinhood_options_2026.csv</p>
+        <p className="text-[11px] text-slate-500">1.2 MB · 482 trades</p>
+      </div>
+
+      <div className="mt-5 space-y-2">
+        <div className="flex justify-between text-[11px] text-slate-500">
+          <span>Parsing trades…</span>
+          <span className="font-semibold text-slate-700">{pct}%</span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div className="h-full bg-blue-600 transition-all duration-150" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {["Robinhood", "Schwab", "Fidelity", "SnapTrade"].map((b) => (
+          <span key={b} className="rounded-full bg-white ring-1 ring-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 flex items-center gap-1.5">
+            <FileSpreadsheet className="h-3 w-3 text-slate-400" /> {b}
+          </span>
+        ))}
+      </div>
+
+      {pct >= 100 && (
+        <div className="mt-auto flex items-center gap-2 text-[12px] font-medium text-emerald-600 animate-fade-in">
+          <Check className="h-4 w-4" /> 482 trades imported & normalized
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ----- Scene 2: Dashboard ----- */
+function DashboardScene({ active }: { active: boolean }) {
+  const kpis = [
+    { tag: "REALIZED P/L", value: "+$1,860", sub: "after tax +$1,720", pos: true },
+    { tag: "WIN RATE", value: "71%", sub: "vs 64% last month", pos: true },
+    { tag: "SHARPE", value: "1.82", sub: "strong risk-adj.", pos: true },
+    { tag: "OPEN POSITIONS", value: "7", sub: "net delta +24", pos: true },
+  ];
+  return (
+    <div className="flex flex-col h-full">
+      <p className="text-xs font-semibold tracking-widest text-slate-400">DASHBOARD</p>
+      <h3 className="mt-1 text-lg font-semibold text-slate-900">Everything, unified</h3>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        {kpis.map((k, i) => (
+          <div
+            key={k.tag}
+            className={`rounded-xl bg-white ring-1 ring-slate-200 p-3 ${active ? "animate-fade-in" : ""}`}
+            style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}
+          >
+            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{k.tag}</p>
+            <p className={`mt-1 text-xl font-bold ${k.pos ? "text-emerald-600" : "text-rose-600"}`}>{k.value}</p>
+            <p className="text-[10px] text-slate-500">{k.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* mini line chart */}
+      <div className="mt-4 rounded-xl bg-white ring-1 ring-slate-200 p-3">
+        <div className="flex justify-between items-center">
+          <p className="text-[9px] font-semibold tracking-widest text-slate-400">EQUITY CURVE · 30D</p>
+          <p className="text-[10px] text-emerald-600 font-semibold">↗ +12.4%</p>
+        </div>
+        <svg viewBox="0 0 200 60" className="mt-2 w-full h-16">
+          <defs>
+            <linearGradient id="gradLine" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0,45 L20,40 L40,42 L60,30 L80,33 L100,22 L120,26 L140,16 L160,18 L180,10 L200,8 L200,60 L0,60 Z" fill="url(#gradLine)" />
+          <path d="M0,45 L20,40 L40,42 L60,30 L80,33 L100,22 L120,26 L140,16 L160,18 L180,10 L200,8" fill="none" stroke="#2563eb" strokeWidth="2" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ----- Scene 3: AI chat ----- */
+function AIScene({ active }: { active: boolean }) {
+  const fullAnswer = "You exit winners 2.3× faster than losers. On TSLA, your average winning trade lasted 38 min, while losers ran 4h 12m. Tightening your loss cutoff to 1.5× ATR could reclaim ~$640 over the last 30 days.";
+  const [typed, setTyped] = useState("");
+  useEffect(() => {
+    if (!active) { setTyped(""); return; }
+    let i = 0;
+    const id = setInterval(() => {
+      i += 3;
+      setTyped(fullAnswer.slice(0, i));
+      if (i >= fullAnswer.length) clearInterval(id);
+    }, 30);
+    return () => clearInterval(id);
+  }, [active]);
+
+  return (
+    <div className="flex flex-col h-full">
+      <p className="text-xs font-semibold tracking-widest text-slate-400">ASK OPTIX AI</p>
+      <h3 className="mt-1 text-lg font-semibold text-slate-900">Talk to your trades</h3>
+
+      <div className="mt-4 flex-1 space-y-3 overflow-hidden">
+        <div className="flex justify-end">
+          <div className="max-w-[80%] rounded-2xl rounded-br-md bg-blue-600 text-white px-4 py-2.5 text-sm">
+            Why am I losing on TSLA lately?
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <div className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+            <Sparkles className="h-3.5 w-3.5 text-white" />
+          </div>
+          <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5 text-sm text-slate-700 leading-relaxed">
+            {typed}
+            <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-slate-400 align-middle animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 rounded-full ring-1 ring-slate-200 bg-white px-3 py-2">
+        <MessageSquare className="h-4 w-4 text-slate-400" />
+        <span className="text-[12px] text-slate-400 flex-1">Ask about any symbol, strategy, or day…</span>
+        <button className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center">
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ----- Scene 4: Behaviour insight ----- */
+function InsightScene({ active }: { active: boolean }) {
+  return (
+    <div className="flex flex-col h-full">
+      <p className="text-xs font-semibold tracking-widest text-slate-400">BEHAVIOUR</p>
+      <h3 className="mt-1 text-lg font-semibold text-slate-900">Your trader personality</h3>
+
+      <div className={`mt-4 rounded-2xl bg-gradient-to-br from-violet-50 to-blue-50 ring-1 ring-violet-200/60 p-5 ${active ? "animate-fade-in" : ""}`}>
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <BrainCircuit className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold tracking-widest text-violet-600">PROFILE</p>
+            <p className="text-xl font-bold text-slate-900">Reactive Optimizer</p>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-slate-600 leading-relaxed">
+          You frequently re-balance positions on short-term signals. Strong at capturing momentum, prone to overtrading on red days.
+        </p>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        {[
+          { l: "Discipline", v: 72, c: "bg-emerald-500" },
+          { l: "Patience", v: 41, c: "bg-amber-500" },
+          { l: "Risk Mgmt", v: 86, c: "bg-blue-500" },
+        ].map((m, i) => (
+          <div key={m.l} className={`rounded-xl bg-white ring-1 ring-slate-200 p-3 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: `${200 + i * 120}ms`, animationFillMode: "both" }}>
+            <p className="text-[9px] font-semibold tracking-widest text-slate-400">{m.l.toUpperCase()}</p>
+            <p className="mt-1 text-lg font-bold text-slate-900">{m.v}</p>
+            <div className="mt-1.5 h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className={`h-full ${m.c}`} style={{ width: `${m.v}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-auto pt-3 flex items-center gap-2 text-[11px] text-blue-600 font-semibold">
+        <Sparkles className="h-3.5 w-3.5" /> Personalized to your last 482 trades
+      </div>
+    </div>
+  );
+}
+
