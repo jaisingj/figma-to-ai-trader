@@ -75,9 +75,10 @@ function Index() {
             Drop a CSV from Robinhood, Schwab, or Fidelity. OptiX unifies your activity, surfaces the patterns behind your P/L, and lets you ask AI why you trade the way you do.
           </p>
           <div className="mt-10 flex items-center gap-6">
-            <button className="rounded-full bg-blue-600 px-7 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
+            <button onClick={openGuide} className="rounded-full bg-blue-600 px-7 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
               Try OptiX for free
             </button>
+
             <a href="#plans" className="text-sm font-semibold text-blue-600 hover:text-blue-700">
               View plans
             </a>
