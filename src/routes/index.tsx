@@ -278,7 +278,7 @@ const HOLD_MS = 4000;
 const T_TAGLINE_END = TYPE_DURATION + HOLD_MS;              // ~6560ms
 
 // Slow logo zoom
-const PER_LOGO = 2400;
+const PER_LOGO = 1800;
 const T_LOGOS_END = T_TAGLINE_END + AI_LOGOS.length * PER_LOGO;
 const CAROUSEL_MS = 6500;
 const T_CAROUSEL_END = T_LOGOS_END + CAROUSEL_MS;
