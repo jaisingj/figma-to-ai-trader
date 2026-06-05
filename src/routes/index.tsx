@@ -423,12 +423,14 @@ import perplexityLogo from "@/assets/perplexity.webp.asset.json";
 import claudeLogo from "@/assets/claude.webp.asset.json";
 import llamaLogo from "@/assets/llama.svg.asset.json";
 
+// cx/cy = converged position around center (in px). z controls stacking.
 const AI_LOGOS = [
-  { name: "Claude", src: claudeLogo.url, rot: -8, tx: -260, ty: -160, spin: -540 },
-  { name: "ChatGPT", src: chatgptLogo.url, rot: 6, tx: 280, ty: -140, spin: 720 },
-  { name: "Gemini", src: geminiLogo.url, rot: -5, tx: -300, ty: 180, spin: -720 },
-  { name: "LLaMA", src: llamaLogo.url, rot: 9, tx: 290, ty: 190, spin: 540 },
-  { name: "Perplexity", src: perplexityLogo.url, rot: -7, tx: 0, ty: -260, spin: 900 },
+  { name: "ChatGPT",    src: chatgptLogo.url,    rot:  6, tx:  280, ty: -140, cx:  150, cy:   10, z: 30 },
+  { name: "Gemini",     src: geminiLogo.url,     rot: -5, tx: -300, ty:  180, cx: -150, cy:   10, z: 30 },
+  { name: "LLaMA",      src: llamaLogo.url,      rot:  9, tx:  290, ty:  190, cx:   80, cy:   85, z: 20 },
+  { name: "Perplexity", src: perplexityLogo.url, rot: -7, tx:    0, ty: -260, cx:  -80, cy:   85, z: 20 },
+  // Claude rendered last so it sits on top
+  { name: "Claude",     src: claudeLogo.url,     rot: -4, tx: -260, ty: -160, cx:    0, cy:  -70, z: 50 },
 ];
 
 // Typewriter timing
