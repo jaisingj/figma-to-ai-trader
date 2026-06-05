@@ -196,18 +196,18 @@ function Index() {
               back: "See how your trading performance evolves through clear trends, visual breakdowns, and deeper insights. Compare P/L, win rate, and exposure week-over-week. Spot your peak periods and drawdowns at a glance.",
             },
           ].map((c, i) => (
-            <div key={i} className="perspective-1200 h-[580px] group">
+            <div key={i} className="perspective-1200 h-[460px] group">
               <div className="relative h-full w-full preserve-3d transition-transform duration-700 group-hover:rotate-y-180">
                 {/* Front */}
-                <div className="absolute inset-0 backface-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_-12px_rgba(15,40,120,0.10)] flex flex-col">
-                  <div className="flex items-center gap-3">
+                <div className="absolute inset-0 backface-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_8px_30px_-12px_rgba(15,40,120,0.10)] flex flex-col">
+                  <div className="flex-1 rounded-2xl overflow-hidden bg-white -mt-2">
+                    <img src={c.image} alt={c.title} loading="lazy" width={1024} height={1024} className="h-full w-full object-contain scale-110" />
+                  </div>
+                  <div className="flex items-center gap-3 mt-2">
                     <div className={`h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br ${c.frontIconBg} flex items-center justify-center ring-1 ring-white shadow-sm`}>
                       {c.frontIcon}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 whitespace-nowrap">{c.title}</h3>
-                  </div>
-                  <div className="mt-4 flex-1 rounded-2xl overflow-hidden bg-white">
-                    <img src={c.image} alt={c.title} loading="lazy" width={1024} height={1024} className="h-full w-full object-contain" />
                   </div>
                 </div>
                 {/* Back */}
