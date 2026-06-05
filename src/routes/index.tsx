@@ -259,11 +259,11 @@ import claudeLogo from "@/assets/claude.webp.asset.json";
 import llamaLogo from "@/assets/llama.svg.asset.json";
 
 const AI_LOGOS = [
-  { name: "Claude", src: claudeLogo.url, rot: -8 },
-  { name: "ChatGPT", src: chatgptLogo.url, rot: 6 },
-  { name: "Gemini", src: geminiLogo.url, rot: -5 },
-  { name: "LLaMA", src: llamaLogo.url, rot: 9 },
-  { name: "Perplexity", src: perplexityLogo.url, rot: -7 },
+  { name: "Claude", src: claudeLogo.url, rot: -8, tx: -260, ty: -160, spin: -540 },
+  { name: "ChatGPT", src: chatgptLogo.url, rot: 6, tx: 280, ty: -140, spin: 720 },
+  { name: "Gemini", src: geminiLogo.url, rot: -5, tx: -300, ty: 180, spin: -720 },
+  { name: "LLaMA", src: llamaLogo.url, rot: 9, tx: 290, ty: 190, spin: 540 },
+  { name: "Perplexity", src: perplexityLogo.url, rot: -7, tx: 0, ty: -260, spin: 900 },
 ];
 
 // Typewriter timing
