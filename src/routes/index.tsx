@@ -1376,7 +1376,7 @@ function DashboardScene({ active }: { active: boolean }) {
         </div>
 
         {/* transactions detail table */}
-        <div className={`rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "760ms", animationFillMode: "both" }}>
+        <div className={`flex-1 rounded-xl ring-1 ring-blue-100 bg-white p-3.5 flex flex-col min-h-0 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "760ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TRANSACTION DETAIL</p>
             <p className="text-[10px] text-slate-400">Last 30 days · 482 trades</p>
