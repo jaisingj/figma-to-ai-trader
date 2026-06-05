@@ -1310,9 +1310,9 @@ function DashboardScene({ active }: { active: boolean }) {
   return (
     <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
       {/* top bar — slimmer */}
-      <div className="h-10 px-4 border-b border-blue-100 bg-white flex items-center gap-3">
-        <img src={optixProLogo} alt="OptiX" className="h-8 w-auto" />
-        <div className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
+      <div className="h-20 px-5 border-b border-blue-100 bg-white flex items-center gap-3">
+        <img src={optixProLogo} alt="OptiX" className="h-16 w-auto" />
+        <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
           <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Live · Robinhood
         </div>
       </div>
