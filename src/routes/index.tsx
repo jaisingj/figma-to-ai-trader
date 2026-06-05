@@ -1550,21 +1550,23 @@ function AIScene({ active }: { active: boolean }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white">
-        {/* Trader personality card */}
-        <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-center gap-5 animate-fade-in">
-          <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-32 w-32 rounded-xl object-cover shrink-0 ring-1 ring-slate-200" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
-            <h4 className="mt-1 text-xl font-bold text-slate-900">Reactive Optimizer</h4>
-            <p className="mt-1.5 text-[12.5px] text-slate-600 leading-relaxed">
-              You frequently adjust positions based on short-term signals rather than planned exits.
-            </p>
-            <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
-              <Sparkles className="h-3 w-3" /> <span className="underline">Deep dive</span>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-8 py-6 space-y-4 bg-gradient-to-b from-slate-50/50 to-white scroll-smooth">
+        {/* Trader personality card — fades out once chat fills up */}
+        {messages.length < 2 && (
+          <div className="rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm p-5 flex items-center gap-5 animate-fade-in">
+            <img src={reactiveOptimizerImg} alt="Reactive Optimizer" className="h-32 w-32 rounded-xl object-cover shrink-0 ring-1 ring-slate-200" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold tracking-widest text-slate-400">YOUR TRADER PERSONALITY IS A</p>
+              <h4 className="mt-1 text-xl font-bold text-slate-900">Reactive Optimizer</h4>
+              <p className="mt-1.5 text-[12.5px] text-slate-600 leading-relaxed">
+                You frequently adjust positions based on short-term signals rather than planned exits.
+              </p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+                <Sparkles className="h-3 w-3" /> <span className="underline">Deep dive</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {messages.map((m, i) => {
           const isUser = m.role === "user";
