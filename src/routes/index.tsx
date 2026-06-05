@@ -115,6 +115,7 @@ function Index() {
 
       </section>
 
+      <ScrollingFeatureWall />
 
       {/* How it works */}
       <section className="px-8 pt-4 pb-24 max-w-7xl mx-auto">
@@ -177,7 +178,6 @@ function Index() {
         </div>
       </section>
 
-      <ScrollingFeatureWall />
       <WhatOptixOffers />
     </div>
   );
