@@ -517,8 +517,8 @@ function TaglineLogosScene({ active }: { active: boolean }) {
                   opacity: isCenter ? 1 : 0,
                 }}
               >
-                <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-6 py-3.5">
-                  <img src={logo.src} alt={logo.name} className="h-16 w-auto max-w-[170px] object-contain" />
+                <div className="flex items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-2xl px-8 py-5">
+                  <img src={logo.src} alt={logo.name} className="h-24 w-auto max-w-[240px] object-contain" />
                 </div>
               </div>
             );
