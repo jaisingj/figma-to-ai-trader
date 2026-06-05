@@ -1293,7 +1293,7 @@ function AIScene({ active }: { active: boolean }) {
       i += 1;
       setShown(i + 1);
       if (i + 1 >= messages.length) clearInterval(id);
-    }, 1600);
+    }, 950);
     return () => clearInterval(id);
   }, [active]);
 
