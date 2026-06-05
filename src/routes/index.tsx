@@ -1707,7 +1707,7 @@ function ChecklistScene({ active }: { active: boolean }) {
       i += 1;
       setChecked(i);
       if (i >= items.length) clearInterval(id);
-    }, 550);
+    }, 320);
     return () => clearInterval(id);
   }, [active]);
 
