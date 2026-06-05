@@ -1111,8 +1111,41 @@ function DashboardScene({ active }: { active: boolean }) {
             ))}
           </div>
         </div>
+
+        {/* Distribution doughnuts */}
+        <div className={`grid grid-cols-2 gap-3 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "1040ms", animationFillMode: "both" }}>
+          <div className="rounded-xl ring-1 ring-slate-200 bg-white p-4">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-2">CALL vs PUT</p>
+            <Doughnut
+              total={6}
+              centerLabel="TRADES"
+              centerValue="6"
+              data={[
+                { label: "Calls", value: 4, color: "#10b981" },
+                { label: "Puts",  value: 2, color: "#f43f5e" },
+              ]}
+            />
+          </div>
+          <div className="rounded-xl ring-1 ring-slate-200 bg-white p-4">
+            <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-2">BY STOCK</p>
+            <Doughnut
+              total={6}
+              centerLabel="SYMBOLS"
+              centerValue="6"
+              data={[
+                { label: "TSLA", value: 1, color: "#2563eb" },
+                { label: "NVDA", value: 1, color: "#8b5cf6" },
+                { label: "SPY",  value: 1, color: "#06b6d4" },
+                { label: "AAPL", value: 1, color: "#f59e0b" },
+                { label: "META", value: 1, color: "#ec4899" },
+                { label: "AMZN", value: 1, color: "#14b8a6" },
+              ]}
+            />
+          </div>
+        </div>
       </div>
     </div>
+
   );
 }
 
