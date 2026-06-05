@@ -505,9 +505,10 @@ function DemoPanel() {
             >
               <div className="h-full w-full rounded-2xl bg-white ring-1 ring-slate-200 shadow-[0_40px_100px_-30px_rgba(15,40,120,0.25)] overflow-hidden flex flex-col">
                 {i === 0 && <FinderScene key={`finder-${tick}`} active={isActive} />}
-                {i === 1 && <DashboardScene key={`dash-${tick}`} active={isActive} />}
-                {i === 2 && <AIScene key={`ai-${tick}`} active={isActive} />}
-                {i === 3 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
+                {i === 1 && <CsvTransformScene key={`xform-${tick}`} active={isActive} />}
+                {i === 2 && <DashboardScene key={`dash-${tick}`} active={isActive} />}
+                {i === 3 && <AIScene key={`ai-${tick}`} active={isActive} />}
+                {i === 4 && <ChecklistScene key={`check-${tick}`} active={isActive} />}
               </div>
             </div>
           );
