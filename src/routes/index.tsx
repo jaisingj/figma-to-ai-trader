@@ -1292,74 +1292,73 @@ function CsvTransformScene({ active }: { active: boolean }) {
 /* ---------- Scene 3: Slick dashboard ---------- */
 function DashboardScene({ active }: { active: boolean }) {
   const kpis = [
-    { tag: "REALIZED P/L", value: "+$1,860", sub: "+12.4% MTD", pos: true },
-    { tag: "WIN RATE", value: "71%", sub: "vs 64% prior", pos: true },
-    { tag: "SHARPE", value: "1.82", sub: "strong risk-adj.", pos: true },
-    { tag: "OPEN POSITIONS", value: "7", sub: "net delta +24", pos: true },
+    { tag: "REALIZED P/L", value: "+$1,860", sub: "+12.4% MTD" },
+    { tag: "WIN RATE",     value: "71%",     sub: "vs 64% prior" },
+    { tag: "SHARPE",       value: "1.82",    sub: "strong risk-adj." },
+    { tag: "OPEN POS",     value: "7",       sub: "net delta +24" },
   ];
   return (
-    <div className="h-full w-full flex flex-col bg-white">
-      {/* top bar */}
-      <div className="h-14 px-5 border-b border-slate-200 flex items-center gap-3">
-        <img src={optixProLogo} alt="OptiX" className="h-12 w-auto" />
-
-        <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" /> Live · Robinhood
+    <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
+      {/* top bar — slimmer */}
+      <div className="h-10 px-4 border-b border-blue-100 bg-white flex items-center gap-3">
+        <img src={optixProLogo} alt="OptiX" className="h-8 w-auto" />
+        <div className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Live · Robinhood
         </div>
       </div>
 
-      <div className="flex-1 p-6 space-y-5 overflow-hidden">
+      <div className="flex-1 p-4 space-y-3 overflow-hidden">
         {/* KPIs */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-2.5">
           {kpis.map((k, i) => (
             <div
               key={k.tag}
-              className={`rounded-xl ring-1 ring-slate-200 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`}
-              style={{ animationDelay: `${i * 120}ms`, animationFillMode: "both" }}
+              className={`rounded-xl ring-1 ring-blue-100 bg-white p-3 ${active ? "animate-fade-in" : ""}`}
+              style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
             >
               <p className="text-[9px] font-semibold tracking-widest text-slate-400">{k.tag}</p>
-              <p className={`mt-1 text-lg font-bold ${k.pos ? "text-emerald-600" : "text-rose-600"}`}>{k.value}</p>
+              <p className="mt-0.5 text-lg font-bold text-blue-700">{k.value}</p>
               <p className="text-[10px] text-slate-500">{k.sub}</p>
             </div>
           ))}
         </div>
 
-        {/* Chart + side panel */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className={`col-span-2 rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "560ms", animationFillMode: "both" }}>
+        {/* Chart + top symbols */}
+        <div className="grid grid-cols-3 gap-2.5">
+          <div className={`col-span-2 rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "480ms", animationFillMode: "both" }}>
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-semibold tracking-widest text-slate-400">EQUITY CURVE · 30D</p>
-              <p className="text-[11px] text-emerald-600 font-semibold">↗ +12.4%</p>
+              <p className="text-[11px] text-blue-600 font-semibold">↗ +12.4%</p>
             </div>
-            <svg viewBox="0 0 300 90" className="mt-2 w-full h-24">
+            <svg viewBox="0 0 300 80" className="mt-1.5 w-full h-20">
               <defs>
                 <linearGradient id="dashGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
                   <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path d="M0,70 L30,62 L60,66 L90,48 L120,52 L150,36 L180,42 L210,26 L240,30 L270,14 L300,10 L300,90 L0,90 Z" fill="url(#dashGrad)" />
+              <path d="M0,60 L30,54 L60,58 L90,42 L120,46 L150,30 L180,36 L210,22 L240,26 L270,12 L300,8 L300,80 L0,80 Z" fill="url(#dashGrad)" />
               <path
-                d="M0,70 L30,62 L60,66 L90,48 L120,52 L150,36 L180,42 L210,26 L240,30 L270,14 L300,10"
+                d="M0,60 L30,54 L60,58 L90,42 L120,46 L150,30 L180,36 L210,22 L240,26 L270,12 L300,8"
                 fill="none" stroke="#2563eb" strokeWidth="2"
                 strokeDasharray="600" strokeDashoffset={active ? "0" : "600"}
-                style={{ transition: "stroke-dashoffset 1.6s ease-out 0.6s" }}
+                style={{ transition: "stroke-dashoffset 1.6s ease-out 0.5s" }}
               />
             </svg>
           </div>
 
-          <div className={`rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "720ms", animationFillMode: "both" }}>
+          <div className={`rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "620ms", animationFillMode: "both" }}>
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TOP SYMBOLS</p>
-            <div className="mt-2 space-y-2">
+            <div className="mt-1.5 space-y-1.5">
               {[
-                { s: "TSLA", v: "+$640", pos: true },
-                { s: "NVDA", v: "+$420", pos: true },
-                { s: "AAPL", v: "-$120", pos: false },
-                { s: "SPY",  v: "+$310", pos: true },
+                { s: "TSLA", v: "+$640" },
+                { s: "NVDA", v: "+$420" },
+                { s: "AAPL", v: "+$310" },
+                { s: "SPY",  v: "+$210" },
               ].map((r) => (
                 <div key={r.s} className="flex items-center justify-between text-[12px]">
                   <span className="font-medium text-slate-700">{r.s}</span>
-                  <span className={r.pos ? "text-emerald-600 font-semibold" : "text-rose-600 font-semibold"}>{r.v}</span>
+                  <span className="text-blue-700 font-semibold">{r.v}</span>
                 </div>
               ))}
             </div>
@@ -1367,69 +1366,35 @@ function DashboardScene({ active }: { active: boolean }) {
         </div>
 
         {/* transactions detail table */}
-        <div className={`rounded-xl ring-1 ring-slate-200 bg-white p-4 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "880ms", animationFillMode: "both" }}>
+        <div className={`rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "760ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TRANSACTION DETAIL</p>
             <p className="text-[10px] text-slate-400">Last 30 days · 482 trades</p>
           </div>
-          <div className="mt-2 grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1.5 border-b border-slate-100">
+          <div className="mt-1.5 grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1 border-b border-blue-100">
             <span>Symbol</span><span>Type</span><span>Side</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
           </div>
           <div className="mt-1 text-[11.5px]">
             {[
-              { s: "TSLA 250C 12/20",  t: "CALL", d: "BUY",  q: "5",  p: "$3.45",  v: "+$240", pos: true },
-              { s: "NVDA 900P 12/13",  t: "PUT",  d: "SELL", q: "3",  p: "$12.10", v: "+$180", pos: true },
-              { s: "SPY 510C 01/17",   t: "CALL", d: "BUY",  q: "10", p: "$4.20",  v: "-$60",  pos: false },
-              { s: "AAPL 200C 12/27",  t: "CALL", d: "STC",  q: "4",  p: "$2.80",  v: "+$112", pos: true },
-              { s: "META 580P 01/10",  t: "PUT",  d: "BTO",  q: "2",  p: "$8.50",  v: "-$40",  pos: false },
-              { s: "AMZN 220C 12/20",  t: "CALL", d: "STC",  q: "6",  p: "$1.95",  v: "+$96",  pos: true },
+              { s: "TSLA 250C 12/20",  t: "CALL", d: "BUY",  q: "5",  p: "$3.45",  v: "+$240" },
+              { s: "NVDA 900P 12/13",  t: "PUT",  d: "SELL", q: "3",  p: "$12.10", v: "+$180" },
+              { s: "SPY 510C 01/17",   t: "CALL", d: "BUY",  q: "10", p: "$4.20",  v: "+$140" },
+              { s: "AAPL 200C 12/27",  t: "CALL", d: "STC",  q: "4",  p: "$2.80",  v: "+$112" },
+              { s: "AMZN 220C 12/20",  t: "CALL", d: "STC",  q: "6",  p: "$1.95",  v: "+$96"  },
             ].map((t) => (
-              <div key={t.s} className="grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 items-center py-1.5 border-b border-slate-50 last:border-0">
+              <div key={t.s} className="grid grid-cols-[1.4fr_0.7fr_0.6fr_0.7fr_0.8fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
                 <span className="font-medium text-slate-800 truncate">{t.s}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold w-fit ${t.t === "CALL" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{t.t}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold w-fit bg-blue-50 text-blue-700">{t.t}</span>
                 <span className="text-slate-600 font-medium">{t.d}</span>
                 <span className="text-slate-600">{t.q}</span>
                 <span className="text-slate-600">{t.p}</span>
-                <span className={`text-right font-semibold ${t.pos ? "text-emerald-600" : "text-rose-600"}`}>{t.v}</span>
+                <span className="text-right font-semibold text-blue-700">{t.v}</span>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Distribution doughnuts */}
-        <div className={`grid grid-cols-2 gap-3 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "1040ms", animationFillMode: "both" }}>
-          <div className="rounded-xl ring-1 ring-slate-200 bg-white p-4">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-2">CALL vs PUT</p>
-            <Doughnut
-              total={6}
-              centerLabel="TRADES"
-              centerValue="6"
-              data={[
-                { label: "Calls", value: 4, color: "#10b981" },
-                { label: "Puts",  value: 2, color: "#f43f5e" },
-              ]}
-            />
-          </div>
-          <div className="rounded-xl ring-1 ring-slate-200 bg-white p-4">
-            <p className="text-[10px] font-semibold tracking-widest text-slate-400 mb-2">BY STOCK</p>
-            <Doughnut
-              total={6}
-              centerLabel="SYMBOLS"
-              centerValue="6"
-              data={[
-                { label: "TSLA", value: 1, color: "#2563eb" },
-                { label: "NVDA", value: 1, color: "#8b5cf6" },
-                { label: "SPY",  value: 1, color: "#06b6d4" },
-                { label: "AAPL", value: 1, color: "#f59e0b" },
-                { label: "META", value: 1, color: "#ec4899" },
-                { label: "AMZN", value: 1, color: "#14b8a6" },
-              ]}
-            />
-          </div>
-        </div>
       </div>
     </div>
-
   );
 }
 
@@ -1444,11 +1409,28 @@ function AIScene({ active }: { active: boolean }) {
   const PICKED_SHORTCUT = SHORTCUTS[0];
   const TYPED_QUESTION = "Why did I lose money on TSLA puts last month?";
 
-  type Msg = { role: "user" | "assistant"; model: string; text: string };
+  type TableData = {
+    title: string;
+    headers: string[];
+    rows: (string | { v: string; pos?: boolean })[][];
+    footer?: { label: string; value: string; pos?: boolean };
+  };
+  type Msg = { role: "user" | "assistant"; model: string; text?: string; table?: TableData };
   const ANSWER_1: Msg = {
     role: "assistant",
     model: "Claude",
-    text: "November P/L was +$1,840 across 62 trades. Win rate 58%. Best stretch: 11/12–11/19 (+$920 on TSLA calls). Worst: 11/26 earnings week on NVDA puts (-$410).",
+    text: "Here's your November snapshot — 62 trades, +$1,840 realized, 58% win rate.",
+    table: {
+      title: "November · weekly breakdown",
+      headers: ["Week", "Trades", "Win rate", "P/L"],
+      rows: [
+        ["Nov 1–8",   "14", "64%", { v: "+$420", pos: true }],
+        ["Nov 9–15",  "18", "72%", { v: "+$920", pos: true }],
+        ["Nov 16–22", "16", "50%", { v: "+$310", pos: true }],
+        ["Nov 23–30", "14", "43%", { v: "+$190", pos: true }],
+      ],
+      footer: { label: "Month total", value: "+$1,840", pos: true },
+    },
   };
   const ANSWER_2: Msg = {
     role: "assistant",
@@ -1577,7 +1559,54 @@ function AIScene({ active }: { active: boolean }) {
                     ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-sm shadow-[0_8px_24px_-12px_rgba(37,99,235,0.5)]"
                     : "bg-white ring-1 ring-slate-200/80 text-slate-800 rounded-tl-sm shadow-[0_6px_20px_-12px_rgba(15,40,120,0.18)]"
                 }`}>
-                  {m.text}
+                  {m.text && <p className={m.table ? "mb-3" : ""}>{m.text}</p>}
+                  {m.table && (
+                    <div className="rounded-xl ring-1 ring-blue-100 overflow-hidden bg-gradient-to-b from-blue-50/60 to-white">
+                      <div className="px-3 py-2 text-[10px] font-semibold tracking-widest text-blue-700 uppercase border-b border-blue-100 bg-white">
+                        {m.table.title}
+                      </div>
+                      <table className="w-full text-[12px]">
+                        <thead>
+                          <tr className="text-left text-[10px] uppercase tracking-wider text-slate-500 bg-white">
+                            {m.table.headers.map((h, hi) => (
+                              <th key={hi} className={`px-3 py-1.5 font-semibold ${hi === m.table!.headers.length - 1 ? "text-right" : ""}`}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {m.table.rows.map((row, ri) => (
+                            <tr key={ri} className="border-t border-blue-100/70">
+                              {row.map((cell, ci) => {
+                                const isObj = typeof cell !== "string";
+                                const text = isObj ? cell.v : cell;
+                                const isLast = ci === row.length - 1;
+                                return (
+                                  <td
+                                    key={ci}
+                                    className={`px-3 py-1.5 ${isLast ? "text-right font-semibold text-blue-700" : "text-slate-700"}`}
+                                  >
+                                    {text}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                        {m.table.footer && (
+                          <tfoot>
+                            <tr className="border-t border-blue-200 bg-blue-50/70">
+                              <td colSpan={m.table.headers.length - 1} className="px-3 py-2 text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
+                                {m.table.footer.label}
+                              </td>
+                              <td className="px-3 py-2 text-right text-[13px] font-bold text-blue-700">
+                                {m.table.footer.value}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
