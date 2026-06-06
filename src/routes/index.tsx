@@ -1703,23 +1703,40 @@ function AIScene({ active }: { active: boolean }) {
     text: "NVDA leads with a 78% win rate over 18 trades (+$1,120). Your edge: selling premium into IV spikes around earnings — STO/BTC cycles closed in under 5 days averaged 82% wins. Worst: TSLA at 41%.",
   };
 
-  // Timeline (ms)
-  const T_CURSOR_MOVE = 200;   // cursor begins traveling to shortcut
-  const T_HIGHLIGHT   = 1400;  // cursor arrives + click ring
-  const T_MSG1        = 1900;
-  const T_TYPING1     = 2100;
-  const T_ANSWER1     = 3100;
-  const T_TYPE_START  = 3800;
+  // Onboarding (model + API key) timeline (ms)
+  const T_CURSOR_TO_DROPDOWN = 300;
+  const T_OPEN_DROPDOWN      = 1100;
+  const T_CURSOR_TO_OPTION   = 1500;
+  const T_PICK_MODEL         = 2200;
+  const T_CURSOR_TO_INPUT    = 2500;
+  const T_KEY_START          = 2900;
+  const T_KEY_END            = T_KEY_START + API_KEY_TEXT.length * 28;
+  const T_KEY_DONE           = T_KEY_END + 350;
+
+  // Original chat timeline shifted to run AFTER onboarding
+  const OFFSET = T_KEY_DONE + 200;
+  const T_CURSOR_MOVE = OFFSET + 200;
+  const T_HIGHLIGHT   = OFFSET + 1400;
+  const T_MSG1        = OFFSET + 1900;
+  const T_TYPING1     = OFFSET + 2100;
+  const T_ANSWER1     = OFFSET + 3100;
+  const T_TYPE_START  = OFFSET + 3800;
   const T_TYPE_END    = T_TYPE_START + TYPED_QUESTION.length * 28;
   const T_MSG2        = T_TYPE_END + 200;
   const T_TYPING2     = T_MSG2 + 200;
   const T_ANSWER2     = T_TYPING2 + 1100;
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [keyChars, setKeyChars] = useState(0);
+  const [keyDone, setKeyDone] = useState(false);
   const [highlight, setHighlight] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [typing, setTyping] = useState(false);
   const [inputChars, setInputChars] = useState(0);
-  const [cursorAt, setCursorAt] = useState<"rest" | "shortcut" | "gone">("rest");
+  type CursorPos = "rest" | "dropdown" | "option" | "apikey" | "shortcut" | "gone";
+  const [cursorAt, setCursorAt] = useState<CursorPos>("rest");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1730,6 +1747,11 @@ function AIScene({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) {
+      setDropdownOpen(false);
+      setHoveredOption(null);
+      setSelectedModel(null);
+      setKeyChars(0);
+      setKeyDone(false);
       setHighlight(false);
       setMessages([]);
       setTyping(false);
@@ -1738,6 +1760,31 @@ function AIScene({ active }: { active: boolean }) {
       return;
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // Step 1: cursor goes to model dropdown
+    timers.push(setTimeout(() => setCursorAt("dropdown"), T_CURSOR_TO_DROPDOWN));
+    timers.push(setTimeout(() => setDropdownOpen(true), T_OPEN_DROPDOWN));
+    timers.push(setTimeout(() => { setCursorAt("option"); setHoveredOption(PICKED_MODEL); }, T_CURSOR_TO_OPTION));
+    timers.push(setTimeout(() => {
+      setSelectedModel(PICKED_MODEL);
+      setDropdownOpen(false);
+      setHoveredOption(null);
+    }, T_PICK_MODEL));
+
+    // Step 2: cursor to API key input + paste
+    timers.push(setTimeout(() => setCursorAt("apikey"), T_CURSOR_TO_INPUT));
+    timers.push(setTimeout(() => {
+      let n = 0;
+      const id = setInterval(() => {
+        n += 1;
+        setKeyChars(n);
+        if (n >= API_KEY_TEXT.length) clearInterval(id);
+      }, 28);
+      timers.push(setTimeout(() => clearInterval(id), API_KEY_TEXT.length * 28 + 100));
+    }, T_KEY_START));
+    timers.push(setTimeout(() => setKeyDone(true), T_KEY_DONE));
+
+    // Step 3: original shortcut flow
     timers.push(setTimeout(() => setCursorAt("shortcut"), T_CURSOR_MOVE));
     timers.push(setTimeout(() => setHighlight(true), T_HIGHLIGHT));
     timers.push(setTimeout(() => {
@@ -1751,7 +1798,6 @@ function AIScene({ active }: { active: boolean }) {
       setMessages((m) => [...m, ANSWER_1]);
     }, T_ANSWER1));
 
-    // typewriter in input
     const typeIv = setTimeout(() => {
       let n = 0;
       const id = setInterval(() => {
