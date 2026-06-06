@@ -1675,11 +1675,11 @@ function AIScene({ active }: { active: boolean }) {
         </div>
         <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
           <MessageSquare className="h-4 w-4 text-slate-400" />
-          <span className={`text-[12px] flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+          <span className={`text-sm flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
             {inputChars > 0 ? (
               <>
                 {TYPED_QUESTION.slice(0, inputChars)}
-                <span className="inline-block w-px h-3 align-middle bg-slate-900 ml-px animate-pulse" />
+                <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
               </>
             ) : (
               "Ask anything about your trading history…"
