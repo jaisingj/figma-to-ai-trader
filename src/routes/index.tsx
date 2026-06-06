@@ -1976,42 +1976,79 @@ function AIScene({ active }: { active: boolean }) {
       </div>
 
       <div className="px-6 py-4 border-t border-slate-200 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {SHORTCUTS.map((p) => {
-            const isPicked = highlight && p === PICKED_SHORTCUT;
-            return (
-              <button
-                key={p}
-                 className={`relative text-sm font-medium px-4 py-2 rounded-full ring-1 transition-all ${
-                   isPicked
-                     ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
-                     : "bg-white text-slate-600 ring-slate-200"
-                 }`}
-              >
-                {p}
-                {isPicked && (
-                  <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
+        {!keyDone ? (
+          <div className="space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+              <KeyRound className="h-3.5 w-3.5" />
+              <span>Paste your {selectedModel ?? "model"} API key to connect</span>
+            </div>
+            <div className={`flex items-center gap-2 rounded-lg bg-white ring-1 px-3 py-2.5 transition-all ${
+              cursorAt === "apikey" || keyChars > 0
+                ? "ring-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)]"
+                : "ring-slate-200"
+            }`}>
+              <span className={`text-[13px] flex-1 font-mono truncate ${keyChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+                {keyChars > 0 ? (
+                  <>
+                    {API_KEY_TEXT.slice(0, keyChars)}
+                    <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
+                  </>
+                ) : (
+                  "sk-..."
                 )}
+              </span>
+              <button className={`text-xs font-semibold px-3 py-1 rounded-md transition-colors ${
+                keyChars >= API_KEY_TEXT.length ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-500"
+              }`}>
+                Connect
               </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
-          <MessageSquare className="h-4 w-4 text-slate-400" />
-          <span className={`text-sm flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
-            {inputChars > 0 ? (
-              <>
-                {TYPED_QUESTION.slice(0, inputChars)}
-                <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
-              </>
-            ) : (
-              "Ask anything about your trading history…"
-            )}
-          </span>
-          <button className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center">
-            <ArrowUp className="h-3.5 w-3.5 text-white" />
-          </button>
-        </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-wrap gap-2">
+                {SHORTCUTS.map((p) => {
+                  const isPicked = highlight && p === PICKED_SHORTCUT;
+                  return (
+                    <button
+                      key={p}
+                      className={`relative text-sm font-medium px-4 py-2 rounded-full ring-1 transition-all ${
+                        isPicked
+                          ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
+                          : "bg-white text-slate-600 ring-slate-200"
+                      }`}
+                    >
+                      {p}
+                      {isPicked && (
+                        <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="ml-2 shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                <Check className="h-3 w-3" /> {selectedModel} connected
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
+              <MessageSquare className="h-4 w-4 text-slate-400" />
+              <span className={`text-sm flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+                {inputChars > 0 ? (
+                  <>
+                    {TYPED_QUESTION.slice(0, inputChars)}
+                    <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
+                  </>
+                ) : (
+                  "Ask anything about your trading history…"
+                )}
+              </span>
+              <button className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center">
+                <ArrowUp className="h-3.5 w-3.5 text-white" />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
