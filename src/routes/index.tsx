@@ -255,7 +255,7 @@ function Index() {
             Import your broker data — OptiX decodes your patterns instantly across Robinhood, Schwab, Etrade and Fidelity into fresh AI-powered trading insights.
           </p>
 
-          <div className="mt-8 w-full max-w-md">
+          <div className="mt-8 w-full max-w-xl">
             <HeroReveal />
           </div>
 
