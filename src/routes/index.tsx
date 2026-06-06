@@ -231,14 +231,14 @@ function Index() {
           <a href="#contact" className="ml-3 rounded-full border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-900 hover:bg-slate-50 transition">
             Contact sales
           </a>
-          <button onClick={openGuide} className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
+          <button onClick={scrollToPlans} className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 transition">
             Try OptiX
           </button>
         </nav>
 
         {/* Mobile fallback */}
         <div className="flex lg:hidden items-center gap-3">
-          <button onClick={openGuide} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+          <button onClick={scrollToPlans} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
             Try OptiX
           </button>
         </div>
