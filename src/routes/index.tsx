@@ -712,6 +712,24 @@ const API_PROVIDERS = [
   { name: "Perplexity", desc: "Sonar online and chat models.", url: "https://www.perplexity.ai/settings/api" },
 ];
 
+const WALKTHROUGH_STEPS = [
+  {
+    icon: Upload,
+    title: "Import your broker data",
+    body: "Upload your CSV from Robinhood, Schwab, Fidelity or E*TRADE — or connect securely via SnapTrade. We'll normalize every trade in seconds.",
+  },
+  {
+    icon: BarChart3,
+    title: "Explore your unified dashboard",
+    body: "See win rate, P/L, exposure, and patterns across all your accounts in one place — no more juggling spreadsheets.",
+  },
+  {
+    icon: Sparkles,
+    title: "Ask AI about your trades",
+    body: "Chat with OptiX AI to understand why a strategy worked, spot recurring mistakes, and get personalized suggestions.",
+  },
+];
+
 function GettingStartedDialog({
   open, onOpenChange, step, setStep,
 }: {
@@ -720,63 +738,23 @@ function GettingStartedDialog({
   step: number;
   setStep: (n: number) => void;
 }) {
-  const totalSteps = 2;
+  const totalSteps = WALKTHROUGH_STEPS.length;
+  const current = WALKTHROUGH_STEPS[step] ?? WALKTHROUGH_STEPS[0];
+  const Icon = current.icon;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden bg-slate-50 border-slate-200">
+      <DialogContent className="max-w-xl p-0 overflow-hidden bg-slate-50 border-slate-200">
         <div className="p-8">
           <div className="flex items-center gap-3">
-            {step === 0 ? (
-              <img src={optixProLogo} alt="OptiX" className="h-10 w-auto" />
-            ) : (
-              <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <KeyRound className="h-5 w-5 text-blue-600" />
-              </div>
-            )}
-            <h2 className="text-2xl font-bold text-slate-900">
-              {step === 0 ? "Welcome to OptiX!" : "Configure your LLM API key"}
-            </h2>
+            <div className="h-11 w-11 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Icon className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">Step {step + 1} of {totalSteps}</p>
+              <h2 className="text-2xl font-bold text-slate-900">{current.title}</h2>
+            </div>
           </div>
-
-          {step === 0 ? (
-            <>
-              <p className="mt-6 text-slate-600 leading-relaxed">
-                OptiX gives you a unified view of your options trading activity. This quick guide will walk you through everything you need to get started.
-              </p>
-              <div className="mt-6 rounded-xl bg-white ring-1 ring-slate-200 p-6">
-                <h3 className="font-bold text-slate-900 mb-4">What OptiX offers:</h3>
-                <ul className="space-y-3 text-slate-700">
-                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>A unified view of your trading data across brokers</span></li>
-                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>AI-driven assessment of your trading behavior</span></li>
-                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>Detailed transaction history with deep insights</span></li>
-                  <li className="flex gap-3"><span className="text-slate-400 mt-1.5">•</span><span>Track your investment progress over time and more</span></li>
-                </ul>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="mt-6 text-slate-600 leading-relaxed">
-                OptiX uses your own LLM API key for AI analysis. Grab a key from any of the providers below — sign in, create a new API key, and paste it into OptiX settings.
-              </p>
-              <div className="mt-6 space-y-2">
-                {API_PROVIDERS.map((p) => (
-                  <a
-                    key={p.name}
-                    href={p.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between rounded-xl bg-white ring-1 ring-slate-200 p-4 hover:ring-blue-400 hover:bg-blue-50/40 transition group"
-                  >
-                    <div>
-                      <p className="font-semibold text-slate-900">{p.name}</p>
-                      <p className="text-sm text-slate-500">{p.desc}</p>
-                    </div>
-                    <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
-                  </a>
-                ))}
-              </div>
-            </>
-          )}
+          <p className="mt-6 text-slate-600 leading-relaxed">{current.body}</p>
         </div>
 
         <div className="flex items-center justify-between border-t border-slate-200 bg-white px-8 py-4">
@@ -791,7 +769,6 @@ function GettingStartedDialog({
             {Array.from({ length: totalSteps }).map((_, i) => (
               <span key={i} className={`h-2 w-2 rounded-full ${i === step ? "bg-blue-600" : "bg-slate-300"}`} />
             ))}
-            <span className="ml-3 text-sm text-slate-500">{step + 1} of {totalSteps}</span>
           </div>
           {step < totalSteps - 1 ? (
             <button
@@ -813,6 +790,294 @@ function GettingStartedDialog({
     </Dialog>
   );
 }
+
+function SignUpDialog({
+  open, onOpenChange, onSuccess,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSuccess: () => void;
+}) {
+  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setErr(null);
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setErr(result.error.message || `${provider} sign-in failed`);
+    }
+  };
+
+  const handleEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr(null);
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        onSuccess();
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        onSuccess();
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-white border-slate-200">
+        <div className="px-8 pt-10 pb-8">
+          <h2 className="text-4xl font-bold tracking-tight text-slate-900">
+            {mode === "signup" ? "Sign up for free" : "Welcome back"}
+          </h2>
+          <p className="mt-3 text-lg text-slate-700 leading-snug">
+            {mode === "signup" ? "Save your data & unlock deeper insights" : "Log in to continue to OptiX"}
+          </p>
+
+          <div className="mt-8 space-y-3">
+            <button
+              type="button"
+              onClick={() => handleOAuth("google")}
+              className="w-full flex items-center justify-center gap-3 rounded-full border border-slate-300 bg-white px-4 py-3.5 text-base font-semibold text-slate-900 hover:bg-slate-50 transition"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continue with Google
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOAuth("apple")}
+              className="w-full flex items-center justify-center gap-3 rounded-full border border-slate-300 bg-white px-4 py-3.5 text-base font-semibold text-slate-900 hover:bg-slate-50 transition"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-3.16 2.58-4.68 2.7-4.75-1.47-2.15-3.76-2.45-4.57-2.48-1.95-.2-3.8 1.15-4.79 1.15-.99 0-2.51-1.12-4.13-1.09-2.13.03-4.09 1.24-5.18 3.14-2.2 3.82-.56 9.46 1.59 12.57 1.05 1.52 2.3 3.23 3.93 3.17 1.58-.06 2.18-1.02 4.09-1.02 1.9 0 2.45 1.02 4.13.99 1.7-.03 2.78-1.55 3.82-3.08 1.2-1.77 1.7-3.49 1.73-3.58-.04-.02-3.32-1.28-3.35-5.05zM13.97 2.95c.86-1.05 1.45-2.51 1.29-3.95-1.24.05-2.75.83-3.65 1.87-.8.93-1.5 2.41-1.31 3.83 1.39.11 2.81-.7 3.67-1.75z"/></svg>
+              Continue with Apple
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 my-6 text-xs text-slate-400">
+            <span className="flex-1 h-px bg-slate-200" />Or<span className="flex-1 h-px bg-slate-200" />
+          </div>
+
+          <form onSubmit={handleEmail} className="space-y-4">
+            <div>
+              <label className="text-base font-medium text-slate-900">Email</label>
+              <input
+                type="email"
+                required
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+              />
+            </div>
+            <div>
+              <label className="text-base font-medium text-slate-900">Password</label>
+              <div className="relative mt-2">
+                <input
+                  type={showPw ? "text" : "password"}
+                  required
+                  minLength={6}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-12 text-base placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={showPw ? "Hide password" : "Show password"}
+                >
+                  {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {err && <p className="text-sm text-rose-600">{err}</p>}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-2 w-full rounded-full bg-indigo-400 hover:bg-indigo-500 disabled:opacity-60 px-4 py-3.5 text-base font-semibold text-white transition"
+            >
+              {busy ? "Please wait…" : mode === "signup" ? "Sign Up" : "Log In"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-700">
+            {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setErr(null); }}
+              className="font-semibold text-indigo-600 hover:underline"
+            >
+              {mode === "signup" ? "Login" : "Sign up"}
+            </button>
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const PLANS = [
+  {
+    name: "Free",
+    price: "$0",
+    period: "/30 days",
+    blurb: "Full access for 30 days. Perfect for testing OptiX with no strings attached.",
+    featuresLabel: "Features",
+    features: [
+      "Pattern profiling",
+      "CSV parsing from all brokerages",
+      "Data cleaning & transformation",
+      "Complete trading history",
+      "Interactive dashboard",
+      "Trading activity",
+      "Charts & filtering",
+      "AI Chat (1 LLM model)",
+    ],
+    cta: "Start for free",
+    badge: null as null | { label: string; tone: "blue" | "emerald" },
+    highlighted: false,
+  },
+  {
+    name: "Pro",
+    price: "$19",
+    period: "/mo",
+    yearly: "$182/yr",
+    blurb: "Professional analysis with AI insights, secure data storage, and advanced capabilities for serious traders.",
+    featuresLabel: "Everything in Free, plus",
+    features: [
+      "Unlimited data storage",
+      "Secure data backup",
+      "AI Chat (2 LLM models)",
+      "Advanced analytics",
+      "Custom filters & views",
+      "Performance reports",
+      "Priority support",
+      "API access for LLMs",
+    ],
+    cta: "Get Pro",
+    badge: { label: "RECOMMENDED", tone: "blue" as const },
+    highlighted: true,
+  },
+  {
+    name: "Pro+",
+    price: "$39",
+    period: "/mo",
+    yearly: "$374/yr",
+    blurb: "Complete automation with direct SnapTrade integration, 4 premium LLM models, and maximum insights for power traders.",
+    featuresLabel: "Everything in Pro, plus",
+    features: [
+      "AI Chat (4 premium LLM models)",
+      "Advanced AI features",
+      "Multi-account sync",
+      "Early access to features",
+      "Dedicated support",
+    ],
+    cta: "Get Pro+",
+    badge: { label: "BEST VALUE", tone: "emerald" as const },
+    highlighted: false,
+  },
+];
+
+function PlansSection({ onSelectPlan }: { onSelectPlan: () => void }) {
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  return (
+    <section id="plans" className="px-8 pb-28 max-w-7xl mx-auto scroll-mt-8">
+      <h2 className="text-5xl font-bold text-slate-900 text-center tracking-tight">Plans & Pricing</h2>
+      <p className="mt-4 text-slate-500 text-center text-lg max-w-3xl mx-auto">
+        Browse plans, compare what's included, and get answers before you choose.
+      </p>
+
+      <div className="mt-12 flex justify-center">
+        <div className="inline-flex items-center gap-1 rounded-full bg-slate-100 ring-1 ring-slate-200 p-1">
+          <button
+            onClick={() => setBilling("monthly")}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition ${billing === "monthly" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBilling("yearly")}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition inline-flex items-center gap-2 ${billing === "yearly" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+          >
+            Yearly
+            <span className="inline-flex items-center gap-1 text-blue-600 text-xs">
+              <Tag className="h-3 w-3" /> Save 20%
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-10 grid md:grid-cols-3 gap-6">
+        {PLANS.map((p) => (
+          <div
+            key={p.name}
+            className={`relative rounded-3xl bg-white p-8 flex flex-col ring-1 transition ${
+              p.highlighted ? "ring-2 ring-blue-500 shadow-[0_30px_80px_-30px_rgba(37,99,235,0.35)]" : "ring-slate-200"
+            }`}
+          >
+            {p.badge && (
+              <span
+                className={`absolute top-0 right-6 -translate-y-1/2 px-3 py-1 rounded-md text-[11px] font-bold tracking-wider ${
+                  p.badge.tone === "blue" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"
+                }`}
+              >
+                {p.badge.label}
+              </span>
+            )}
+            <h3 className="text-xl font-semibold text-slate-700">{p.name}</h3>
+            <div className="mt-4 flex items-baseline gap-1">
+              <span className="text-5xl font-bold text-slate-900">
+                {billing === "yearly" && p.yearly ? p.yearly.split("/")[0] : p.price}
+              </span>
+              <span className="text-slate-500 font-medium">
+                {billing === "yearly" && p.yearly ? "/yr" : p.period}
+              </span>
+            </div>
+            <p className="mt-5 text-slate-500 leading-relaxed min-h-[96px]">{p.blurb}</p>
+
+            <p className="mt-6 text-slate-500 font-medium">{p.featuresLabel}</p>
+            <ul className="mt-4 space-y-3 flex-1">
+              {p.features.map((f) => (
+                <li key={f} className="flex items-start gap-3 text-slate-700">
+                  <Check className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={onSelectPlan}
+              className="mt-8 w-full rounded-full bg-blue-600 hover:bg-blue-700 px-4 py-3.5 text-base font-semibold text-white transition"
+            >
+              {p.cta}
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 
 /* =========================================================
    Demo Panel — narrated product walkthrough
