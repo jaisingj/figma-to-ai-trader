@@ -1678,9 +1678,12 @@ function AIScene({ active }: { active: boolean }) {
     footer?: { label: string; value: string; pos?: boolean };
   };
   type Msg = { role: "user" | "assistant"; model: string; text?: string; table?: TableData };
+  const MODELS = ["ChatGPT", "Claude", "Gemini", "LLaMA", "Perplexity"] as const;
+  const PICKED_MODEL: typeof MODELS[number] = "ChatGPT";
+  const API_KEY_TEXT = "sk-proj-7d4f2a9c8e1b6f3d2a9c8e1b";
   const ANSWER_1: Msg = {
     role: "assistant",
-    model: "Claude",
+    model: PICKED_MODEL,
     text: "Here's your November snapshot — 62 trades, +$1,840 realized, 58% win rate.",
     table: {
       title: "November · weekly breakdown",
@@ -1696,27 +1699,44 @@ function AIScene({ active }: { active: boolean }) {
   };
   const ANSWER_2: Msg = {
     role: "assistant",
-    model: "ChatGPT",
+    model: PICKED_MODEL,
     text: "NVDA leads with a 78% win rate over 18 trades (+$1,120). Your edge: selling premium into IV spikes around earnings — STO/BTC cycles closed in under 5 days averaged 82% wins. Worst: TSLA at 41%.",
   };
 
-  // Timeline (ms)
-  const T_CURSOR_MOVE = 200;   // cursor begins traveling to shortcut
-  const T_HIGHLIGHT   = 1400;  // cursor arrives + click ring
-  const T_MSG1        = 1900;
-  const T_TYPING1     = 2100;
-  const T_ANSWER1     = 3100;
-  const T_TYPE_START  = 3800;
+  // Onboarding (model + API key) timeline (ms)
+  const T_CURSOR_TO_DROPDOWN = 300;
+  const T_OPEN_DROPDOWN      = 1100;
+  const T_CURSOR_TO_OPTION   = 1500;
+  const T_PICK_MODEL         = 2200;
+  const T_CURSOR_TO_INPUT    = 2500;
+  const T_KEY_START          = 2900;
+  const T_KEY_END            = T_KEY_START + API_KEY_TEXT.length * 28;
+  const T_KEY_DONE           = T_KEY_END + 350;
+
+  // Original chat timeline shifted to run AFTER onboarding
+  const OFFSET = T_KEY_DONE + 200;
+  const T_CURSOR_MOVE = OFFSET + 200;
+  const T_HIGHLIGHT   = OFFSET + 1400;
+  const T_MSG1        = OFFSET + 1900;
+  const T_TYPING1     = OFFSET + 2100;
+  const T_ANSWER1     = OFFSET + 3100;
+  const T_TYPE_START  = OFFSET + 3800;
   const T_TYPE_END    = T_TYPE_START + TYPED_QUESTION.length * 28;
   const T_MSG2        = T_TYPE_END + 200;
   const T_TYPING2     = T_MSG2 + 200;
   const T_ANSWER2     = T_TYPING2 + 1100;
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [keyChars, setKeyChars] = useState(0);
+  const [keyDone, setKeyDone] = useState(false);
   const [highlight, setHighlight] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [typing, setTyping] = useState(false);
   const [inputChars, setInputChars] = useState(0);
-  const [cursorAt, setCursorAt] = useState<"rest" | "shortcut" | "gone">("rest");
+  type CursorPos = "rest" | "dropdown" | "option" | "apikey" | "shortcut" | "gone";
+  const [cursorAt, setCursorAt] = useState<CursorPos>("rest");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1727,6 +1747,11 @@ function AIScene({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!active) {
+      setDropdownOpen(false);
+      setHoveredOption(null);
+      setSelectedModel(null);
+      setKeyChars(0);
+      setKeyDone(false);
       setHighlight(false);
       setMessages([]);
       setTyping(false);
@@ -1735,6 +1760,31 @@ function AIScene({ active }: { active: boolean }) {
       return;
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // Step 1: cursor goes to model dropdown
+    timers.push(setTimeout(() => setCursorAt("dropdown"), T_CURSOR_TO_DROPDOWN));
+    timers.push(setTimeout(() => setDropdownOpen(true), T_OPEN_DROPDOWN));
+    timers.push(setTimeout(() => { setCursorAt("option"); setHoveredOption(PICKED_MODEL); }, T_CURSOR_TO_OPTION));
+    timers.push(setTimeout(() => {
+      setSelectedModel(PICKED_MODEL);
+      setDropdownOpen(false);
+      setHoveredOption(null);
+    }, T_PICK_MODEL));
+
+    // Step 2: cursor to API key input + paste
+    timers.push(setTimeout(() => setCursorAt("apikey"), T_CURSOR_TO_INPUT));
+    timers.push(setTimeout(() => {
+      let n = 0;
+      const id = setInterval(() => {
+        n += 1;
+        setKeyChars(n);
+        if (n >= API_KEY_TEXT.length) clearInterval(id);
+      }, 28);
+      timers.push(setTimeout(() => clearInterval(id), API_KEY_TEXT.length * 28 + 100));
+    }, T_KEY_START));
+    timers.push(setTimeout(() => setKeyDone(true), T_KEY_DONE));
+
+    // Step 3: original shortcut flow
     timers.push(setTimeout(() => setCursorAt("shortcut"), T_CURSOR_MOVE));
     timers.push(setTimeout(() => setHighlight(true), T_HIGHLIGHT));
     timers.push(setTimeout(() => {
@@ -1748,7 +1798,6 @@ function AIScene({ active }: { active: boolean }) {
       setMessages((m) => [...m, ANSWER_1]);
     }, T_ANSWER1));
 
-    // typewriter in input
     const typeIv = setTimeout(() => {
       let n = 0;
       const id = setInterval(() => {
@@ -1775,26 +1824,58 @@ function AIScene({ active }: { active: boolean }) {
 
   return (
     <div className="relative h-full w-full flex flex-col bg-white">
-      {/* Traveling cursor — slowly glides to the shortcut */}
+      {/* Traveling cursor */}
       <div
         className="absolute pointer-events-none z-30"
         style={{
-          left: cursorAt === "rest" ? "55%" : cursorAt === "shortcut" ? "14%" : "14%",
-          top: cursorAt === "rest" ? "94%" : cursorAt === "shortcut" ? "78%" : "78%",
+          left:
+            cursorAt === "rest" ? "55%" :
+            cursorAt === "dropdown" ? "78%" :
+            cursorAt === "option" ? "78%" :
+            cursorAt === "apikey" ? "50%" :
+            cursorAt === "shortcut" ? "14%" : "14%",
+          top:
+            cursorAt === "rest" ? "94%" :
+            cursorAt === "dropdown" ? "11%" :
+            cursorAt === "option" ? `${18 + MODELS.indexOf(PICKED_MODEL) * 6}%` :
+            cursorAt === "apikey" ? "82%" :
+            cursorAt === "shortcut" ? "78%" : "78%",
           opacity: cursorAt === "gone" ? 0 : 1,
           transform: "translate(-50%, -50%)",
-          transition: "left 1100ms cubic-bezier(0.4,0.2,0.2,1), top 1100ms cubic-bezier(0.4,0.2,0.2,1), opacity 300ms ease",
+          transition: "left 900ms cubic-bezier(0.4,0.2,0.2,1), top 900ms cubic-bezier(0.4,0.2,0.2,1), opacity 300ms ease",
         }}
       >
         <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
       </div>
-      <div className="h-24 px-5 border-b border-slate-200 flex items-center gap-3">
+      <div className="h-24 px-5 border-b border-slate-200 flex items-center gap-3 relative">
         <img src={optixProLogo} alt="OptiX" className="h-20 w-auto" />
         <p className="text-3xl font-semibold tracking-tight text-slate-900">Ask OptiX</p>
-        <div className="ml-auto flex items-center gap-1.5">
-          {["Claude", "ChatGPT", "Gemini"].map((m) => (
-            <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
-          ))}
+        <div className="ml-auto relative">
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ring-1 bg-white text-sm font-medium transition-all ${
+            cursorAt === "dropdown" || dropdownOpen
+              ? "ring-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)]"
+              : "ring-slate-200"
+          }`}>
+            <span className={selectedModel ? "text-slate-900" : "text-slate-500"}>
+              {selectedModel ?? "Select model"}
+            </span>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+          </div>
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-1.5 w-44 rounded-lg bg-white ring-1 ring-slate-200 shadow-xl z-20 py-1 animate-fade-in">
+              {MODELS.map((m) => (
+                <div
+                  key={m}
+                  className={`px-3 py-1.5 text-sm cursor-pointer flex items-center justify-between ${
+                    hoveredOption === m ? "bg-blue-50 text-blue-700" : "text-slate-700"
+                  }`}
+                >
+                  <span>{m}</span>
+                  {hoveredOption === m && <Check className="h-3.5 w-3.5" />}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1895,42 +1976,79 @@ function AIScene({ active }: { active: boolean }) {
       </div>
 
       <div className="px-6 py-4 border-t border-slate-200 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {SHORTCUTS.map((p) => {
-            const isPicked = highlight && p === PICKED_SHORTCUT;
-            return (
-              <button
-                key={p}
-                 className={`relative text-sm font-medium px-4 py-2 rounded-full ring-1 transition-all ${
-                   isPicked
-                     ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
-                     : "bg-white text-slate-600 ring-slate-200"
-                 }`}
-              >
-                {p}
-                {isPicked && (
-                  <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
+        {!keyDone ? (
+          <div className="space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+              <KeyRound className="h-3.5 w-3.5" />
+              <span>Paste your {selectedModel ?? "model"} API key to connect</span>
+            </div>
+            <div className={`flex items-center gap-2 rounded-lg bg-white ring-1 px-3 py-2.5 transition-all ${
+              cursorAt === "apikey" || keyChars > 0
+                ? "ring-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)]"
+                : "ring-slate-200"
+            }`}>
+              <span className={`text-[13px] flex-1 font-mono truncate ${keyChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+                {keyChars > 0 ? (
+                  <>
+                    {API_KEY_TEXT.slice(0, keyChars)}
+                    <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
+                  </>
+                ) : (
+                  "sk-..."
                 )}
+              </span>
+              <button className={`text-xs font-semibold px-3 py-1 rounded-md transition-colors ${
+                keyChars >= API_KEY_TEXT.length ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-500"
+              }`}>
+                Connect
               </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
-          <MessageSquare className="h-4 w-4 text-slate-400" />
-          <span className={`text-sm flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
-            {inputChars > 0 ? (
-              <>
-                {TYPED_QUESTION.slice(0, inputChars)}
-                <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
-              </>
-            ) : (
-              "Ask anything about your trading history…"
-            )}
-          </span>
-          <button className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center">
-            <ArrowUp className="h-3.5 w-3.5 text-white" />
-          </button>
-        </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-wrap gap-2">
+                {SHORTCUTS.map((p) => {
+                  const isPicked = highlight && p === PICKED_SHORTCUT;
+                  return (
+                    <button
+                      key={p}
+                      className={`relative text-sm font-medium px-4 py-2 rounded-full ring-1 transition-all ${
+                        isPicked
+                          ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
+                          : "bg-white text-slate-600 ring-slate-200"
+                      }`}
+                    >
+                      {p}
+                      {isPicked && (
+                        <span className="absolute inset-0 rounded-full ring-4 ring-blue-400/40 animate-ping" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="ml-2 shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                <Check className="h-3 w-3" /> {selectedModel} connected
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
+              <MessageSquare className="h-4 w-4 text-slate-400" />
+              <span className={`text-sm flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+                {inputChars > 0 ? (
+                  <>
+                    {TYPED_QUESTION.slice(0, inputChars)}
+                    <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
+                  </>
+                ) : (
+                  "Ask anything about your trading history…"
+                )}
+              </span>
+              <button className="h-7 w-7 rounded-full bg-slate-900 flex items-center justify-center">
+                <ArrowUp className="h-3.5 w-3.5 text-white" />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
