@@ -1678,9 +1678,12 @@ function AIScene({ active }: { active: boolean }) {
     footer?: { label: string; value: string; pos?: boolean };
   };
   type Msg = { role: "user" | "assistant"; model: string; text?: string; table?: TableData };
+  const MODELS = ["ChatGPT", "Claude", "Gemini", "LLaMA", "Perplexity"] as const;
+  const PICKED_MODEL: typeof MODELS[number] = "ChatGPT";
+  const API_KEY_TEXT = "sk-proj-7d4f2a9c8e1b6f3d2a9c8e1b";
   const ANSWER_1: Msg = {
     role: "assistant",
-    model: "Claude",
+    model: PICKED_MODEL,
     text: "Here's your November snapshot — 62 trades, +$1,840 realized, 58% win rate.",
     table: {
       title: "November · weekly breakdown",
@@ -1696,7 +1699,7 @@ function AIScene({ active }: { active: boolean }) {
   };
   const ANSWER_2: Msg = {
     role: "assistant",
-    model: "ChatGPT",
+    model: PICKED_MODEL,
     text: "NVDA leads with a 78% win rate over 18 trades (+$1,120). Your edge: selling premium into IV spikes around earnings — STO/BTC cycles closed in under 5 days averaged 82% wins. Worst: TSLA at 41%.",
   };
 
