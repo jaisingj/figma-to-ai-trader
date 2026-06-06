@@ -99,10 +99,17 @@ function DropdownLink({ label, external = false }: { label: string; external?: b
 function Index() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const [signUpOpen, setSignUpOpen] = useState(false);
   const openGuide = () => { setStep(0); setGuideOpen(true); };
+  const openSignUp = () => setSignUpOpen(true);
+  const scrollToPlans = () => {
+    document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const handleAuthSuccess = () => { setSignUpOpen(false); openGuide(); };
   return (
     <div className="min-h-screen bg-white">
       <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
+      <SignUpDialog open={signUpOpen} onOpenChange={setSignUpOpen} onSuccess={handleAuthSuccess} />
 
       {/* Nav — Claude-style with dropdowns */}
       <header className="flex items-center justify-between px-8 lg:px-12 py-1">
