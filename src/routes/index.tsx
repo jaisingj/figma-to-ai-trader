@@ -1824,26 +1824,58 @@ function AIScene({ active }: { active: boolean }) {
 
   return (
     <div className="relative h-full w-full flex flex-col bg-white">
-      {/* Traveling cursor — slowly glides to the shortcut */}
+      {/* Traveling cursor */}
       <div
         className="absolute pointer-events-none z-30"
         style={{
-          left: cursorAt === "rest" ? "55%" : cursorAt === "shortcut" ? "14%" : "14%",
-          top: cursorAt === "rest" ? "94%" : cursorAt === "shortcut" ? "78%" : "78%",
+          left:
+            cursorAt === "rest" ? "55%" :
+            cursorAt === "dropdown" ? "78%" :
+            cursorAt === "option" ? "78%" :
+            cursorAt === "apikey" ? "50%" :
+            cursorAt === "shortcut" ? "14%" : "14%",
+          top:
+            cursorAt === "rest" ? "94%" :
+            cursorAt === "dropdown" ? "11%" :
+            cursorAt === "option" ? `${18 + MODELS.indexOf(PICKED_MODEL) * 6}%` :
+            cursorAt === "apikey" ? "82%" :
+            cursorAt === "shortcut" ? "78%" : "78%",
           opacity: cursorAt === "gone" ? 0 : 1,
           transform: "translate(-50%, -50%)",
-          transition: "left 1100ms cubic-bezier(0.4,0.2,0.2,1), top 1100ms cubic-bezier(0.4,0.2,0.2,1), opacity 300ms ease",
+          transition: "left 900ms cubic-bezier(0.4,0.2,0.2,1), top 900ms cubic-bezier(0.4,0.2,0.2,1), opacity 300ms ease",
         }}
       >
         <MousePointer2 className="h-6 w-6 text-slate-900 fill-white drop-shadow-md" />
       </div>
-      <div className="h-24 px-5 border-b border-slate-200 flex items-center gap-3">
+      <div className="h-24 px-5 border-b border-slate-200 flex items-center gap-3 relative">
         <img src={optixProLogo} alt="OptiX" className="h-20 w-auto" />
         <p className="text-3xl font-semibold tracking-tight text-slate-900">Ask OptiX</p>
-        <div className="ml-auto flex items-center gap-1.5">
-          {["Claude", "ChatGPT", "Gemini"].map((m) => (
-            <span key={m} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-slate-200">{m}</span>
-          ))}
+        <div className="ml-auto relative">
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ring-1 bg-white text-sm font-medium transition-all ${
+            cursorAt === "dropdown" || dropdownOpen
+              ? "ring-blue-500 shadow-[0_0_0_3px_rgba(59,130,246,0.15)]"
+              : "ring-slate-200"
+          }`}>
+            <span className={selectedModel ? "text-slate-900" : "text-slate-500"}>
+              {selectedModel ?? "Select model"}
+            </span>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+          </div>
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-1.5 w-44 rounded-lg bg-white ring-1 ring-slate-200 shadow-xl z-20 py-1 animate-fade-in">
+              {MODELS.map((m) => (
+                <div
+                  key={m}
+                  className={`px-3 py-1.5 text-sm cursor-pointer flex items-center justify-between ${
+                    hoveredOption === m ? "bg-blue-50 text-blue-700" : "text-slate-700"
+                  }`}
+                >
+                  <span>{m}</span>
+                  {hoveredOption === m && <Check className="h-3.5 w-3.5" />}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
