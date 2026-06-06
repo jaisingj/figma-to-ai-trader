@@ -69,13 +69,13 @@ function DropdownGroup({ title, items }: { title: string; items: { label: string
         {items.map((it) => (
           <li key={it.label}>
             {it.to ? (
-              <Link to={it.to} className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
+              <Link to={it.to} className="group inline-flex items-center gap-1.5 text-[17px] font-medium text-slate-900 hover:text-blue-600 transition">
                 {it.label}
               </Link>
             ) : (
-              <a href="#" className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-900 hover:text-blue-600 transition">
+              <a href="#" className="group inline-flex items-center gap-1.5 text-[17px] font-medium text-slate-900 hover:text-blue-600 transition">
                 {it.label}
-                {it.external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+                {it.external && <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />}
               </a>
             )}
           </li>
@@ -87,9 +87,9 @@ function DropdownGroup({ title, items }: { title: string; items: { label: string
 
 function DropdownLink({ label, external = false }: { label: string; external?: boolean }) {
   return (
-    <a href="#" className="group flex items-center justify-between rounded-lg px-3 py-2 text-[15px] font-medium text-slate-900 hover:bg-slate-50 hover:text-blue-600 transition">
+    <a href="#" className="group flex items-center justify-between rounded-lg px-3 py-2 text-[17px] font-medium text-slate-900 hover:bg-slate-50 hover:text-blue-600 transition">
       <span>{label}</span>
-      {external && <ExternalLink className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600" />}
+      {external && <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />}
     </a>
   );
 }
