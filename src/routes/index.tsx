@@ -353,7 +353,8 @@ function Index() {
 
       </section>
 
-      
+      <PlansSection onSelectPlan={openSignUp} />
+
     </div>
   );
 }
