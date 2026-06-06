@@ -375,7 +375,7 @@ const WALL_CARDS = [
 function ScrollColumn({ direction, delay, compact = false }: { direction: "up" | "down"; delay: string; compact?: boolean }) {
   const list = [...WALL_CARDS, ...WALL_CARDS];
   return (
-    <div className={`relative overflow-hidden ${compact ? "h-[260px]" : "h-[420px]"}`}>
+    <div className={`relative overflow-hidden ${compact ? "h-[460px]" : "h-[420px]"}`}>
       <div
         className={direction === "up" ? "animate-marquee-y" : "animate-marquee-y-reverse"}
         style={{ animationDelay: delay }}
@@ -383,11 +383,11 @@ function ScrollColumn({ direction, delay, compact = false }: { direction: "up" |
         {list.map((c, i) => (
           <div
             key={`${c.tag}-${i}`}
-            className={`mb-2 rounded-xl bg-white ring-1 ring-slate-200 shadow-[0_8px_24px_-12px_rgba(15,40,120,0.15)] ${compact ? "p-2" : "p-4"}`}
+            className={`mb-3 rounded-xl bg-white ring-1 ring-slate-200 shadow-[0_8px_24px_-12px_rgba(15,40,120,0.15)] ${compact ? "p-4" : "p-4"}`}
           >
-            <p className={`font-semibold tracking-widest text-slate-400 ${compact ? "text-[8px]" : "text-[9px]"}`}>{c.tag}</p>
-            <p className={`mt-0.5 font-bold ${c.c} ${compact ? "text-sm" : "text-lg"}`}>{c.v}</p>
-            <p className={`text-slate-500 ${compact ? "text-[9px]" : "text-[10px]"}`}>{c.sub}</p>
+            <p className={`font-semibold tracking-widest text-slate-400 ${compact ? "text-[11px]" : "text-[9px]"}`}>{c.tag}</p>
+            <p className={`mt-1 font-bold ${c.c} ${compact ? "text-xl" : "text-lg"}`}>{c.v}</p>
+            <p className={`text-slate-500 ${compact ? "text-xs" : "text-[10px]"}`}>{c.sub}</p>
           </div>
         ))}
       </div>
