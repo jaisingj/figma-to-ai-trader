@@ -203,7 +203,7 @@ function MeetOptixPage() {
                 key={m.name}
                 className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-[0_8px_24px_-12px_rgba(37,99,235,0.25)] transition"
               >
-                <img src={m.src} alt={m.name} className="h-12 w-12 object-contain" />
+                <img src={m.src} alt={m.name} className="h-40 w-40 object-contain" />
                 <p className="mt-3 text-base font-semibold text-slate-900">{m.name}</p>
                 <p className="text-xs text-slate-500">{m.by}</p>
               </div>
