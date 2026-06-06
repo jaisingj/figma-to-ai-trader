@@ -377,7 +377,7 @@ function Index() {
 
       </section>
 
-      <WhatOptixOffers />
+      
     </div>
   );
 }
