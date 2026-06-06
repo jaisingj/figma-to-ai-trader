@@ -112,8 +112,8 @@ function Index() {
       <SignUpDialog open={signUpOpen} onOpenChange={setSignUpOpen} onSuccess={handleAuthSuccess} />
 
       {/* Nav — Claude-style with dropdowns */}
-      <header className="flex items-center justify-between px-8 lg:px-12 py-1">
-        <img src={optixProLogo} alt="OptiXPro" className="h-60 w-auto" />
+      <header className="flex items-center justify-between px-8 lg:px-12 -mt-4 -mb-4">
+        <img src={optixProLogo} alt="OptiXPro" className="h-40 w-auto" />
 
         <nav className="hidden lg:flex items-center gap-1">
           <NavDropdown
