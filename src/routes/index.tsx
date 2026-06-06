@@ -1659,11 +1659,11 @@ function AIScene({ active }: { active: boolean }) {
             return (
               <button
                 key={p}
-                className={`relative text-[11.5px] font-medium px-3 py-1.5 rounded-full ring-1 transition-all ${
-                  isPicked
-                    ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
-                    : "bg-white text-slate-600 ring-slate-200"
-                }`}
+                 className={`relative text-sm font-medium px-4 py-2 rounded-full ring-1 transition-all ${
+                   isPicked
+                     ? "bg-blue-600 text-white ring-blue-600 scale-105 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]"
+                     : "bg-white text-slate-600 ring-slate-200"
+                 }`}
               >
                 {p}
                 {isPicked && (
@@ -1675,11 +1675,11 @@ function AIScene({ active }: { active: boolean }) {
         </div>
         <div className="flex items-center gap-2 rounded-full bg-slate-50 ring-1 ring-slate-200 px-4 py-2.5">
           <MessageSquare className="h-4 w-4 text-slate-400" />
-          <span className={`text-[12px] flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
+          <span className={`text-sm flex-1 ${inputChars > 0 ? "text-slate-900" : "text-slate-400"}`}>
             {inputChars > 0 ? (
               <>
                 {TYPED_QUESTION.slice(0, inputChars)}
-                <span className="inline-block w-px h-3 align-middle bg-slate-900 ml-px animate-pulse" />
+                <span className="inline-block w-px h-4 align-middle bg-slate-900 ml-px animate-pulse" />
               </>
             ) : (
               "Ask anything about your trading history…"
