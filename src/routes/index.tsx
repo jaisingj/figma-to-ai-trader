@@ -103,7 +103,7 @@ function Index() {
       <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
 
       {/* Nav — Claude-style with dropdowns */}
-      <header className="flex items-center justify-between px-8 lg:px-12 py-5">
+      <header className="flex items-center justify-between px-8 lg:px-12 py-1">
         <img src={optixProLogo} alt="OptiXPro" className="h-60 w-auto" />
 
         <nav className="hidden lg:flex items-center gap-1">
