@@ -807,7 +807,7 @@ function SignUpDialog({
   const [verifySent, setVerifySent] = useState(false);
 
   // Reset verification view whenever dialog closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setVerifySent(false);
       setErr(null);
