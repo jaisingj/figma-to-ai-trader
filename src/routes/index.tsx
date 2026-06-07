@@ -847,7 +847,7 @@ function SignUpDialog({
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/home` },
         });
         if (error) throw error;
         // If email confirmation is required, session is null → show verify screen
@@ -888,7 +888,7 @@ function SignUpDialog({
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: `${window.location.origin}/home` },
       });
       if (error) throw error;
     } catch (e) {
