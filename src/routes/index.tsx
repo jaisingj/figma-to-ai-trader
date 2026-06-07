@@ -829,6 +829,17 @@ function SignUpDialog({
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
+
+    // Basic client-side validation so we don't even attempt obviously bad input
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setErr("Please enter a valid email address.");
+      return;
+    }
+    if (mode === "signup" && password.length < 8) {
+      setErr("Password must be at least 8 characters.");
+      return;
+    }
+
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -850,7 +861,20 @@ function SignUpDialog({
         onSuccess();
       }
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Something went wrong");
+      const raw = e instanceof Error ? e.message : String(e);
+      let friendly = raw;
+      if (/load failed|failed to fetch|networkerror/i.test(raw)) {
+        friendly =
+          "Couldn't reach the server. Check your connection, disable any ad/tracking blockers for this page, then try again.";
+      } else if (/weak.?password|pwned/i.test(raw)) {
+        friendly =
+          "That password has appeared in a known data breach. Please choose a stronger, unique password.";
+      } else if (/user already registered|already.*registered/i.test(raw)) {
+        friendly = "An account with this email already exists. Try logging in instead.";
+      } else if (/invalid login credentials/i.test(raw)) {
+        friendly = "Invalid email or password.";
+      }
+      setErr(friendly);
     } finally {
       setBusy(false);
     }
