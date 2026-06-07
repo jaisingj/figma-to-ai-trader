@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MeetOptixRouteImport } from './routes/meet-optix'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const MeetOptixRoute = MeetOptixRouteImport.update({
   id: '/meet-optix',
   path: '/meet-optix',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
+  '/home': typeof HomeRoute
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
+  '/home': typeof HomeRoute
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
+  '/home': typeof HomeRoute
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/meet-optix' | '/register'
+  fullPaths: '/' | '/demo' | '/home' | '/meet-optix' | '/register'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/meet-optix' | '/register'
-  id: '__root__' | '/' | '/demo' | '/meet-optix' | '/register'
+  to: '/' | '/demo' | '/home' | '/meet-optix' | '/register'
+  id: '__root__' | '/' | '/demo' | '/home' | '/meet-optix' | '/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoRoute: typeof DemoRoute
+  HomeRoute: typeof HomeRoute
   MeetOptixRoute: typeof MeetOptixRoute
   RegisterRoute: typeof RegisterRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/meet-optix'
       fullPath: '/meet-optix'
       preLoaderRoute: typeof MeetOptixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoRoute: DemoRoute,
+  HomeRoute: HomeRoute,
   MeetOptixRoute: MeetOptixRoute,
   RegisterRoute: RegisterRoute,
 }
