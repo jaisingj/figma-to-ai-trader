@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
-import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, ChevronDown, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search, Eye, EyeOff, Tag } from "lucide-react";
+import { Plug, BrainCircuit, LineChart, TrendingUp, PieChart, DollarSign, BarChart3, KeyRound, ExternalLink, ChevronLeft, ChevronRight, ChevronDown, Upload, Sparkles, FileSpreadsheet, MessageSquare, Check, ArrowUp, MousePointer2, Folder, FileText, ArrowLeft, Search, Eye, EyeOff, Tag, Mail } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import optixProLogo from "@/assets/optixpro-transparent.png";
@@ -804,6 +804,15 @@ function SignUpDialog({
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [verifySent, setVerifySent] = useState(false);
+
+  // Reset verification view whenever dialog closes
+  useEffect(() => {
+    if (!open) {
+      setVerifySent(false);
+      setErr(null);
+    }
+  }, [open]);
 
   const handleOAuth = async (provider: "google" | "apple") => {
     setErr(null);
@@ -813,6 +822,8 @@ function SignUpDialog({
     if (result.error) {
       setErr(result.error.message || `${provider} sign-in failed`);
     }
+    // Google/Apple verify identity themselves — no extra email step needed.
+    // On success the browser redirects back and the session is set.
   };
 
   const handleEmail = async (e: React.FormEvent) => {
@@ -821,13 +832,18 @@ function SignUpDialog({
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        onSuccess();
+        // If email confirmation is required, session is null → show verify screen
+        if (!data.session) {
+          setVerifySent(true);
+        } else {
+          onSuccess();
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -840,9 +856,60 @@ function SignUpDialog({
     }
   };
 
+  const resendVerification = async () => {
+    setErr(null);
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Couldn't resend email");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 overflow-hidden bg-white border-slate-200">
+        {verifySent ? (
+          <div className="px-8 pt-10 pb-8 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100">
+              <Mail className="h-7 w-7 text-indigo-600" />
+            </div>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-slate-900">
+              Verify your email
+            </h2>
+            <p className="mt-3 text-base text-slate-700 leading-snug">
+              We sent a verification link to{" "}
+              <span className="font-semibold text-slate-900">{email}</span>. Click it to confirm
+              your account and finish signing in.
+            </p>
+            {err && <p className="mt-4 text-sm text-rose-600">{err}</p>}
+            <button
+              type="button"
+              onClick={resendVerification}
+              disabled={busy}
+              className="mt-6 w-full rounded-full bg-indigo-400 hover:bg-indigo-500 disabled:opacity-60 px-4 py-3.5 text-base font-semibold text-white transition"
+            >
+              {busy ? "Sending…" : "Resend verification email"}
+            </button>
+            <p className="mt-4 text-xs text-slate-500">
+              Wrong address?{" "}
+              <button
+                type="button"
+                onClick={() => setVerifySent(false)}
+                className="font-semibold text-indigo-600 hover:underline"
+              >
+                Go back
+              </button>
+            </p>
+          </div>
+        ) : (
         <div className="px-8 pt-10 pb-8">
           <h2 className="text-4xl font-bold tracking-tight text-slate-900">
             {mode === "signup" ? "Sign up for free" : "Welcome back"}
@@ -931,6 +998,7 @@ function SignUpDialog({
             </button>
           </p>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );
