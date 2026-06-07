@@ -876,6 +876,40 @@ function SignUpDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 overflow-hidden bg-white border-slate-200">
+        {verifySent ? (
+          <div className="px-8 pt-10 pb-8 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100">
+              <Mail className="h-7 w-7 text-indigo-600" />
+            </div>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-slate-900">
+              Verify your email
+            </h2>
+            <p className="mt-3 text-base text-slate-700 leading-snug">
+              We sent a verification link to{" "}
+              <span className="font-semibold text-slate-900">{email}</span>. Click it to confirm
+              your account and finish signing in.
+            </p>
+            {err && <p className="mt-4 text-sm text-rose-600">{err}</p>}
+            <button
+              type="button"
+              onClick={resendVerification}
+              disabled={busy}
+              className="mt-6 w-full rounded-full bg-indigo-400 hover:bg-indigo-500 disabled:opacity-60 px-4 py-3.5 text-base font-semibold text-white transition"
+            >
+              {busy ? "Sending…" : "Resend verification email"}
+            </button>
+            <p className="mt-4 text-xs text-slate-500">
+              Wrong address?{" "}
+              <button
+                type="button"
+                onClick={() => setVerifySent(false)}
+                className="font-semibold text-indigo-600 hover:underline"
+              >
+                Go back
+              </button>
+            </p>
+          </div>
+        ) : (
         <div className="px-8 pt-10 pb-8">
           <h2 className="text-4xl font-bold tracking-tight text-slate-900">
             {mode === "signup" ? "Sign up for free" : "Welcome back"}
