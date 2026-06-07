@@ -998,6 +998,7 @@ function SignUpDialog({
             </button>
           </p>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );
