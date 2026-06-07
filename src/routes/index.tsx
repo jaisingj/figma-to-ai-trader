@@ -804,6 +804,15 @@ function SignUpDialog({
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [verifySent, setVerifySent] = useState(false);
+
+  // Reset verification view whenever dialog closes
+  React.useEffect(() => {
+    if (!open) {
+      setVerifySent(false);
+      setErr(null);
+    }
+  }, [open]);
 
   const handleOAuth = async (provider: "google" | "apple") => {
     setErr(null);
@@ -813,6 +822,8 @@ function SignUpDialog({
     if (result.error) {
       setErr(result.error.message || `${provider} sign-in failed`);
     }
+    // Google/Apple verify identity themselves — no extra email step needed.
+    // On success the browser redirects back and the session is set.
   };
 
   const handleEmail = async (e: React.FormEvent) => {
@@ -821,13 +832,18 @@ function SignUpDialog({
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        onSuccess();
+        // If email confirmation is required, session is null → show verify screen
+        if (!data.session) {
+          setVerifySent(true);
+        } else {
+          onSuccess();
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -835,6 +851,23 @@ function SignUpDialog({
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    setErr(null);
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Couldn't resend email");
     } finally {
       setBusy(false);
     }
