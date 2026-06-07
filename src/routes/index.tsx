@@ -105,7 +105,8 @@ function Index() {
   const scrollToPlans = () => {
     document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-  const handleAuthSuccess = () => { setSignUpOpen(false); openGuide(); };
+  const navigate = useNavigate();
+  const handleAuthSuccess = () => { setSignUpOpen(false); navigate({ to: "/home" }); };
   return (
     <div className="min-h-screen bg-white">
       <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
