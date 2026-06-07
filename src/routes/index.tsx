@@ -818,7 +818,7 @@ function SignUpDialog({
   const handleOAuth = async (provider: "google" | "apple") => {
     setErr(null);
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/home`,
     });
     if (result.error) {
       setErr(result.error.message || `${provider} sign-in failed`);

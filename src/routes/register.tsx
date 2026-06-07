@@ -59,7 +59,7 @@ function RegisterPage() {
         email: parsed.data.email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/home`,
           data: {
             full_name: parsed.data.full_name,
             company: parsed.data.company,
