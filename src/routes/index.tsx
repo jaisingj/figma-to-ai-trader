@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useRef, useState } from "react";
@@ -105,7 +105,8 @@ function Index() {
   const scrollToPlans = () => {
     document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-  const handleAuthSuccess = () => { setSignUpOpen(false); openGuide(); };
+  const navigate = useNavigate();
+  const handleAuthSuccess = () => { setSignUpOpen(false); navigate({ to: "/home" }); };
   return (
     <div className="min-h-screen bg-white">
       <GettingStartedDialog open={guideOpen} onOpenChange={setGuideOpen} step={step} setStep={setStep} />
@@ -817,7 +818,7 @@ function SignUpDialog({
   const handleOAuth = async (provider: "google" | "apple") => {
     setErr(null);
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/home`,
     });
     if (result.error) {
       setErr(result.error.message || `${provider} sign-in failed`);
@@ -846,7 +847,7 @@ function SignUpDialog({
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/home` },
         });
         if (error) throw error;
         // If email confirmation is required, session is null → show verify screen
@@ -887,7 +888,7 @@ function SignUpDialog({
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: `${window.location.origin}/home` },
       });
       if (error) throw error;
     } catch (e) {
