@@ -1139,7 +1139,10 @@ function PlansSection({ onSelectPlan }: { onSelectPlan: () => void }) {
             )}
             <h3 className="text-xl font-semibold text-slate-700">{p.name}</h3>
             <div className="mt-4 flex items-baseline gap-1">
-              <span className="text-5xl font-bold text-slate-900">
+              <span
+                className="text-5xl font-bold text-slate-900"
+                style={p.price === "$0" ? undefined : { filter: "blur(8px)" }}
+              >
                 {billing === "yearly" && p.yearly ? p.yearly.split("/")[0] : p.price}
               </span>
               <span className="text-slate-500 font-medium">
