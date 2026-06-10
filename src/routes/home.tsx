@@ -403,7 +403,23 @@ function CumulativeChart() {
         <YAxis
           domain={[0, 3000]}
           ticks={[0, 1000, 2000, 3000]}
-          tick={{ fill: "#94a3b8", fontSize: 12 }}
+          tick={(props) => {
+            const { x, y, payload } = props;
+            const isZero = payload.value === 0;
+            return (
+              <text
+                x={x}
+                y={y}
+                dy={4}
+                textAnchor="end"
+                fill="#94a3b8"
+                fontSize={12}
+                style={isZero ? undefined : { filter: "blur(5px)" }}
+              >
+                {payload.value}
+              </text>
+            );
+          }}
           axisLine={false}
           tickLine={false}
           width={50}
