@@ -25,7 +25,53 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import optixLogo from "@/assets/optixpro-transparent.png";
-import reactiveOptimizer from "@/assets/reactive-optimizer.png";
+import personaReactive from "@/assets/persona-reactive.png";
+import personaConservative from "@/assets/persona-conservative.png";
+import personaAggressive from "@/assets/persona-aggressive.png";
+import personaPassive from "@/assets/persona-passive.png";
+
+type PersonaKey = "reactive" | "conservative" | "aggressive" | "passive";
+
+const PERSONAS: Record<PersonaKey, {
+  label: string;
+  name: string;
+  description: string;
+  image: string;
+  tint: string;
+}> = {
+  reactive: {
+    label: "Reactive",
+    name: "Reactive Optimizer",
+    description:
+      "You frequently adjust positions based on short-term signals and market noise rather than sticking to planned exits.",
+    image: personaReactive,
+    tint: "bg-rose-50",
+  },
+  conservative: {
+    label: "Conservative",
+    name: "Steady Guardian",
+    description:
+      "You prioritize capital preservation, favor lower-risk allocations, and rarely chase volatile opportunities.",
+    image: personaConservative,
+    tint: "bg-emerald-50",
+  },
+  aggressive: {
+    label: "Aggressive",
+    name: "Bold Maverick",
+    description:
+      "You pursue high-conviction, high-upside trades and tolerate meaningful drawdowns in exchange for outsized returns.",
+    image: personaAggressive,
+    tint: "bg-fuchsia-50",
+  },
+  passive: {
+    label: "Passive",
+    name: "Patient Compounder",
+    description:
+      "You set a long-term allocation, let it run, and trust time and consistency to do the compounding for you.",
+    image: personaPassive,
+    tint: "bg-violet-50",
+  },
+};
 
 export const Route = createFileRoute("/home")({
   head: () => ({
