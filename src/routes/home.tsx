@@ -211,27 +211,25 @@ function HomePage() {
               <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">
                 Your trader personality is a
               </p>
-              <div className="mt-4 flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-2xl font-bold text-slate-900 leading-tight">
-                    {persona.name}
-                  </h2>
-                  <p className="mt-3 text-slate-600 text-[15px] leading-relaxed">
-                    {persona.description}
-                  </p>
-                </div>
-                <div className={`shrink-0 rounded-2xl ${persona.tint} p-2 flex items-center justify-center`}>
-                  <img
-                    src={persona.image}
-                    alt={`${persona.name} illustration`}
-                    width={112}
-                    height={112}
-                    loading="lazy"
-                    className="h-28 w-28 object-contain"
-                  />
-                </div>
+              <div className={`mt-4 rounded-2xl ${persona.tint} flex items-center justify-center p-4`}>
+                <img
+                  src={persona.image}
+                  alt={`${persona.name} illustration`}
+                  width={200}
+                  height={200}
+                  loading="lazy"
+                  className="h-48 w-48 object-contain"
+                />
               </div>
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="mt-5 text-center">
+                <h2 className="text-2xl font-bold text-slate-900 leading-tight">
+                  {persona.name}
+                </h2>
+                <p className="mt-3 text-slate-600 text-[15px] leading-relaxed">
+                  {persona.description}
+                </p>
+              </div>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
                 {(Object.keys(PERSONAS) as PersonaKey[]).map((k) => (
                   <button
                     key={k}
@@ -246,6 +244,7 @@ function HomePage() {
                   </button>
                 ))}
               </div>
+
               <div className="mt-auto pt-6 flex items-end justify-between">
                 <button className="flex items-center gap-1.5 text-blue-600 font-semibold hover:text-blue-700 transition">
                   <Sparkles className="h-4 w-4" />
