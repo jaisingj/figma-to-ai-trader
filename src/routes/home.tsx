@@ -25,7 +25,53 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import optixLogo from "@/assets/optixpro-transparent.png";
-import reactiveOptimizer from "@/assets/reactive-optimizer.png";
+import personaReactive from "@/assets/persona-reactive.png";
+import personaConservative from "@/assets/persona-conservative.png";
+import personaAggressive from "@/assets/persona-aggressive.png";
+import personaPassive from "@/assets/persona-passive.png";
+
+type PersonaKey = "reactive" | "conservative" | "aggressive" | "passive";
+
+const PERSONAS: Record<PersonaKey, {
+  label: string;
+  name: string;
+  description: string;
+  image: string;
+  tint: string;
+}> = {
+  reactive: {
+    label: "Reactive",
+    name: "Reactive Optimizer",
+    description:
+      "You frequently adjust positions based on short-term signals and market noise rather than sticking to planned exits.",
+    image: personaReactive,
+    tint: "bg-rose-50",
+  },
+  conservative: {
+    label: "Conservative",
+    name: "Steady Guardian",
+    description:
+      "You prioritize capital preservation, favor lower-risk allocations, and rarely chase volatile opportunities.",
+    image: personaConservative,
+    tint: "bg-emerald-50",
+  },
+  aggressive: {
+    label: "Aggressive",
+    name: "Bold Maverick",
+    description:
+      "You pursue high-conviction, high-upside trades and tolerate meaningful drawdowns in exchange for outsized returns.",
+    image: personaAggressive,
+    tint: "bg-fuchsia-50",
+  },
+  passive: {
+    label: "Passive",
+    name: "Patient Compounder",
+    description:
+      "You set a long-term allocation, let it run, and trust time and consistency to do the compounding for you.",
+    image: personaPassive,
+    tint: "bg-violet-50",
+  },
+};
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -51,6 +97,8 @@ function HomePage() {
   const [active, setActive] = useState<NavKey>("insights");
   const [taxRate, setTaxRate] = useState(0);
   const [period, setPeriod] = useState("This quarter");
+  const [personaKey, setPersonaKey] = useState<PersonaKey>("reactive");
+  const persona = PERSONAS[personaKey];
 
   // Guard: redirect unauthenticated users to landing page
   useEffect(() => {
@@ -164,20 +212,39 @@ function HomePage() {
                 Your trader personality is a
               </p>
               <div className="mt-4 flex items-start gap-4">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <h2 className="text-2xl font-bold text-slate-900 leading-tight">
-                    Reactive Optimizer
+                    {persona.name}
                   </h2>
                   <p className="mt-3 text-slate-600 text-[15px] leading-relaxed">
-                    You frequently adjust positions based on short-term signals rather than planned
-                    exits.
+                    {persona.description}
                   </p>
                 </div>
-                <img
-                  src={reactiveOptimizer}
-                  alt="Reactive Optimizer illustration"
-                  className="h-28 w-28 object-contain"
-                />
+                <div className={`shrink-0 rounded-2xl ${persona.tint} p-2 flex items-center justify-center`}>
+                  <img
+                    src={persona.image}
+                    alt={`${persona.name} illustration`}
+                    width={112}
+                    height={112}
+                    loading="lazy"
+                    className="h-28 w-28 object-contain"
+                  />
+                </div>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {(Object.keys(PERSONAS) as PersonaKey[]).map((k) => (
+                  <button
+                    key={k}
+                    onClick={() => setPersonaKey(k)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition border ${
+                      personaKey === k
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    {PERSONAS[k].label}
+                  </button>
+                ))}
               </div>
               <div className="mt-auto pt-6 flex items-end justify-between">
                 <button className="flex items-center gap-1.5 text-blue-600 font-semibold hover:text-blue-700 transition">
