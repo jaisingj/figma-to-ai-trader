@@ -110,6 +110,7 @@ function UploadPage() {
               setFile(e.target.files?.[0] ?? null);
               setResult(null);
               setError(null);
+              setInsightsMsg(null);
             }}
           />
         </label>
@@ -127,6 +128,12 @@ function UploadPage() {
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {insightsMsg && !error && (
+          <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground">
+            {insightsMsg}
           </div>
         )}
       </div>
