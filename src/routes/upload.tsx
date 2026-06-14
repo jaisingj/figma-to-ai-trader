@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Upload, Loader2, Check, AlertCircle } from "lucide-react";
+import { Upload, Loader2, Check, AlertCircle, ArrowRight } from "lucide-react";
+import { setTrades } from "@/lib/trades-store";
 
 export const Route = createFileRoute("/upload")({
   component: UploadPage,
@@ -46,6 +47,12 @@ function UploadPage() {
       }
       const data = (await res.json()) as ParseResult;
       setResult(data);
+      setTrades({
+        filename: data.filename,
+        columns: data.columns,
+        rows: data.rows,
+        uploadedAt: new Date().toISOString(),
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -97,9 +104,17 @@ function UploadPage() {
 
       {result && (
         <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-sm text-foreground">
-            <Check className="h-4 w-4 text-green-600" />
-            Parsed <strong>{result.row_count}</strong> rows from <strong>{result.filename}</strong>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-foreground">
+              <Check className="h-4 w-4 text-green-600" />
+              Parsed <strong>{result.row_count}</strong> rows from <strong>{result.filename}</strong>
+            </div>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+            >
+              View on dashboard <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-xs">
