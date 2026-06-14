@@ -33,12 +33,25 @@ function pick(row: Row, ...names: string[]): unknown {
 }
 
 function parseDate(s: unknown): Date | null {
+  if (s instanceof Date) return isNaN(s.getTime()) ? null : s;
   if (typeof s !== "string") return null;
-  const p = s.trim().split("/");
-  if (p.length !== 3) return null;
-  let y = +p[2];
-  if (y < 100) y += 2000;
-  const d = new Date(y, +p[0] - 1, +p[1]);
+  const str = s.trim();
+  if (!str) return null;
+  // ISO: YYYY-MM-DD (optionally with time)
+  let m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // US: M/D/YY or M/D/YYYY
+  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (m) {
+    let y = +m[3]; if (y < 100) y += 2000;
+    const d = new Date(y, +m[1] - 1, +m[2]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // Last resort: native Date parser
+  const d = new Date(str);
   return isNaN(d.getTime()) ? null : d;
 }
 
