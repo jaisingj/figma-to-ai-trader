@@ -1663,11 +1663,93 @@ function DashboardScene({ active }: { active: boolean }) {
   ];
   return (
     <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
+/* ---------- Scene 3: Slick dashboard ---------- */
+function DashboardScene({ active }: { active: boolean }) {
+  const trades = useTrades();
+  const isLive = hasTrades(trades);
+
+  // Derive live data when present, otherwise keep marketing demo values.
+  const normalized = isLive ? normalizeTrades(trades!.rows) : [];
+  const liveKpis = isLive ? computeKPIs(normalized) : null;
+  const liveCurve = isLive ? computeEquityCurve(normalized, 24) : [];
+  const liveTop = isLive ? computeTopSymbols(normalized, 4) : [];
+  const liveTxns = isLive ? recentTransactions(normalized, 8) : [];
+
+  const kpis = liveKpis
+    ? [
+        { tag: "REALIZED P/L", value: fmtCurrency(liveKpis.realizedPL), sub: `${liveKpis.trades} trades` },
+        { tag: "WIN RATE", value: `${Math.round(liveKpis.winRate * 100)}%`, sub: `${liveKpis.trades} trades` },
+        { tag: "SYMBOLS", value: String(new Set(normalized.map((t) => t.symbol).filter(Boolean)).size), sub: "tickers traded" },
+        { tag: "OPEN POS", value: String(liveKpis.openPositions), sub: "net open" },
+      ]
+    : [
+        { tag: "REALIZED P/L", value: "+$1,860", sub: "+12.4% MTD" },
+        { tag: "WIN RATE", value: "71%", sub: "vs 64% prior" },
+        { tag: "SHARPE", value: "1.82", sub: "strong risk-adj." },
+        { tag: "OPEN POS", value: "7", sub: "net delta +24" },
+      ];
+
+  // Build equity curve SVG path from live points, or fall back to the demo path.
+  const demoPath = "M0,60 L30,54 L60,58 L90,42 L120,46 L150,30 L180,36 L210,22 L240,26 L270,12 L300,8";
+  let curvePath = demoPath;
+  let curveDelta = "↗ +12.4%";
+  if (isLive && liveCurve.length > 1) {
+    const ys = liveCurve.map((p) => p.y);
+    const min = Math.min(...ys), max = Math.max(...ys);
+    const range = max - min || 1;
+    const pts = liveCurve.map((p) => {
+      const x = p.x * 300;
+      const y = 72 - ((p.y - min) / range) * 64; // padded inside 80 viewbox
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    curvePath = "M" + pts.join(" L");
+    const last = ys[ys.length - 1];
+    curveDelta = `${last >= 0 ? "↗" : "↘"} ${fmtCurrency(last)}`;
+  }
+  const areaPath = `${curvePath} L300,80 L0,80 Z`;
+
+  const topSymbolsRows = isLive
+    ? liveTop.map((r) => ({ s: r.symbol, v: fmtCurrency(r.pl) }))
+    : [
+        { s: "TSLA", v: "+$640" },
+        { s: "NVDA", v: "+$420" },
+        { s: "AAPL", v: "+$310" },
+        { s: "SPY", v: "+$210" },
+      ];
+
+  const txnRows = isLive
+    ? liveTxns.map((t) => ({
+        s: t.symbol + (t.date ? ` ${t.date.getMonth() + 1}/${String(t.date.getDate()).padStart(2, "0")}` : ""),
+        t: t.optionType ? t.optionType.toUpperCase() : (t.side.includes("BUY") || t.side.includes("BTO") || t.side.includes("BTC") ? "BUY" : "SELL"),
+        d: t.side || "—",
+        k: t.strike ? `$${t.strike}` : "—",
+        q: t.qty ? String(Math.abs(t.qty)) : "—",
+        p: t.price ? `$${t.price.toFixed(2)}` : "—",
+        v: fmtCurrency(t.amount),
+      }))
+    : [
+        { s: "TSLA 12/20", t: "CALL", d: "STO", k: "$250", q: "5", p: "$3.45", v: "+$240" },
+        { s: "NVDA 12/13", t: "PUT", d: "BTC", k: "$900", q: "3", p: "$12.10", v: "+$180" },
+        { s: "SPY 01/17", t: "CALL", d: "BTO", k: "$510", q: "10", p: "$4.20", v: "+$140" },
+        { s: "AAPL 12/27", t: "CALL", d: "STC", k: "$200", q: "4", p: "$2.80", v: "+$112" },
+        { s: "AMZN 12/20", t: "CALL", d: "STC", k: "$220", q: "6", p: "$1.95", v: "+$96" },
+        { s: "MSFT 01/03", t: "CALL", d: "BTO", k: "$410", q: "3", p: "$5.60", v: "+$84" },
+        { s: "GOOGL 12/27", t: "PUT", d: "STO", k: "$175", q: "4", p: "$1.85", v: "+$72" },
+        { s: "META 01/10", t: "CALL", d: "BTC", k: "$580", q: "2", p: "$9.40", v: "+$60" },
+      ];
+
+  const detailLabel = isLive
+    ? `${normalized.length} trades · ${trades!.filename}`
+    : "Last 30 days · 482 trades";
+
+  return (
+    <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
       {/* top bar — slimmer */}
       <div className="h-28 px-6 border-b border-blue-100 bg-white flex items-center gap-4">
         <img src={optixProLogo} alt="OptiX" className="h-24 w-auto" />
         <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Live · Robinhood
+          <span className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-emerald-500" : "bg-blue-500"}`} />
+          {isLive ? "Live · your data" : "Live · Robinhood"}
         </div>
       </div>
 
@@ -1691,19 +1773,21 @@ function DashboardScene({ active }: { active: boolean }) {
         <div className="grid grid-cols-3 gap-2.5">
           <div className={`col-span-2 rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "480ms", animationFillMode: "both" }}>
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold tracking-widest text-slate-400">EQUITY CURVE · 30D</p>
-              <p className="text-[11px] text-blue-600 font-semibold">↗ +12.4%</p>
+              <p className="text-[10px] font-semibold tracking-widest text-slate-400">
+                {isLive ? "EQUITY CURVE" : "EQUITY CURVE · 30D"}
+              </p>
+              <p className="text-[11px] text-blue-600 font-semibold">{curveDelta}</p>
             </div>
-            <svg viewBox="0 0 300 80" className="mt-1.5 w-full h-20">
+            <svg viewBox="0 0 300 80" preserveAspectRatio="none" className="mt-1.5 w-full h-20">
               <defs>
                 <linearGradient id="dashGrad" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
                   <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path d="M0,60 L30,54 L60,58 L90,42 L120,46 L150,30 L180,36 L210,22 L240,26 L270,12 L300,8 L300,80 L0,80 Z" fill="url(#dashGrad)" />
+              <path d={areaPath} fill="url(#dashGrad)" />
               <path
-                d="M0,60 L30,54 L60,58 L90,42 L120,46 L150,30 L180,36 L210,22 L240,26 L270,12 L300,8"
+                d={curvePath}
                 fill="none" stroke="#2563eb" strokeWidth="2"
                 strokeDasharray="600" strokeDashoffset={active ? "0" : "600"}
                 style={{ transition: "stroke-dashoffset 1.6s ease-out 0.5s" }}
@@ -1714,15 +1798,10 @@ function DashboardScene({ active }: { active: boolean }) {
           <div className={`rounded-xl ring-1 ring-blue-100 bg-white p-3.5 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "620ms", animationFillMode: "both" }}>
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TOP SYMBOLS</p>
             <div className="mt-1.5 space-y-1.5">
-              {[
-                { s: "TSLA", v: "+$640" },
-                { s: "NVDA", v: "+$420" },
-                { s: "AAPL", v: "+$310" },
-                { s: "SPY",  v: "+$210" },
-              ].map((r) => (
+              {topSymbolsRows.map((r) => (
                 <div key={r.s} className="flex items-center justify-between text-[12px]">
-                  <span className="font-medium text-slate-700">{r.s}</span>
-                  <span className="text-blue-700 font-semibold">{r.v}</span>
+                  <span className="font-medium text-slate-700">{r.s || "—"}</span>
+                  <span className={`font-semibold ${r.v.startsWith("-") ? "text-rose-600" : "text-blue-700"}`}>{r.v}</span>
                 </div>
               ))}
             </div>
@@ -1733,30 +1812,21 @@ function DashboardScene({ active }: { active: boolean }) {
         <div className={`flex-1 rounded-xl ring-1 ring-blue-100 bg-white p-3.5 flex flex-col min-h-0 ${active ? "animate-fade-in" : ""}`} style={{ animationDelay: "760ms", animationFillMode: "both" }}>
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-semibold tracking-widest text-slate-400">TRANSACTION DETAIL</p>
-            <p className="text-[10px] text-slate-400">Last 30 days · 482 trades</p>
+            <p className="text-[10px] text-slate-400">{detailLabel}</p>
           </div>
           <div className="mt-1.5 grid grid-cols-[1.4fr_0.6fr_0.6fr_0.7fr_0.5fr_0.7fr_0.9fr] gap-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pb-1 border-b border-blue-100">
             <span>Symbol</span><span>Type</span><span>Trade</span><span>Strike</span><span>Qty</span><span>Price</span><span className="text-right">P/L</span>
           </div>
           <div className="mt-1 text-[11.5px] flex-1 overflow-hidden">
-            {[
-              { s: "TSLA 12/20",  t: "CALL", d: "STO", k: "$250", q: "5",  p: "$3.45",  v: "+$240" },
-              { s: "NVDA 12/13",  t: "PUT",  d: "BTC", k: "$900", q: "3",  p: "$12.10", v: "+$180" },
-              { s: "SPY 01/17",   t: "CALL", d: "BTO", k: "$510", q: "10", p: "$4.20",  v: "+$140" },
-              { s: "AAPL 12/27",  t: "CALL", d: "STC", k: "$200", q: "4",  p: "$2.80",  v: "+$112" },
-              { s: "AMZN 12/20",  t: "CALL", d: "STC", k: "$220", q: "6",  p: "$1.95",  v: "+$96"  },
-              { s: "MSFT 01/03",  t: "CALL", d: "BTO", k: "$410", q: "3",  p: "$5.60",  v: "+$84"  },
-              { s: "GOOGL 12/27", t: "PUT",  d: "STO", k: "$175", q: "4",  p: "$1.85",  v: "+$72"  },
-              { s: "META 01/10",  t: "CALL", d: "BTC", k: "$580", q: "2",  p: "$9.40",  v: "+$60"  },
-            ].map((t) => (
-              <div key={t.s} className="grid grid-cols-[1.4fr_0.6fr_0.6fr_0.7fr_0.5fr_0.7fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
+            {txnRows.map((t, i) => (
+              <div key={`${t.s}-${i}`} className="grid grid-cols-[1.4fr_0.6fr_0.6fr_0.7fr_0.5fr_0.7fr_0.9fr] gap-2 items-center py-1.5 border-b border-blue-50 last:border-0">
                 <span className="font-medium text-slate-800 truncate">{t.s}</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold w-fit bg-blue-50 text-blue-700">{t.t}</span>
                 <span className="text-slate-600 font-medium">{t.d}</span>
                 <span className="text-slate-600">{t.k}</span>
                 <span className="text-slate-600">{t.q}</span>
                 <span className="text-slate-600">{t.p}</span>
-                <span className="text-right font-semibold text-blue-700">{t.v}</span>
+                <span className={`text-right font-semibold ${t.v.startsWith("-") ? "text-rose-600" : "text-blue-700"}`}>{t.v}</span>
               </div>
             ))}
           </div>
