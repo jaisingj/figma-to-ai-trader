@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UploadRouteImport } from './routes/upload'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MeetOptixRouteImport } from './routes/meet-optix'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof HomeRoute
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
+  '/upload': typeof UploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/home': typeof HomeRoute
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
+  '/upload': typeof UploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,21 @@ export interface FileRoutesById {
   '/home': typeof HomeRoute
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
+  '/upload': typeof UploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/home' | '/meet-optix' | '/register'
+  fullPaths: '/' | '/demo' | '/home' | '/meet-optix' | '/register' | '/upload'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/home' | '/meet-optix' | '/register'
-  id: '__root__' | '/' | '/demo' | '/home' | '/meet-optix' | '/register'
+  to: '/' | '/demo' | '/home' | '/meet-optix' | '/register' | '/upload'
+  id:
+    | '__root__'
+    | '/'
+    | '/demo'
+    | '/home'
+    | '/meet-optix'
+    | '/register'
+    | '/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +93,18 @@ export interface RootRouteChildren {
   HomeRoute: typeof HomeRoute
   MeetOptixRoute: typeof MeetOptixRoute
   RegisterRoute: typeof RegisterRoute
+  UploadRoute: typeof UploadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -125,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   HomeRoute: HomeRoute,
   MeetOptixRoute: MeetOptixRoute,
   RegisterRoute: RegisterRoute,
+  UploadRoute: UploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
