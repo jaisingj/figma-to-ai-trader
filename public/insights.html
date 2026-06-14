@@ -633,13 +633,36 @@ mbg.onclick=e=>{if(e.target===mbg)mbg.classList.remove('show');};
 Chart.defaults.font.family="'Inter',sans-serif";Chart.defaults.font.size=11.5;Chart.defaults.color="#9aa9bd";
 const NB={display:false};
 const TT={backgroundColor:'#fff',titleColor:'#1f2d3d',bodyColor:'#33445a',borderColor:'#e7eef7',borderWidth:1,padding:11,displayColors:true};
-let run=0;const cum=D.monthly.map(m=>{run+=m.net;return run;});
-const mlab=D.monthly.map(m=>['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m.month.split('-')[1]-1]);
+const MNAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const cctx=document.getElementById('cumChart').getContext('2d');
 const cg=cctx.createLinearGradient(0,0,0,170);cg.addColorStop(0,'rgba(26,168,150,.22)');cg.addColorStop(1,'rgba(26,168,150,0)');
-new Chart(cctx,{type:'line',data:{labels:mlab,datasets:[{data:cum,borderColor:'#1aa896',borderWidth:2.6,tension:.35,fill:true,backgroundColor:cg,pointBackgroundColor:'#1aa896',pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:3.5,pointHoverRadius:6}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:NB,tooltip:{...TT,displayColors:false,bodyFont:{weight:'700'},callbacks:{label:c=>'Cumulative  '+fmt0(c.raw)}}},
-  scales:{x:{grid:NB,border:{display:false}},y:{grid:{color:'#eef3fa'},border:{display:false},ticks:{maxTicksLimit:5,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}}});
+let cumChartInst=null;
+function filterMonthsByRange(range){
+  const all=D.monthly.slice().sort((a,b)=>a.month.localeCompare(b.month));
+  if(!all.length||range==='MAX')return all;
+  const last=all[all.length-1].month.split('-');
+  const anchor=new Date(+last[0],+last[1]-1,1);
+  if(range==='YTD'){const y=anchor.getFullYear();return all.filter(m=>+m.month.split('-')[0]===y);}
+  const n={'1M':1,'3M':3,'6M':6,'1Y':12}[range]||all.length;
+  const cutoff=new Date(anchor.getFullYear(),anchor.getMonth()-(n-1),1);
+  return all.filter(m=>{const p=m.month.split('-');return new Date(+p[0],+p[1]-1,1)>=cutoff;});
+}
+function renderHeroChart(range){
+  const months=filterMonthsByRange(range);
+  let run=0;const cum=months.map(m=>{run+=m.net;return run;});
+  const labels=months.map(m=>{const p=m.month.split('-');const lbl=MNAMES[+p[1]-1];return range==='MAX'||range==='1Y'||range==='YTD'?lbl+" '"+p[0].slice(-2):lbl;});
+  if(cumChartInst){cumChartInst.data.labels=labels;cumChartInst.data.datasets[0].data=cum;cumChartInst.update();return;}
+  cumChartInst=new Chart(cctx,{type:'line',data:{labels,datasets:[{data:cum,borderColor:'#1aa896',borderWidth:2.6,tension:.35,fill:true,backgroundColor:cg,pointBackgroundColor:'#1aa896',pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:3.5,pointHoverRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:NB,tooltip:{...TT,displayColors:false,bodyFont:{weight:'700'},callbacks:{label:c=>'Cumulative  '+fmt0(c.raw)}}},
+    scales:{x:{grid:NB,border:{display:false}},y:{grid:{color:'#eef3fa'},border:{display:false},ticks:{maxTicksLimit:5,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}}});
+}
+renderHeroChart('MAX');
+document.getElementById('heroRanges').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-range]');if(!b)return;
+  document.querySelectorAll('#heroRanges button').forEach(x=>x.classList.toggle('on',x===b));
+  renderHeroChart(b.dataset.range);
+});
+const mlab=D.monthly.map(m=>MNAMES[+m.month.split('-')[1]-1]);
 new Chart(document.getElementById('monthChart'),{type:'bar',data:{labels:mlab,datasets:[{data:D.monthly.map(m=>m.net),backgroundColor:D.monthly.map(m=>m.net>=0?'#2f6bed':'#e06a6a'),borderRadius:6,maxBarThickness:48}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:NB,tooltip:{...TT,displayColors:false,callbacks:{label:c=>fmt0(c.raw)+'  ·  '+D.monthly[c.dataIndex].trades+' legs'}}},
   scales:{x:{grid:NB,border:{display:false}},y:{grid:{color:'#eef3fa'},border:{display:false},ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'}}}}});
