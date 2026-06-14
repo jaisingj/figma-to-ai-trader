@@ -55,22 +55,17 @@ function UploadPage() {
         uploadedAt: new Date().toISOString(),
       });
 
-      // Also fetch the analytics payload that drives /home (insights.html).
-      // Backend must expose POST /analyze returning the D shape
-      // (totals, monthly, call_put, dist, tickers, mrows). If missing,
-      // /home keeps demo data — we don't fail the upload.
+      // Aggregate locally into the shape /home (public/insights.html) consumes,
+      // so KPIs, charts, and the Monthly Summary table reflect this upload.
       try {
-        const fd2 = new FormData();
-        fd2.append("file", file);
-        const ares = await fetch(`${BACKEND_URL}/analyze`, { method: "POST", body: fd2 });
-        if (ares.ok) {
-          const insights = await ares.json();
+        const insights = buildInsights(data.rows);
+        if (insights) {
           sessionStorage.setItem("optix.insights.v1", JSON.stringify(insights));
         } else {
-          console.warn("/analyze not available — /home will show demo data");
+          console.warn("No option-trade rows recognized; /home keeps demo data.");
         }
       } catch (err) {
-        console.warn("/analyze fetch failed", err);
+        console.warn("insights aggregation failed", err);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
