@@ -77,13 +77,19 @@ function parseRow(row: Row): Trade | null {
   };
 }
 
-export function buildInsights(rows: Row[]): unknown | null {
+export function buildInsights(rows: Row[]): { unmatched: number; matched: number; data: unknown } | null {
   const trades: Trade[] = [];
+  let unmatched = 0;
   for (const r of rows) {
     const t = parseRow(r);
     if (t) trades.push(t);
+    else if (pick(r, "Description", "Instrument")) unmatched++;
   }
-  if (!trades.length) return null;
+  if (!trades.length) {
+    console.warn(`[insights] No option trades parsed. ${unmatched} rows had a Description but didn't match.`);
+    return null;
+  }
+  console.log(`[insights] Parsed ${trades.length} option trades from ${rows.length} rows (${unmatched} unmatched description rows).`);
 
   // Per-ticker aggregation
   const byTicker = new Map<string, Trade[]>();
