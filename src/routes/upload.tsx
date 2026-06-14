@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Upload, Loader2, Check, AlertCircle, ArrowRight } from "lucide-react";
 import { setTrades } from "@/lib/trades-store";
+import { buildInsights } from "@/lib/insights-aggregate";
 
 export const Route = createFileRoute("/upload")({
   component: UploadPage,
