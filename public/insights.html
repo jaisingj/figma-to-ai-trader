@@ -851,5 +851,46 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
   };
 })();
 </script>
+<script>
+/* When live (uploaded) data is present, override hardcoded date-range,
+   last-trade, transaction count, and show a Live badge. */
+(function(){
+  if(!__UPLOADED_D) return;
+  var rows=[];
+  (D.mrows||[]).forEach(function(m){(m.trades||[]).forEach(function(t){
+    if(!t.tdate) return;
+    var p=String(t.tdate).split('/');if(p.length!==3) return;
+    var y=+p[2];if(y<100)y+=2000;
+    rows.push(new Date(y,+p[0]-1,+p[1]));
+  });});
+  if(!rows.length) return;
+  rows.sort(function(a,b){return a-b;});
+  var first=rows[0],last=rows[rows.length-1];
+  var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmt(d){return MO[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}
+  var rangeText=fmt(first)+' – '+fmt(last);
+  var lbl=document.getElementById('dateRangeLabel');if(lbl)lbl.textContent=rangeText;
+  var lastSpan=document.querySelector('.topbar .status .last');
+  if(lastSpan){
+    var txCount=(D.totals&&D.totals.total_trades)||rows.length;
+    lastSpan.innerHTML=lastSpan.innerHTML.replace(/Last trade:.*$/,
+      'Last trade: <b>'+fmt(last)+'</b> · '+txCount+' transactions');
+  }
+  // Replace the "Available:" hint in the date picker too
+  document.querySelectorAll('div').forEach(function(el){
+    if(el.children.length===0 && /^Available:/.test(el.textContent||'')){
+      el.textContent='Available: '+rangeText;
+    }
+  });
+  // Live badge
+  var status=document.querySelector('.topbar .status');
+  if(status){
+    var badge=document.createElement('span');
+    badge.textContent='Live · your data';
+    badge.style.cssText='background:#e8f7ee;color:#0a7a3d;border:1px solid #b6e3c6;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600;margin-left:8px';
+    status.insertBefore(badge,status.firstChild);
+  }
+})();
+</script>
 </body>
 </html>
