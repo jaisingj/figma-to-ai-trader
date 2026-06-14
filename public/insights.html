@@ -770,5 +770,37 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
 
 
 </script>
+<script>
+(function(){
+  var MIN='2026-01-13', MAX='2026-06-04';
+  var dr=document.getElementById('dateRange'), pop=document.getElementById('datePop');
+  var fromI=document.getElementById('dateFrom'), toI=document.getElementById('dateTo');
+  var label=document.getElementById('dateRangeLabel');
+  var alertBg=document.getElementById('dateAlert'), alertMsg=document.getElementById('dateAlertMsg');
+  [fromI,toI].forEach(function(i){i.min=MIN;i.max=MAX;});
+  fromI.value=MIN; toI.value=MAX;
+  function fmt(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+  function showAlert(msg){alertMsg.textContent=msg;alertBg.style.display='flex';}
+  document.getElementById('dateAlertOk').onclick=function(){alertBg.style.display='none';};
+  alertBg.onclick=function(e){if(e.target===alertBg)alertBg.style.display='none';};
+  dr.addEventListener('click',function(e){
+    if(pop.contains(e.target))return;
+    pop.style.display=pop.style.display==='block'?'none':'block';
+  });
+  document.addEventListener('click',function(e){if(!dr.contains(e.target))pop.style.display='none';});
+  document.getElementById('dateCancel').onclick=function(){pop.style.display='none';};
+  document.getElementById('dateApply').onclick=function(){
+    var f=fromI.value, t=toI.value;
+    if(!f||!t){showAlert('Please pick both a start and end date.');return;}
+    if(f<MIN||t>MAX||f>MAX||t<MIN){
+      showAlert('The dates selected are outside the available data range (Jan 13, 2026 – Jun 4, 2026).');
+      return;
+    }
+    if(f>t){showAlert('Start date must be before end date.');return;}
+    label.textContent=fmt(new Date(f+'T00:00'))+' – '+fmt(new Date(t+'T00:00'));
+    pop.style.display='none';
+  };
+})();
+</script>
 </body>
 </html>
