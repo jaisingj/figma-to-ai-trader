@@ -819,8 +819,12 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
   var label=document.getElementById('dateRangeLabel');
   var alertBg=document.getElementById('dateAlert'), alertMsg=document.getElementById('dateAlertMsg');
   [fromI,toI].forEach(function(i){i.min=MIN;i.max=MAX;});
-  fromI.value=MIN; toI.value=MAX;
+  var saved;try{saved=JSON.parse(sessionStorage.getItem('optixRange')||'null');}catch(e){saved=null;}
+  fromI.value=(saved&&saved.from)||MIN; toI.value=(saved&&saved.to)||MAX;
   function fmt(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+  if(saved&&saved.from&&saved.to){
+    label.textContent=fmt(new Date(saved.from+'T00:00'))+' – '+fmt(new Date(saved.to+'T00:00'));
+  }
   function showAlert(msg){alertMsg.textContent=msg;alertBg.style.display='flex';}
   document.getElementById('dateAlertOk').onclick=function(){alertBg.style.display='none';};
   alertBg.onclick=function(e){if(e.target===alertBg)alertBg.style.display='none';};
@@ -838,8 +842,10 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
       return;
     }
     if(f>t){showAlert('Start date must be before end date.');return;}
+    sessionStorage.setItem('optixRange',JSON.stringify({from:f,to:t}));
     label.textContent=fmt(new Date(f+'T00:00'))+' – '+fmt(new Date(t+'T00:00'));
     pop.style.display='none';
+    location.reload();
   };
 })();
 </script>
