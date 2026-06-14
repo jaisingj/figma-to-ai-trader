@@ -19,7 +19,9 @@ type Trade = {
   amt: number;
 };
 
-const OPT_RE = /^([A-Z]+)\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+(Call|Put)\s+\$([\d,.]+)/i;
+// Robinhood / Schwab style: "AAPL 6/20/2025 Call $200.00"
+// Also tolerates: "AAPL 06/20/25 CALL 200" and 1-5 char tickers incl. dot.
+const OPT_RE = /\b([A-Z][A-Z0-9.]{0,5})\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(Call|Put|CALL|PUT|call|put)\s+\$?([\d,.]+)/;
 
 function pick(row: Row, ...names: string[]): unknown {
   const keys = Object.keys(row);
