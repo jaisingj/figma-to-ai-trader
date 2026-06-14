@@ -1655,16 +1655,6 @@ function CsvTransformScene({ active }: { active: boolean }) {
 
 /* ---------- Scene 3: Slick dashboard ---------- */
 function DashboardScene({ active }: { active: boolean }) {
-  const kpis = [
-    { tag: "REALIZED P/L", value: "+$1,860", sub: "+12.4% MTD" },
-    { tag: "WIN RATE",     value: "71%",     sub: "vs 64% prior" },
-    { tag: "SHARPE",       value: "1.82",    sub: "strong risk-adj." },
-    { tag: "OPEN POS",     value: "7",       sub: "net delta +24" },
-  ];
-  return (
-    <div className="h-full w-full flex flex-col bg-gradient-to-b from-blue-50/40 to-white">
-/* ---------- Scene 3: Slick dashboard ---------- */
-function DashboardScene({ active }: { active: boolean }) {
   const trades = useTrades();
   const isLive = hasTrades(trades);
 
