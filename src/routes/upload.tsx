@@ -47,6 +47,12 @@ function UploadPage() {
       }
       const data = (await res.json()) as ParseResult;
       setResult(data);
+      setTrades({
+        filename: data.filename,
+        columns: data.columns,
+        rows: data.rows,
+        uploadedAt: new Date().toISOString(),
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
