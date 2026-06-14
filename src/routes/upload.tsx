@@ -56,17 +56,31 @@ function UploadPage() {
         uploadedAt: new Date().toISOString(),
       });
 
-      // Aggregate locally into the shape /home (public/insights.html) consumes,
-      // so KPIs, charts, and the Monthly Summary table reflect this upload.
+      // Aggregate locally into the shape /home (public/insights.html) consumes.
+      // Write to BOTH session+local storage so the /home iframe sees it even if
+      // opened in a new tab (sessionStorage is per-tab; localStorage survives).
       try {
-        const insights = buildInsights(data.rows);
-        if (insights) {
-          sessionStorage.setItem("optix.insights.v1", JSON.stringify(insights));
+        const out = buildInsights(data.rows);
+        if (out && out.matched > 0) {
+          const json = JSON.stringify(out.data);
+          sessionStorage.setItem("optix.insights.v1", json);
+          localStorage.setItem("optix.insights.v1", json);
+          setInsightsMsg(
+            `Dashboard updated: ${out.matched} option trades parsed` +
+              (out.unmatched ? ` · ${out.unmatched} description rows didn't match the expected option format` : "")
+          );
         } else {
-          console.warn("No option-trade rows recognized; /home keeps demo data.");
+          // Clear any previous upload so /home doesn't show stale data.
+          sessionStorage.removeItem("optix.insights.v1");
+          localStorage.removeItem("optix.insights.v1");
+          setInsightsMsg(
+            `No option trades recognized in ${data.row_count} rows. /home will show demo data. ` +
+              `Share the CSV header + a few sample Description rows and I'll teach the parser your broker's format.`
+          );
         }
       } catch (err) {
         console.warn("insights aggregation failed", err);
+        setInsightsMsg("Aggregation failed: " + (err instanceof Error ? err.message : String(err)));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
