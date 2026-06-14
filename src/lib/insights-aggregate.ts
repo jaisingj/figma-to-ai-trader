@@ -213,5 +213,9 @@ export function buildInsights(rows: Row[]): { unmatched: number; matched: number
     n_tickers: tickers.length,
   };
 
-  return { totals, monthly, mrows, call_put, dist, tickers };
+  return {
+    matched: trades.length,
+    unmatched,
+    data: { totals, monthly, mrows, call_put, dist, tickers },
+  };
 }
