@@ -28,6 +28,7 @@ function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
+  const [insightsMsg, setInsightsMsg] = useState<string | null>(null);
 
   async function handleUpload() {
     if (!file) return;
@@ -55,17 +56,31 @@ function UploadPage() {
         uploadedAt: new Date().toISOString(),
       });
 
-      // Aggregate locally into the shape /home (public/insights.html) consumes,
-      // so KPIs, charts, and the Monthly Summary table reflect this upload.
+      // Aggregate locally into the shape /home (public/insights.html) consumes.
+      // Write to BOTH session+local storage so the /home iframe sees it even if
+      // opened in a new tab (sessionStorage is per-tab; localStorage survives).
       try {
-        const insights = buildInsights(data.rows);
-        if (insights) {
-          sessionStorage.setItem("optix.insights.v1", JSON.stringify(insights));
+        const out = buildInsights(data.rows);
+        if (out && out.matched > 0) {
+          const json = JSON.stringify(out.data);
+          sessionStorage.setItem("optix.insights.v1", json);
+          localStorage.setItem("optix.insights.v1", json);
+          setInsightsMsg(
+            `Dashboard updated: ${out.matched} option trades parsed` +
+              (out.unmatched ? ` · ${out.unmatched} description rows didn't match the expected option format` : "")
+          );
         } else {
-          console.warn("No option-trade rows recognized; /home keeps demo data.");
+          // Clear any previous upload so /home doesn't show stale data.
+          sessionStorage.removeItem("optix.insights.v1");
+          localStorage.removeItem("optix.insights.v1");
+          setInsightsMsg(
+            `No option trades recognized in ${data.row_count} rows. /home will show demo data. ` +
+              `Share the CSV header + a few sample Description rows and I'll teach the parser your broker's format.`
+          );
         }
       } catch (err) {
         console.warn("insights aggregation failed", err);
+        setInsightsMsg("Aggregation failed: " + (err instanceof Error ? err.message : String(err)));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -95,6 +110,7 @@ function UploadPage() {
               setFile(e.target.files?.[0] ?? null);
               setResult(null);
               setError(null);
+              setInsightsMsg(null);
             }}
           />
         </label>
@@ -112,6 +128,12 @@ function UploadPage() {
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {insightsMsg && !error && (
+          <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground">
+            {insightsMsg}
           </div>
         )}
       </div>

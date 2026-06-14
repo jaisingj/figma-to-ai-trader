@@ -19,7 +19,9 @@ type Trade = {
   amt: number;
 };
 
-const OPT_RE = /^([A-Z]+)\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+(Call|Put)\s+\$([\d,.]+)/i;
+// Robinhood / Schwab style: "AAPL 6/20/2025 Call $200.00"
+// Also tolerates: "AAPL 06/20/25 CALL 200" and 1-5 char tickers incl. dot.
+const OPT_RE = /\b([A-Z][A-Z0-9.]{0,5})\s+(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(Call|Put|CALL|PUT|call|put)\s+\$?([\d,.]+)/;
 
 function pick(row: Row, ...names: string[]): unknown {
   const keys = Object.keys(row);
@@ -75,13 +77,19 @@ function parseRow(row: Row): Trade | null {
   };
 }
 
-export function buildInsights(rows: Row[]): unknown | null {
+export function buildInsights(rows: Row[]): { unmatched: number; matched: number; data: unknown } | null {
   const trades: Trade[] = [];
+  let unmatched = 0;
   for (const r of rows) {
     const t = parseRow(r);
     if (t) trades.push(t);
+    else if (pick(r, "Description", "Instrument")) unmatched++;
   }
-  if (!trades.length) return null;
+  if (!trades.length) {
+    console.warn(`[insights] No option trades parsed. ${unmatched} rows had a Description but didn't match.`);
+    return null;
+  }
+  console.log(`[insights] Parsed ${trades.length} option trades from ${rows.length} rows (${unmatched} unmatched description rows).`);
 
   // Per-ticker aggregation
   const byTicker = new Map<string, Trade[]>();
@@ -205,5 +213,9 @@ export function buildInsights(rows: Row[]): unknown | null {
     n_tickers: tickers.length,
   };
 
-  return { totals, monthly, mrows, call_put, dist, tickers };
+  return {
+    matched: trades.length,
+    unmatched,
+    data: { totals, monthly, mrows, call_put, dist, tickers },
+  };
 }
