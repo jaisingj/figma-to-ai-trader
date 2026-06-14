@@ -28,6 +28,7 @@ function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
+  const [insightsMsg, setInsightsMsg] = useState<string | null>(null);
 
   async function handleUpload() {
     if (!file) return;
