@@ -507,7 +507,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans)
         </table>
       </div>
 
-      <div class="ms-explain"><b>Net Capital After Premium</b> subtracts only the assigned trade's own premium from its required cash — e.g. a put assigned for $21,000 with $2,408 premium nets to −$18,592 of capital deployed (you now hold the shares).</div>
+      
 
       <div class="foot">Premium-based realized P/L · credits net of buy-to-close debits · "Sells" = sold-to-open (credit), "Buys" = bought-to-close (debit)<br>Ticker distribution is sample data pending live open-position feed. Assignment legs carry no premium. Not investment advice.</div>
     </div>
@@ -777,7 +777,7 @@ function renderMonthly(){
     const dr=document.createElement('tr');dr.id='msd-'+m.key;dr.className='ms-detail-row';
     const rowsHtml=m.rows.map(t=>{
       const isAsgn=t.status==='Assigned'&&t.asgn;
-      let cashReq=0,netCap=0,shares='\u2014',entry='\u2014';
+      let cashReq=0,shares='\u2014';
       let collat;
       if(t.type==='Put'){
         const cap=t.asgn?Math.abs(t.asgn.capital):(t.strike?t.strike*(t.qty||1)*100:0);
@@ -786,8 +786,8 @@ function renderMonthly(){
         collat=`<span class="ms-collat shares">${(t.qty||0)*100} sh ${t.ticker}</span>`;
       }
       if(isAsgn){
-        if(t.type==='Put'){cashReq=-Math.abs(t.asgn.capital);netCap=cashReq+Math.max(0,t.net_premium);shares=`${t.asgn.shares} ${t.ticker}`;entry=`$${(t.asgn.price-(t.net_premium/(t.asgn.shares||1))).toFixed(2)}/sh`;}
-        else{cashReq=0;netCap=0;shares=`\u2212${t.qty*100} ${t.ticker}`;entry=`$${t.strike}/sh out`;}
+        if(t.type==='Put'){cashReq=-Math.abs(t.asgn.capital);shares=`${t.asgn.shares} ${t.ticker}`;}
+        else{cashReq=0;shares=`\u2212${t.qty*100} ${t.ticker}`;}
       }
       const td=t.tdate?t.tdate.replace(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,(_,mo,dy,yr)=>mo+'/'+dy+'/'+yr.slice(2)):'\u2014';
       return `<tr>
@@ -795,18 +795,16 @@ function renderMonthly(){
         <td><div class="ms-tcombo"><span class="ms-tdesc">${tdesc(t)}</span></div></td>
         <td class="num ${mcls(t.net_premium)}">${money(t.net_premium)}</td>
         <td class="num ${mcls(cashReq)}">${money(cashReq)}</td>
-        <td class="num ${mcls(netCap)}">${money(netCap)}</td>
         <td>${collat}</td>
-        <td>${shares}</td>
-        <td>${entry}</td>
         <td><span class="ms-status ${statusCls(t.status)}">${t.status}</span></td>
+        <td>${shares}</td>
       </tr>`;
     }).join('');
     dr.innerHTML=`<td colspan="8" class="ms-detail-cell"><div class="ms-detail-wrap">
       <p class="ms-detail-title">${m.label} trade detail</p>
-      <p class="ms-detail-note">One row per position. Net Capital After Premium offsets required cash with only that trade's own premium.</p>
+      <p class="ms-detail-note">One row per position.</p>
       <div class="ms-inner"><table>
-        <thead><tr><th>Date</th><th>Trade / Lifecycle</th><th class="num">Final Net Premium</th><th class="num">Assignment Cash Req.</th><th class="num">Net Capital After Premium</th><th>Collateral</th><th>Shares Received</th><th>Effective Entry</th><th>Status</th></tr></thead>
+        <thead><tr><th>Date</th><th>Trade / Lifecycle</th><th class="num">Final Net Premium</th><th class="num">Assignment Cash Req.</th><th>Collateral</th><th>Status</th><th>Shares Received</th></tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table></div>
     </div></td>`;
