@@ -105,9 +105,11 @@ function UploadPage() {
           <input
             type="file"
             accept=".csv,.xls,.xlsx"
+            multiple
             className="hidden"
             onChange={(e) => {
-              setFile(e.target.files?.[0] ?? null);
+              const files = Array.from(e.target.files ?? []);
+              setFiles(files);
               setResult(null);
               setError(null);
               setInsightsMsg(null);
