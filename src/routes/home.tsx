@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AIChatWidget } from "@/components/AIChatWidget";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -34,10 +35,13 @@ function HomePage() {
     ? `/insights.html?backend=${encodeURIComponent(backend)}`
     : "/insights.html";
   return (
-    <iframe
-      src={src}
-      title="OptiX Insights"
-      className="w-screen h-screen border-0 block"
-    />
+    <div className="relative w-screen h-screen">
+      <iframe
+        src={src}
+        title="OptiX Insights"
+        className="w-full h-full border-0 block"
+      />
+      <AIChatWidget />
+    </div>
   );
 }
