@@ -408,7 +408,9 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans)
     <nav class="nav">
       <a href="#" class="on"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16V12"/><path d="M11 16V9"/><path d="M15 16v-3"/><path d="M19 16V6"/><circle cx="19" cy="6" r="1.4" fill="currentColor" stroke="none"/></svg></span>Insights</a>
       <a href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 5-6 4 4"/><path d="M14 6h6v6"/></svg></span>Trades</a>
-      <a href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 18v-6"/><path d="M9.5 14.5L12 12l2.5 2.5"/></svg></span>Upload CSV</a>
+      <a href="#" id="uploadCsvLink"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 18v-6"/><path d="M9.5 14.5L12 12l2.5 2.5"/></svg></span>Upload CSV</a>
+      <input id="uploadCsvInput" type="file" accept=".csv,.xls,.xlsx,.txt" multiple style="display:none">
+      <div id="uploadCsvToast" style="display:none;position:fixed;right:18px;bottom:18px;z-index:9999;background:#0f172a;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.25);font:13px/1.4 system-ui;max-width:320px"></div>
     </nav>
     <div class="bottom">
       <a href="#"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>Profile</a>
@@ -1108,5 +1110,219 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
   }
 })();
 </script>
+<script>
+/* ===== Upload CSV from sidebar (multi-file, multi-broker) =====
+   Posts files to the Python backend (broker auto-detected), then
+   aggregates the normalized rows into the dashboard "D" shape and
+   saves to localStorage.optix.insights.v1, then reloads.
+*/
+(function(){
+  var qp = new URLSearchParams(location.search);
+  var BACKEND = qp.get('backend') || localStorage.getItem('optix.backend') || '';
+  if (BACKEND) localStorage.setItem('optix.backend', BACKEND);
+  var link = document.getElementById('uploadCsvLink');
+  var input = document.getElementById('uploadCsvInput');
+  var toast = document.getElementById('uploadCsvToast');
+  if (!link || !input) return;
+
+  function showToast(msg, ok){
+    toast.style.background = ok===false ? '#7f1d1d' : '#0f172a';
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ toast.style.display='none'; }, ok===false ? 8000 : 4000);
+  }
+
+  link.addEventListener('click', function(e){
+    e.preventDefault();
+    if (!BACKEND){
+      showToast('Backend URL not configured. Open /home from the app so it can pass the backend URL.', false);
+      return;
+    }
+    input.click();
+  });
+
+  input.addEventListener('change', async function(){
+    var files = Array.from(input.files || []);
+    if (!files.length) return;
+    showToast('Uploading ' + files.length + ' file' + (files.length>1?'s':'') + '…');
+    var fd = new FormData();
+    files.forEach(function(f){ fd.append('files', f, f.name); });
+    try {
+      var res = await fetch(BACKEND.replace(/\/+$/,'') + '/upload-csv', { method:'POST', body: fd });
+      if (!res.ok){
+        var txt = await res.text();
+        throw new Error(txt || ('Upload failed (' + res.status + ')'));
+      }
+      var json = await res.json();
+      var rows = json.rows || [];
+      if (!rows.length){ showToast('No rows parsed from the uploaded files.', false); return; }
+      var D = buildDFromRows(rows);
+      if (!D){ showToast('Could not aggregate uploaded rows.', false); return; }
+      var s = JSON.stringify(D);
+      try { sessionStorage.setItem('optix.insights.v1', s); } catch(e){}
+      try { localStorage.setItem('optix.insights.v1', s); } catch(e){}
+      try { sessionStorage.removeItem('optixRange'); } catch(e){}
+      var brokers = (json.files||[]).map(function(f){ return f.broker+':'+f.filename; }).join(', ');
+      showToast('Loaded ' + rows.length + ' rows · ' + brokers + ' — refreshing…');
+      setTimeout(function(){ location.reload(); }, 700);
+    } catch(err){
+      console.error(err);
+      showToast('Upload failed: ' + (err && err.message || err), false);
+    } finally {
+      input.value = '';
+    }
+  });
+
+  // ===== Aggregate normalized rows -> D =====
+  function num(v){ if (v==null) return 0; if (typeof v==='number') return v; var s=String(v).replace(/[$,\s]/g,'').replace(/^\((.*)\)$/,'-$1'); var n=parseFloat(s); return isNaN(n)?0:n; }
+  function pdate(v){ if (!v) return null; if (v instanceof Date) return v;
+    var s = String(v).trim();
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if (m){ var y=+m[3]; if (y<100) y+=2000; return new Date(y, +m[1]-1, +m[2]); }
+    var d = new Date(s); return isNaN(d.getTime()) ? null : d;
+  }
+  function sd(d){ return (d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(-2); }
+  function expStr(e){
+    if (!e) return '';
+    var d = pdate(e); if (!d) return String(e);
+    return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  }
+  function normCode(c){
+    var x = String(c||'').toUpperCase().trim();
+    if (!x) return '';
+    if (x==='STC') return 'BTC';
+    if (x==='STO'||x==='BTC'||x==='BTO'||x==='OEXP'||x==='OASGN') return x;
+    if (/SELL|SOLD/.test(x)) return 'STO';
+    if (/BUY|BOUGHT/.test(x)) return 'BTC';
+    if (/EXP/.test(x)) return 'OEXP';
+    if (/ASSIGN/.test(x)) return 'OASGN';
+    return x;
+  }
+  function normType(t){
+    var s = String(t||'').toLowerCase();
+    if (s.indexOf('put')>=0 || s==='p') return 'Put';
+    if (s.indexOf('call')>=0 || s==='c') return 'Call';
+    return null;
+  }
+
+  function buildDFromRows(rows){
+    // Build "legs" from normalized rows
+    var legs = [];
+    rows.forEach(function(r){
+      var ticker = r['Instrument'] || '';
+      var typ = normType(r['Option Type']);
+      var strike = num(r['Strike Price']);
+      var exp = r['Expiry Date'];
+      var date = pdate(r['Activity Date']);
+      var code = normCode(r['Trans Code']);
+      var qty = Math.abs(num(r['Quantity'])) || 1;
+      var amt = num(r['Amount']);
+      if (!ticker || !typ || !strike || !exp || !date || !code) return;
+      legs.push({ ticker:String(ticker).toUpperCase(), type:typ, strike:strike, exp:expStr(exp), date:date, code:code, qty:qty, amt:amt });
+    });
+    if (!legs.length) return null;
+
+    // Pair by contract key (ticker|type|strike|exp), FIFO
+    var byKey = {};
+    legs.forEach(function(l){ var k=l.ticker+'|'+l.type+'|'+l.strike.toFixed(4)+'|'+l.exp; (byKey[k]=byKey[k]||[]).push(l); });
+    var trades = [];
+    Object.keys(byKey).forEach(function(k){
+      var g = byKey[k].slice().sort(function(a,b){ return a.date - b.date; });
+      var openers = [], closings = [];
+      g.forEach(function(l){
+        if (l.code==='STO'||l.code==='BTO') openers.push(l);
+        else if (l.code==='BTC'||l.code==='OEXP'||l.code==='OASGN') closings.push(l);
+      });
+      openers.forEach(function(op){
+        var need = op.qty, closes = [];
+        while (need>0 && closings.length){
+          var c = closings[0];
+          if (c.qty <= need){ closes.push(Object.assign({}, c)); need -= c.qty; closings.shift(); }
+          else { var ratio=need/c.qty; closes.push(Object.assign({}, c, {qty:need, amt:+(c.amt*ratio).toFixed(2)})); c.qty-=need; c.amt=+(c.amt*(1-ratio)).toFixed(2); need=0; }
+        }
+        var sto = op.code==='STO' ? op.amt : 0;
+        var btc = closes.filter(function(c){return c.code==='BTC';}).reduce(function(a,c){return a+c.amt;},0);
+        var hasA = closes.some(function(c){return c.code==='OASGN';});
+        var hasE = closes.some(function(c){return c.code==='OEXP';});
+        var hasB = closes.some(function(c){return c.code==='BTC';});
+        var closedQty = closes.reduce(function(a,c){return a+c.qty;},0);
+        var status = hasA ? 'Assigned' : (hasE && !hasB) ? 'Expired' : (closedQty>=op.qty) ? 'Closed' : 'Open';
+        var closeDate = closes.length ? closes[closes.length-1].date : null;
+        trades.push({ ticker:op.ticker, type:op.type, strike:op.strike, exp:op.exp, openDate:op.date, closeDate:closeDate, qty:op.qty, sto:+sto.toFixed(2), btc:+btc.toFixed(2), net:+(sto+btc).toFixed(2), status:status, legs:[op].concat(closes) });
+      });
+      // leftover closers without opener
+      closings.forEach(function(c){
+        trades.push({ ticker:c.ticker, type:c.type, strike:c.strike, exp:c.exp, openDate:c.date, closeDate:c.date, qty:c.qty, sto:0, btc:c.code==='BTC'?+c.amt.toFixed(2):0, net:c.code==='BTC'?+c.amt.toFixed(2):0, status:c.code==='OASGN'?'Assigned':c.code==='OEXP'?'Expired':'Closed', legs:[c] });
+      });
+    });
+
+    // Tickers
+    var byT = {};
+    trades.forEach(function(t){ (byT[t.ticker]=byT[t.ticker]||[]).push(t); });
+    var tickers = Object.keys(byT).map(function(tk){
+      var ts = byT[tk];
+      var credits = ts.reduce(function(a,t){return a+t.sto;},0);
+      var net = ts.reduce(function(a,t){return a+t.net;},0);
+      var calls = ts.filter(function(t){return t.type==='Call';}).length;
+      var puts = ts.filter(function(t){return t.type==='Put';}).length;
+      return {
+        ticker: tk, net:+net.toFixed(2), credits:+credits.toFixed(2),
+        legs: ts.reduce(function(a,t){return a+t.legs.length;},0),
+        sto: ts.filter(function(t){return t.sto>0;}).length,
+        btc: ts.filter(function(t){return t.btc!==0;}).length,
+        calls:calls, puts:puts,
+        trades: ts.slice().sort(function(a,b){return b.openDate-a.openDate;}).reduce(function(arr,t){
+          t.legs.forEach(function(l){
+            arr.push({ date: sd(l.date), code: l.code, desc: t.ticker+' '+t.exp+' '+t.type+' $'+t.strike.toFixed(2), qty: l.qty, amt: (l.code==='OASGN'||l.code==='OEXP') ? null : l.amt });
+          });
+          return arr;
+        }, [])
+      };
+    }).sort(function(a,b){return b.net-a.net;});
+
+    // Monthly
+    var byM = {};
+    trades.forEach(function(t){
+      var k = t.openDate.getFullYear()+'-'+String(t.openDate.getMonth()+1).padStart(2,'0');
+      (byM[k]=byM[k]||[]).push(t);
+    });
+    var mkeys = Object.keys(byM).sort();
+    var monthly = mkeys.map(function(k){ var ts=byM[k]; return { month:k, net:+ts.reduce(function(a,t){return a+t.net;},0).toFixed(2), trades:ts.length }; });
+    var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var mrows = mkeys.map(function(k){
+      var ts=byM[k]; var parts=k.split('-'); var label=MONTHS[+parts[1]-1]+' '+parts[0];
+      var net = ts.reduce(function(a,t){return a+t.net;},0);
+      return {
+        key:k, label:label, n:ts.length, sum_net_premium:+net.toFixed(2), sum_cashflow:+net.toFixed(2), sum_asgn_cash:0,
+        trades: ts.map(function(t){
+          return { tdate:sd(t.openDate), ticker:t.ticker, type:t.type, strike:t.strike, exp:t.exp, qty:t.qty,
+            action: t.sto>0?'STO':'BTC', status:t.status, sto:+t.sto.toFixed(2), btc:+t.btc.toFixed(2),
+            net_premium:+t.net.toFixed(2), cashflow:+t.net.toFixed(2), asgn_cash:0, asgn:null };
+        })
+      };
+    });
+
+    var totalNet = tickers.reduce(function(a,t){return a+t.net;},0) || 1;
+    var dist = tickers.map(function(t){ return { ticker:t.ticker, net:t.net, pct:+((t.net/totalNet)*100).toFixed(1), side: t.calls>=t.puts ? 'Call' : 'Put' }; });
+    var cp = { Call:{net:0,count:0}, Put:{net:0,count:0} };
+    trades.forEach(function(t){ cp[t.type].net+=t.net; cp[t.type].count+=1; });
+    var call_put = [{OptType:'Call', net:+cp.Call.net.toFixed(2), count:cp.Call.count}, {OptType:'Put', net:+cp.Put.net.toFixed(2), count:cp.Put.count}];
+    var stoTotal = trades.reduce(function(a,t){return a+t.sto;},0);
+    var btcTotal = trades.reduce(function(a,t){return a+t.btc;},0);
+    var totals = {
+      sto:+stoTotal.toFixed(2), btc:+btcTotal.toFixed(2), net_premium:+(stoTotal+btcTotal).toFixed(2),
+      dividends:0, interest:0, fees:0,
+      total_trades: trades.length,
+      buy_to_close: trades.filter(function(t){return t.status==='Closed';}).length,
+      assignments: trades.filter(function(t){return t.status==='Assigned';}).length,
+      expirations: trades.filter(function(t){return t.status==='Expired';}).length,
+      n_tickers: tickers.length
+    };
+    return { totals:totals, monthly:monthly, mrows:mrows, call_put:call_put, dist:dist, tickers:tickers };
+  }
+})();
+</script>
 </body>
 </html>
+

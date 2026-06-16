@@ -3,31 +3,32 @@ OptiX Python backend — minimal FastAPI service.
 
 Endpoints:
   GET  /health        → liveness check
-  POST /upload-csv    → accepts a CSV/XLS(X) file, returns parsed trades JSON
-
-Run locally:
-  pip install -r requirements.txt
-  uvicorn main:app --reload --port 8000
-
-Then open http://localhost:8000/docs to try it.
+  POST /upload-csv    → accepts one or more CSV/XLS(X) files, auto-detects broker
+                        (Schwab/Fidelity/Robinhood) and returns parsed trades JSON
+                        normalized to a single shared schema.
 """
 
 from __future__ import annotations
 
 import io
 import math
+import re
 from typing import Any
 
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from parsers import parse_generic_file
+from parsers import (
+    parse_generic_file,
+    parse_schwab_to_robinhood,
+    parse_robinhood_file,
+    parse_fidelity_file,
+    normalize_dataframe_columns,
+)
 
-app = FastAPI(title="OptiX Backend", version="0.1.0")
+app = FastAPI(title="OptiX Backend", version="0.2.0")
 
-# CORS — relax for now so the Lovable preview/published URLs can call us.
-# Tighten allow_origins to your real domains before going to prod.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,9 +43,7 @@ def health() -> dict[str, str]:
 
 
 def _df_to_records(df: pd.DataFrame) -> list[dict[str, Any]]:
-    """Convert a DataFrame to JSON-safe records (NaN/NaT → None, dates → ISO)."""
     safe = df.copy()
-    # Stringify date/datetime columns
     for col in safe.columns:
         if pd.api.types.is_datetime64_any_dtype(safe[col]):
             safe[col] = safe[col].dt.strftime("%Y-%m-%d")
@@ -65,27 +64,107 @@ def _df_to_records(df: pd.DataFrame) -> list[dict[str, Any]]:
     return cleaned
 
 
-@app.post("/upload-csv")
-async def upload_csv(file: UploadFile = File(...)) -> dict[str, Any]:
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="No filename provided")
+_UUID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
 
-    contents = await file.read()
-    if not contents:
-        raise HTTPException(status_code=400, detail="Empty file")
+
+def _detect_broker(filename: str, head_text: str) -> str:
+    fn = (filename or "").lower()
+    stem = fn.rsplit(".", 1)[0]
+    head = head_text.lower()
+
+    if "schwab" in fn or fn.startswith("designated"):
+        return "Schwab"
+    if "fidelity" in fn or fn.startswith("history"):
+        return "Fidelity"
+    if "robinhood" in fn or "hood" in fn or _UUID_RE.match(stem):
+        return "Robinhood"
+
+    # Content sniff (header line)
+    if "run date" in head and "action" in head and "settlement date" in head:
+        return "Fidelity"
+    if "trans code" in head and "instrument" in head:
+        return "Robinhood"
+    if "action" in head and "symbol" in head and ("date" in head):
+        # Schwab "Designated*" exports: Date, Action, Symbol, Description, Quantity, Price, Fees & Comm, Amount
+        if "fees & comm" in head or "sell to open" in head or "buy to close" in head:
+            return "Schwab"
+    return "Other"
+
+
+def _parse_one(filename: str, contents: bytes) -> pd.DataFrame:
+    head_text = contents[:4096].decode("utf-8", errors="ignore")
+    broker = _detect_broker(filename, head_text)
 
     buf = io.BytesIO(contents)
-    buf.name = file.filename  # parsers.py inspects .name to pick the reader
+    buf.name = filename
 
     try:
+        if broker == "Schwab":
+            df = parse_schwab_to_robinhood(buf)
+        elif broker == "Fidelity":
+            df = parse_fidelity_file(buf)
+        elif broker == "Robinhood":
+            df = parse_robinhood_file(buf)
+        else:
+            df = parse_generic_file(buf)
+    except Exception:
+        buf.seek(0)
         df = parse_generic_file(buf)
-    except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail=f"Parse error: {e}") from e
 
-    records = _df_to_records(df)
+    df = normalize_dataframe_columns(df)
+    df["Broker"] = broker if broker != "Other" else df.get("Broker", "Other")
+    df["Source File"] = filename
+    return df
+
+
+@app.post("/upload-csv")
+async def upload_csv(
+    file: UploadFile | None = File(None),
+    files: list[UploadFile] | None = File(None),
+) -> dict[str, Any]:
+    upload_list: list[UploadFile] = []
+    if files:
+        upload_list.extend(files)
+    if file:
+        upload_list.append(file)
+    if not upload_list:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    frames: list[pd.DataFrame] = []
+    per_file: list[dict[str, Any]] = []
+    for up in upload_list:
+        if not up.filename:
+            continue
+        contents = await up.read()
+        if not contents:
+            continue
+        try:
+            df = _parse_one(up.filename, contents)
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(
+                status_code=400, detail=f"Parse error in {up.filename}: {e}"
+            ) from e
+        frames.append(df)
+        per_file.append({
+            "filename": up.filename,
+            "broker": df["Broker"].iloc[0] if "Broker" in df.columns and len(df) else "Other",
+            "row_count": int(len(df)),
+        })
+
+    if not frames:
+        raise HTTPException(status_code=400, detail="No usable files")
+
+    combined = pd.concat(frames, ignore_index=True, sort=False)
+    combined = normalize_dataframe_columns(combined)
+
+    records = _df_to_records(combined)
     return {
-        "filename": file.filename,
+        "filename": per_file[0]["filename"] if len(per_file) == 1 else f"{len(per_file)} files",
+        "files": per_file,
         "row_count": len(records),
-        "columns": list(df.columns),
+        "columns": list(combined.columns),
         "rows": records,
     }
