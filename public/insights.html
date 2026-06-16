@@ -1031,7 +1031,7 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
 </script>
 <script>
 (function(){
-  var MIN='2026-01-13', MAX='2026-06-04';
+  var MIN=window.__LIVE_MIN||'2026-01-13', MAX=window.__LIVE_MAX||'2026-06-04';
   var dr=document.getElementById('dateRange'), pop=document.getElementById('datePop');
   var fromI=document.getElementById('dateFrom'), toI=document.getElementById('dateTo');
   var label=document.getElementById('dateRangeLabel');
