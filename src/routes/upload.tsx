@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Upload, Loader2, Check, AlertCircle, ArrowRight } from "lucide-react";
+import { Upload, Loader2, Check, AlertCircle, ArrowRight, X } from "lucide-react";
 import { setTrades } from "@/lib/trades-store";
 import { buildInsights } from "@/lib/insights-aggregate";
 
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/upload")({
   head: () => ({
     meta: [
       { title: "Upload broker CSV — OptiX" },
-      { name: "description", content: "Upload a broker CSV or Excel file and get normalized trades back." },
+      { name: "description", content: "Upload broker CSV or Excel files and get normalized trades back." },
     ],
   }),
 });
@@ -24,14 +24,14 @@ type ParseResult = {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string | undefined;
 
 function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
   const [insightsMsg, setInsightsMsg] = useState<string | null>(null);
 
   async function handleUpload() {
-    if (!file) return;
+    if (!files.length) return;
     if (!BACKEND_URL) {
       setError("VITE_BACKEND_URL is not configured.");
       return;
@@ -41,7 +41,7 @@ function UploadPage() {
     setResult(null);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      for (const f of files) fd.append("files", f);
       const res = await fetch(`${BACKEND_URL}/upload-csv`, { method: "POST", body: fd });
       if (!res.ok) {
         const text = await res.text();
@@ -56,9 +56,6 @@ function UploadPage() {
         uploadedAt: new Date().toISOString(),
       });
 
-      // Aggregate locally into the shape /home (public/insights.html) consumes.
-      // Write to BOTH session+local storage so the /home iframe sees it even if
-      // opened in a new tab (sessionStorage is per-tab; localStorage survives).
       try {
         const out = buildInsights(data.rows);
         if (out && out.matched > 0) {
@@ -70,7 +67,6 @@ function UploadPage() {
               (out.unmatched ? ` · ${out.unmatched} description rows didn't match the expected option format` : "")
           );
         } else {
-          // Clear any previous upload so /home doesn't show stale data.
           sessionStorage.removeItem("optix.insights.v1");
           localStorage.removeItem("optix.insights.v1");
           setInsightsMsg(
@@ -89,41 +85,81 @@ function UploadPage() {
     }
   }
 
+  function removeFile(idx: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-3xl font-semibold text-foreground">Upload broker CSV</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Drop a CSV or Excel export from Robinhood, Schwab, Fidelity, or E*TRADE. We'll normalize the trades.
+        Drop one or more CSV/Excel exports from Robinhood, Schwab, Fidelity, or E*TRADE. We'll normalize and merge them.
       </p>
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-8 shadow-sm">
         <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted/30 p-10 text-center hover:bg-muted/50">
           <Upload className="h-10 w-10 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">
-            {file ? file.name : "Click to choose a CSV / XLS / XLSX file"}
+            {files.length
+              ? `${files.length} file${files.length === 1 ? "" : "s"} selected`
+              : "Click to choose one or more CSV / XLS / XLSX files"}
           </span>
+          <span className="text-xs text-muted-foreground">Hold ⌘/Ctrl or Shift to select multiple</span>
           <input
             type="file"
             accept=".csv,.xls,.xlsx"
             multiple
             className="hidden"
             onChange={(e) => {
-              const files = Array.from(e.target.files ?? []);
-              setFiles(files);
+              const picked = Array.from(e.target.files ?? []);
+              setFiles((prev) => {
+                const seen = new Set(prev.map((f) => `${f.name}:${f.size}`));
+                const merged = [...prev];
+                for (const f of picked) {
+                  const k = `${f.name}:${f.size}`;
+                  if (!seen.has(k)) {
+                    merged.push(f);
+                    seen.add(k);
+                  }
+                }
+                return merged;
+              });
               setResult(null);
               setError(null);
               setInsightsMsg(null);
+              e.target.value = "";
             }}
           />
         </label>
 
+        {files.length > 0 && (
+          <ul className="mt-4 space-y-1.5">
+            {files.map((f, i) => (
+              <li
+                key={`${f.name}-${f.size}-${i}`}
+                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs"
+              >
+                <span className="truncate text-foreground">{f.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(i)}
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`Remove ${f.name}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
         <button
           onClick={handleUpload}
-          disabled={!file || loading}
+          disabled={!files.length || loading}
           className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          {loading ? "Parsing…" : "Upload & parse"}
+          {loading ? "Parsing…" : `Upload & parse${files.length > 1 ? ` (${files.length})` : ""}`}
         </button>
 
         {error && (
