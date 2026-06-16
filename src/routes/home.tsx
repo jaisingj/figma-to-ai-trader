@@ -29,9 +29,13 @@ function HomePage() {
     };
   }, [navigate]);
 
+  const backend = import.meta.env.VITE_BACKEND_URL as string | undefined;
+  const src = backend
+    ? `/insights.html?backend=${encodeURIComponent(backend)}`
+    : "/insights.html";
   return (
     <iframe
-      src="/insights.html"
+      src={src}
       title="OptiX Insights"
       className="w-screen h-screen border-0 block"
     />
