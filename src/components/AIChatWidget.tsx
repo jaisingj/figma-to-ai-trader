@@ -135,7 +135,10 @@ async function callGemini(key: string, messages: ChatMessage[], system: string) 
 export function AIChatWidget() {
   const [open, setOpen] = useState(false);
   const [provider, setProvider] = useState<Provider>(
-    () => (localStorage.getItem(LS_PROVIDER) as Provider) || "openai",
+    () =>
+      (typeof window !== "undefined"
+        ? (localStorage.getItem(LS_PROVIDER) as Provider)
+        : null) || "openai",
   );
   const [keys, setKeys] = useState<Partial<Record<Provider, string>>>(() => loadKeys());
   const [keyInput, setKeyInput] = useState("");
