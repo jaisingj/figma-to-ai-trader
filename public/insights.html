@@ -1056,7 +1056,7 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
     var f=fromI.value, t=toI.value;
     if(!f||!t){showAlert('Please pick both a start and end date.');return;}
     if(f<MIN||t>MAX||f>MAX||t<MIN){
-      showAlert('The dates selected are outside the available data range (Jan 13, 2026 – Jun 4, 2026).');
+      showAlert('The dates selected are outside the available data range ('+MIN+' – '+MAX+').');
       return;
     }
     if(f>t){showAlert('Start date must be before end date.');return;}
