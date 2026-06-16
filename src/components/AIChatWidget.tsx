@@ -163,8 +163,6 @@ export function AIChatWidget() {
     if (open && hasKey) inputRef.current?.focus();
   }, [open, hasKey, provider]);
 
-  const systemPrompt = useMemo(() => (open ? buildSystemPrompt() : ""), [open, messages.length]);
-
   async function send(text: string) {
     const content = text.trim();
     if (!content || loading) return;
@@ -179,6 +177,9 @@ export function AIChatWidget() {
     setInput("");
     setLoading(true);
     try {
+      // Build a fresh system prompt for THIS question so metrics are scoped
+      // to the right period / ticker (inferred inside buildOptimusContext).
+      const systemPrompt = buildSystemPromptFor(content);
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, next, systemPrompt);
       else if (provider === "anthropic") reply = await callAnthropic(key, next, systemPrompt);
