@@ -51,6 +51,7 @@ const LS_KEYS = "optix.chat.keys.v1";
 const LS_PROVIDER = "optix.chat.provider.v1";
 
 function loadKeys(): Partial<Record<Provider, string>> {
+  if (typeof window === "undefined") return {};
   try {
     return JSON.parse(localStorage.getItem(LS_KEYS) || "{}");
   } catch {
@@ -59,34 +60,16 @@ function loadKeys(): Partial<Record<Provider, string>> {
 }
 
 function saveKeys(k: Partial<Record<Provider, string>>) {
+  if (typeof window === "undefined") return;
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
-function loadTradeContext(): string {
-  try {
-    const raw = localStorage.getItem("optix.insights.v1");
-    if (!raw) return "No trade data has been uploaded yet.";
-    const parsed = JSON.parse(raw);
-    // keep context lean
-    const s = JSON.stringify(parsed);
-    return s.length > 60000 ? s.slice(0, 60000) + "...[truncated]" : s;
-  } catch {
-    return "Trade data unavailable.";
-  }
-}
-
-function buildSystemPrompt() {
-  const data = loadTradeContext();
-  return `You are OptiX AI, a trading analytics assistant embedded in the user's OptiX dashboard.
-Your job is to:
-1) Answer questions strictly grounded in the user's own trade data shown below.
-2) Profile the trader's persona (risk tolerance, style, discipline, biases) and surface concrete habits (good and bad).
-3) Identify patterns: best/worst trades, winning vs losing tickers, monthly P&L trends, position sizing, holding periods.
-4) Give actionable, specific feedback — cite numbers from the data. Never invent trades.
-If data is missing, say so clearly and ask the user to upload their CSV.
-
-USER TRADE DATA (JSON):
-${data}`;
+/** Build the per-turn system prompt: Optimus identity + computed metrics for this question. */
+function buildSystemPromptFor(question: string): string {
+  const trades = getTrades();
+  const rows = trades?.rows ?? [];
+  const ctx = buildOptimusContext(rows, question);
+  return `${OPTIMUS_SYSTEM_PROMPT}\n\n${ctx}`;
 }
 
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
