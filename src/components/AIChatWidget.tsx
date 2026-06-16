@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send, Loader2, KeyRound, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OPTIMUS_SYSTEM_PROMPT, buildOptimusContext } from "@/lib/optimus-brain";
+import { getTrades } from "@/lib/trades-store";
 
 type Provider = "openai" | "anthropic" | "gemini";
 
@@ -49,6 +51,7 @@ const LS_KEYS = "optix.chat.keys.v1";
 const LS_PROVIDER = "optix.chat.provider.v1";
 
 function loadKeys(): Partial<Record<Provider, string>> {
+  if (typeof window === "undefined") return {};
   try {
     return JSON.parse(localStorage.getItem(LS_KEYS) || "{}");
   } catch {
@@ -57,34 +60,16 @@ function loadKeys(): Partial<Record<Provider, string>> {
 }
 
 function saveKeys(k: Partial<Record<Provider, string>>) {
+  if (typeof window === "undefined") return;
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
-function loadTradeContext(): string {
-  try {
-    const raw = localStorage.getItem("optix.insights.v1");
-    if (!raw) return "No trade data has been uploaded yet.";
-    const parsed = JSON.parse(raw);
-    // keep context lean
-    const s = JSON.stringify(parsed);
-    return s.length > 60000 ? s.slice(0, 60000) + "...[truncated]" : s;
-  } catch {
-    return "Trade data unavailable.";
-  }
-}
-
-function buildSystemPrompt() {
-  const data = loadTradeContext();
-  return `You are OptiX AI, a trading analytics assistant embedded in the user's OptiX dashboard.
-Your job is to:
-1) Answer questions strictly grounded in the user's own trade data shown below.
-2) Profile the trader's persona (risk tolerance, style, discipline, biases) and surface concrete habits (good and bad).
-3) Identify patterns: best/worst trades, winning vs losing tickers, monthly P&L trends, position sizing, holding periods.
-4) Give actionable, specific feedback — cite numbers from the data. Never invent trades.
-If data is missing, say so clearly and ask the user to upload their CSV.
-
-USER TRADE DATA (JSON):
-${data}`;
+/** Build the per-turn system prompt: Optimus identity + computed metrics for this question. */
+function buildSystemPromptFor(question: string): string {
+  const trades = getTrades();
+  const rows = trades?.rows ?? [];
+  const ctx = buildOptimusContext(rows, question);
+  return `${OPTIMUS_SYSTEM_PROMPT}\n\n${ctx}`;
 }
 
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
@@ -150,7 +135,10 @@ async function callGemini(key: string, messages: ChatMessage[], system: string) 
 export function AIChatWidget() {
   const [open, setOpen] = useState(false);
   const [provider, setProvider] = useState<Provider>(
-    () => (localStorage.getItem(LS_PROVIDER) as Provider) || "openai",
+    () =>
+      (typeof window !== "undefined"
+        ? (localStorage.getItem(LS_PROVIDER) as Provider)
+        : null) || "openai",
   );
   const [keys, setKeys] = useState<Partial<Record<Provider, string>>>(() => loadKeys());
   const [keyInput, setKeyInput] = useState("");
@@ -175,8 +163,6 @@ export function AIChatWidget() {
     if (open && hasKey) inputRef.current?.focus();
   }, [open, hasKey, provider]);
 
-  const systemPrompt = useMemo(() => (open ? buildSystemPrompt() : ""), [open, messages.length]);
-
   async function send(text: string) {
     const content = text.trim();
     if (!content || loading) return;
@@ -191,6 +177,9 @@ export function AIChatWidget() {
     setInput("");
     setLoading(true);
     try {
+      // Build a fresh system prompt for THIS question so metrics are scoped
+      // to the right period / ticker (inferred inside buildOptimusContext).
+      const systemPrompt = buildSystemPromptFor(content);
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, next, systemPrompt);
       else if (provider === "anthropic") reply = await callAnthropic(key, next, systemPrompt);
