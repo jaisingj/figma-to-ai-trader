@@ -71,6 +71,27 @@ const STARTERS = [
 ];
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+type AttachedFile = { name: string; size: number; mime: string; kind: "image" | "text" | "binary"; text?: string; dataUrl?: string };
+
+const ACCEPT = ".csv,.docx,.jpg,.jpeg,.xls,.xlsx";
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+function classifyFile(f: File): AttachedFile["kind"] {
+  const n = f.name.toLowerCase();
+  if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image";
+  if (n.endsWith(".csv")) return "text";
+  return "binary"; // docx, xls, xlsx — opaque in-browser
+}
+
+function readAsText(f: File) { return f.text(); }
+function readAsDataURL(f: File) {
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(f);
+  });
+}
 
 const LS_KEYS = "optix.chat.keys.v1";
 const LS_PROVIDER = "optix.chat.provider.v1";
