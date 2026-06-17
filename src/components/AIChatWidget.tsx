@@ -1,9 +1,21 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, KeyRound, Trash2 } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  ArrowUp,
+  Loader2,
+  KeyRound,
+  Trash2,
+  Maximize2,
+  Minimize2,
+  PenLine,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -13,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { OPTIMUS_SYSTEM_PROMPT, buildOptimusContext } from "@/lib/optimus-brain";
 import { getTrades } from "@/lib/trades-store";
-
+import optixLogo from "@/assets/optixpro.jpeg.asset.json";
 
 type Provider = "openai" | "anthropic" | "gemini";
 
@@ -22,52 +34,54 @@ const PROVIDERS: Record<
   { label: string; model: string; keyHint: string; keyUrl: string }
 > = {
   openai: {
-    label: "ChatGPT (OpenAI)",
+    label: "ChatGPT",
     model: "gpt-4o-mini",
     keyHint: "sk-...",
     keyUrl: "https://platform.openai.com/api-keys",
   },
   anthropic: {
-    label: "Claude (Anthropic)",
+    label: "Claude",
     model: "claude-3-5-sonnet-latest",
     keyHint: "sk-ant-...",
     keyUrl: "https://console.anthropic.com/settings/keys",
   },
   gemini: {
-    label: "Gemini (Google)",
+    label: "Gemini",
     model: "gemini-2.0-flash",
     keyHint: "AIza...",
     keyUrl: "https://aistudio.google.com/apikey",
   },
 };
 
-const SHORTCUTS = [
-  "What was my best trade this month?",
-  "Profile my trading persona & habits",
-  "Which tickers lose me the most money?",
-  "Summarize my P&L by month",
+const SHORTCUTS: { label: string; emoji: string; prompt: string }[] = [
+  { emoji: "📊", label: "Summarize my month", prompt: "Summarize my trading month with a weekly breakdown table." },
+  { emoji: "🎯", label: "Best win rate setup", prompt: "Which ticker / setup gave me the best win rate? Show a table." },
+  { emoji: "⚠️", label: "Riskiest open positions", prompt: "List my riskiest open positions in a table." },
+  { emoji: "💡", label: "Suggest better exits", prompt: "Suggest better exits based on my trade history." },
+];
+
+const STARTERS = [
+  "Which trades contributed the most to my overall performance?",
+  "How are my sell vs buy strategies performing?",
+  "What is the impact of assignments and exercises on my cashflow?",
+  "What is my current exposure from open positions?",
 ];
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const LS_KEYS = "optix.chat.keys.v1";
 const LS_PROVIDER = "optix.chat.provider.v1";
+const LS_WIDTH = "optix.chat.width.v1";
 
 function loadKeys(): Partial<Record<Provider, string>> {
   if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEYS) || "{}");
-  } catch {
-    return {};
-  }
+  try { return JSON.parse(localStorage.getItem(LS_KEYS) || "{}"); } catch { return {}; }
 }
-
 function saveKeys(k: Partial<Record<Provider, string>>) {
   if (typeof window === "undefined") return;
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
-/** Build the per-turn system prompt: Optimus identity + computed metrics for this question. */
 function buildSystemPromptFor(question: string): string {
   const trades = getTrades();
   const rows = trades?.rows ?? [];
@@ -78,10 +92,7 @@ function buildSystemPromptFor(question: string): string {
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
       model: PROVIDERS.openai.model,
       messages: [{ role: "system", content: system }, ...messages],
@@ -91,7 +102,6 @@ async function callOpenAI(key: string, messages: ChatMessage[], system: string) 
   const j = await res.json();
   return j.choices?.[0]?.message?.content ?? "(no response)";
 }
-
 async function callAnthropic(key: string, messages: ChatMessage[], system: string) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -103,7 +113,7 @@ async function callAnthropic(key: string, messages: ChatMessage[], system: strin
     },
     body: JSON.stringify({
       model: PROVIDERS.anthropic.model,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     }),
@@ -112,12 +122,9 @@ async function callAnthropic(key: string, messages: ChatMessage[], system: strin
   const j = await res.json();
   return j.content?.[0]?.text ?? "(no response)";
 }
-
 async function callGemini(key: string, messages: ChatMessage[], system: string) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${PROVIDERS.gemini.model}:generateContent?key=${encodeURIComponent(
-      key,
-    )}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${PROVIDERS.gemini.model}:generateContent?key=${encodeURIComponent(key)}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,11 +144,9 @@ async function callGemini(key: string, messages: ChatMessage[], system: string) 
 
 export function AIChatWidget() {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [provider, setProvider] = useState<Provider>(
-    () =>
-      (typeof window !== "undefined"
-        ? (localStorage.getItem(LS_PROVIDER) as Provider)
-        : null) || "openai",
+    () => (typeof window !== "undefined" ? (localStorage.getItem(LS_PROVIDER) as Provider) : null) || "openai",
   );
   const [keys, setKeys] = useState<Partial<Record<Provider, string>>>(() => loadKeys());
   const [keyInput, setKeyInput] = useState("");
@@ -150,41 +155,33 @@ export function AIChatWidget() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [width, setWidth] = useState<number>(() => {
-    if (typeof window === "undefined") return 460;
-    const saved = Number(localStorage.getItem("optix.chat.width.v1"));
-    return saved >= 360 && saved <= 1200 ? saved : 460;
+    if (typeof window === "undefined") return 480;
+    const saved = Number(localStorage.getItem(LS_WIDTH));
+    return saved >= 360 && saved <= 1400 ? saved : 480;
   });
   const draggingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-
   const hasKey = !!keys[provider];
+  const effectiveWidth = expanded ? Math.max(width, 760) : width;
 
-  useEffect(() => {
-    localStorage.setItem(LS_PROVIDER, provider);
-  }, [provider]);
-
+  useEffect(() => { localStorage.setItem(LS_PROVIDER, provider); }, [provider]);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
+  useEffect(() => { if (open && hasKey) inputRef.current?.focus(); }, [open, hasKey, provider]);
 
-  useEffect(() => {
-    if (open && hasKey) inputRef.current?.focus();
-  }, [open, hasKey, provider]);
-
-  // Resize drag handlers
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     draggingRef.current = true;
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }, []);
-
   useEffect(() => {
     function onMove(e: MouseEvent) {
       if (!draggingRef.current) return;
-      const next = Math.min(1200, Math.max(360, window.innerWidth - e.clientX));
+      const next = Math.min(1400, Math.max(360, window.innerWidth - e.clientX));
       setWidth(next);
     }
     function onUp() {
@@ -192,7 +189,7 @@ export function AIChatWidget() {
       draggingRef.current = false;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      localStorage.setItem("optix.chat.width.v1", String(width));
+      localStorage.setItem(LS_WIDTH, String(width));
     }
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -202,23 +199,17 @@ export function AIChatWidget() {
     };
   }, [width]);
 
-
   async function send(text: string) {
     const content = text.trim();
     if (!content || loading) return;
     const key = keys[provider];
-    if (!key) {
-      setError("Please add an API key for the selected model.");
-      return;
-    }
+    if (!key) { setError("Please add an API key for the selected model."); return; }
     setError(null);
     const next = [...messages, { role: "user" as const, content }];
     setMessages(next);
     setInput("");
     setLoading(true);
     try {
-      // Build a fresh system prompt for THIS question so metrics are scoped
-      // to the right period / ticker (inferred inside buildOptimusContext).
       const systemPrompt = buildSystemPromptFor(content);
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, next, systemPrompt);
@@ -236,81 +227,80 @@ export function AIChatWidget() {
     const trimmed = keyInput.trim();
     if (!trimmed) return;
     const updated = { ...keys, [provider]: trimmed };
-    setKeys(updated);
-    saveKeys(updated);
-    setKeyInput("");
-    setError(null);
+    setKeys(updated); saveKeys(updated); setKeyInput(""); setError(null);
   }
-
   function clearKey() {
-    const updated = { ...keys };
-    delete updated[provider];
-    setKeys(updated);
-    saveKeys(updated);
+    const updated = { ...keys }; delete updated[provider];
+    setKeys(updated); saveKeys(updated);
   }
 
   return (
     <>
-      {/* Floating launcher */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Open AI chat"
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+          aria-label="Open Ask OptiX"
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-[#2962ff] text-white shadow-xl flex items-center justify-center hover:scale-105 transition-transform"
         >
           <MessageCircle className="h-6 w-6" />
         </button>
       )}
 
-      {/* Side panel */}
       {open && (
         <div
-          className="fixed top-0 right-0 z-50 h-screen bg-background border-l shadow-2xl flex flex-col"
-          style={{ width: `min(100vw, ${width}px)` }}
+          className="fixed top-0 right-0 z-50 h-screen bg-white border-l border-slate-200 shadow-2xl flex flex-col text-slate-900"
+          style={{ width: `min(100vw, ${effectiveWidth}px)` }}
         >
-          {/* Drag handle */}
+          {/* drag handle */}
           <div
             onMouseDown={onDragStart}
             title="Drag to resize"
-            className="absolute top-0 left-0 h-full w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 z-10"
+            className="absolute top-0 left-0 h-full w-1.5 cursor-col-resize hover:bg-[#2962ff]/30 active:bg-[#2962ff]/50 z-10"
           />
 
           {/* Header */}
-          <div className="flex items-center gap-2 p-3 border-b">
-            <Select value={provider} onValueChange={(v) => setProvider(v as Provider)}>
-              <SelectTrigger className="h-9 flex-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(PROVIDERS) as Provider[]).map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {PROVIDERS[p].label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close">
-              <X className="h-5 w-5" />
-            </Button>
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-200">
+            <img src={optixLogo.url} alt="OptiX" className="h-9 w-9 rounded-md object-cover" />
+            <h2 className="text-2xl font-extrabold tracking-tight">Ask OptiX</h2>
+            <div className="ml-auto flex items-center gap-1">
+              <Select value={provider} onValueChange={(v) => setProvider(v as Provider)}>
+                <SelectTrigger className="h-9 min-w-[120px] rounded-lg border-slate-300 bg-white text-slate-900 font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(PROVIDERS) as Provider[]).map((p) => (
+                    <SelectItem key={p} value={p}>{PROVIDERS[p].label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button
+                onClick={() => setExpanded((e) => !e)}
+                className="p-2 rounded-md text-slate-500 hover:bg-slate-100"
+                aria-label={expanded ? "Collapse" : "Expand"}
+              >
+                {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-md text-slate-500 hover:bg-slate-100"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* API key gate */}
           {!hasKey ? (
-            <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <KeyRound className="h-4 w-4" /> Add your {PROVIDERS[provider].label} API key
+            <div className="p-6 space-y-3 flex-1 overflow-y-auto">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <KeyRound className="h-4 w-4" /> Connect {PROVIDERS[provider].label}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Stored in your browser only. Get a key at{" "}
-                <a
-                  href={PROVIDERS[provider].keyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline"
-                >
+              <p className="text-xs text-slate-500">
+                Your key is stored only in this browser. Get one at{" "}
+                <a href={PROVIDERS[provider].keyUrl} target="_blank" rel="noreferrer" className="text-[#2962ff] underline">
                   {PROVIDERS[provider].keyUrl}
-                </a>
-                .
+                </a>.
               </p>
               <Input
                 type="password"
@@ -318,8 +308,9 @@ export function AIChatWidget() {
                 placeholder={PROVIDERS[provider].keyHint}
                 onChange={(e) => setKeyInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && saveKey()}
+                className="rounded-lg"
               />
-              <Button onClick={saveKey} className="w-full">
+              <Button onClick={saveKey} className="w-full bg-[#2962ff] hover:bg-[#1e4fd1]">
                 Save key
               </Button>
               {error && <p className="text-xs text-destructive">{error}</p>}
@@ -327,79 +318,110 @@ export function AIChatWidget() {
           ) : (
             <>
               {/* Messages */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.length === 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    Ask anything about your trades. Your data is sent to {PROVIDERS[provider].label}.
+              <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6 space-y-5 bg-gradient-to-b from-white to-slate-50">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col h-full min-h-[60vh]">
+                    <div className="flex-1 flex items-center justify-center">
+                      <h3 className="text-3xl font-extrabold text-center text-[#2962ff] leading-tight tracking-tight max-w-sm">
+                        Deep dive into your trading insights
+                      </h3>
+                    </div>
+                    <div className="space-y-2 pt-6">
+                      <div className="text-xs text-slate-400 font-medium">Try asking:</div>
+                      {STARTERS.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => send(s)}
+                          disabled={loading}
+                          className="w-full text-left text-sm px-4 py-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-700 transition disabled:opacity-50"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                )}
-                {messages.map((m, i) => (
-                  <div
-                    key={i}
-                    className={
-                      m.role === "user"
-                        ? "ml-auto max-w-[85%] rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm whitespace-pre-wrap"
-                        : "optix-md max-w-full text-sm text-foreground"
-                    }
-                  >
-                    {m.role === "assistant" ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                ) : (
+                  messages.map((m, i) =>
+                    m.role === "user" ? (
+                      <div key={i} className="flex flex-col items-end gap-1">
+                        <span className="text-xs text-[#2962ff] font-medium pr-1">You</span>
+                        <div className="max-w-[85%] rounded-2xl bg-[#2962ff] text-white px-4 py-2.5 text-sm font-medium shadow-sm whitespace-pre-wrap">
+                          {m.content}
+                        </div>
+                      </div>
                     ) : (
-                      m.content
-                    )}
-                  </div>
-                ))}
+                      <div key={i} className="optix-md max-w-full text-[15px] text-slate-800">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                      </div>
+                    ),
+                  )
+                )}
 
                 {loading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Thinking...
+                  <div className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white">
+                    <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce" />
                   </div>
                 )}
                 {error && <div className="text-xs text-destructive">{error}</div>}
               </div>
 
-
-              {/* Shortcuts */}
-              <div className="px-3 pt-2 flex flex-wrap gap-1.5 border-t">
-                {SHORTCUTS.map((s) => (
+              {/* Shortcut chips */}
+              <div className="px-5 pt-3 pb-2 border-t border-slate-200 bg-white">
+                <div className="flex flex-wrap gap-2">
+                  {SHORTCUTS.map((s, idx) => (
+                    <button
+                      key={s.label}
+                      onClick={() => send(s.prompt)}
+                      disabled={loading}
+                      className={
+                        idx === 0
+                          ? "inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-[#2962ff] text-white font-medium shadow-sm hover:bg-[#1e4fd1] disabled:opacity-50"
+                          : "inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      }
+                    >
+                      <span aria-hidden>{s.emoji}</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between mt-2 pl-1">
+                  <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                    <Check className="h-3 w-3" /> {PROVIDERS[provider].label} connected
+                  </span>
                   <button
-                    key={s}
-                    onClick={() => send(s)}
-                    disabled={loading}
-                    className="text-xs px-2 py-1 rounded-full border bg-muted hover:bg-accent disabled:opacity-50"
+                    onClick={clearKey}
+                    className="text-[11px] text-slate-400 hover:text-destructive inline-flex items-center gap-1"
                   >
-                    {s}
+                    <Trash2 className="h-3 w-3" /> Remove key
                   </button>
-                ))}
+                </div>
               </div>
 
               {/* Composer */}
-              <div className="p-3 border-t flex gap-2 items-end">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      send(input);
-                    }
-                  }}
-                  rows={2}
-                  placeholder="Ask about your trades..."
-                  className="flex-1 resize-none rounded-md border bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                />
-                <Button size="icon" onClick={() => send(input)} disabled={loading || !input.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="px-3 pb-2 flex justify-end">
-                <button
-                  onClick={clearKey}
-                  className="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1"
-                >
-                  <Trash2 className="h-3 w-3" /> Remove API key
-                </button>
+              <div className="px-5 pb-5 pt-2 bg-white">
+                <div className="flex items-end gap-2 rounded-full border border-slate-300 bg-white pl-4 pr-2 py-2 shadow-sm focus-within:border-[#2962ff] focus-within:ring-2 focus-within:ring-[#2962ff]/15">
+                  <PenLine className="h-4 w-4 text-slate-500 shrink-0 mb-1.5" />
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
+                    }}
+                    rows={1}
+                    placeholder="Ask OptiX AI"
+                    className="flex-1 resize-none bg-transparent text-sm leading-6 outline-none placeholder:text-slate-400 max-h-32 py-1"
+                  />
+                  <button
+                    onClick={() => send(input)}
+                    disabled={loading || !input.trim()}
+                    aria-label="Send"
+                    className="h-8 w-8 rounded-full bg-slate-100 hover:bg-[#2962ff] hover:text-white text-slate-700 flex items-center justify-center transition disabled:opacity-50 disabled:hover:bg-slate-100 disabled:hover:text-slate-700"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </>
           )}
