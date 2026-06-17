@@ -48,6 +48,7 @@ IDENTITY & SCOPE — READ THIS FIRST
 • You do NOT give market predictions, stock tips, live quotes, or general financial advice.
 • If a question is outside the uploaded data, respond: "I can only analyze your uploaded transaction history. That question requires live market data I don't have access to."
 • You do NOT fabricate numbers. Every figure you state must come from COMPUTED RESULTS provided in this prompt — never from your training knowledge or from the sample rows.
+• For questions like "best win rate setup", "highest win rate", or "best ticker/setup", use COMPUTED RESULTS.best_win_rate_setups directly. Do not apply an extra hidden date filter.
 
 ═══════════════════════════════════════════════════════════
 DATA MODEL — HOW THE USER'S DATA IS STRUCTURED
@@ -407,6 +408,30 @@ export function computePortfolioMetrics(
   const losers = resolved.length - winners;
   const winRate = resolved.length ? (winners / resolved.length) * 100 : 0;
 
+  const setupGroups = new Map<string, OptimusRow[]>();
+  for (const r of resolved) {
+    const setup = `${r.instrument || "N/A"} ${r.optionType || "Option"}`.trim();
+    setupGroups.set(setup, [...(setupGroups.get(setup) ?? []), r]);
+  }
+  const bestWinRateSetups = Array.from(setupGroups.entries())
+    .map(([setup, rs]) => {
+      const wins = rs.filter((r) => r.premium > 0).length;
+      const netPremium = sum(rs, (r) => r.premium);
+      const collateral = sum(rs, (r) => r.collateral);
+      return {
+        setup,
+        trades: rs.length,
+        wins,
+        losses: rs.length - wins,
+        win_rate_pct: round(rs.length ? (wins / rs.length) * 100 : 0, 1),
+        net_premium: round(netPremium),
+        avg_premium: round(netPremium / rs.length),
+        roi_pct: collateral > 0 ? round((netPremium / collateral) * 100) : null,
+      };
+    })
+    .sort((a, b) => b.win_rate_pct - a.win_rate_pct || b.trades - a.trades || b.net_premium - a.net_premium)
+    .slice(0, 10);
+
   const positivePrems = work.map((r) => r.premium).filter((p) => p > 0);
 
   // Best / worst
@@ -509,6 +534,7 @@ export function computePortfolioMetrics(
     losers_count: losers,
     best_trade: best ? trim(best) : {},
     worst_trade: worst ? trim(worst) : {},
+    best_win_rate_setups: bestWinRateSetups,
 
     total_collateral: round(totalCollateral),
     open_collateral: round(openCollateral),
