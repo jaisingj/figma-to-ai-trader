@@ -226,7 +226,7 @@ function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
   });
 }
 
-// Period slicing (matches Python _period_df)
+// Period slicing (matches Python _period_df, plus explicit "month:YYYY-MM" and "year:YYYY")
 function periodSlice(rows: OptimusRow[], period: string): OptimusRow[] {
   if (period === "all_time" || !period) return rows;
   const today = new Date();
@@ -234,7 +234,19 @@ function periodSlice(rows: OptimusRow[], period: string): OptimusRow[] {
   const m = today.getMonth();
   let start: Date;
   let end: Date = new Date(y, m + 1, 1);
-  if (period === "this_month") {
+
+  const monthMatch = /^month:(\d{4})-(\d{2})$/.exec(period);
+  const yearMatch = /^year:(\d{4})$/.exec(period);
+  if (monthMatch) {
+    const yy = Number(monthMatch[1]);
+    const mm = Number(monthMatch[2]) - 1;
+    start = new Date(yy, mm, 1);
+    end = new Date(yy, mm + 1, 1);
+  } else if (yearMatch) {
+    const yy = Number(yearMatch[1]);
+    start = new Date(yy, 0, 1);
+    end = new Date(yy + 1, 0, 1);
+  } else if (period === "this_month") {
     start = new Date(y, m, 1);
   } else if (period === "last_month") {
     start = new Date(y, m - 1, 1);
@@ -496,13 +508,32 @@ export function computePortfolioPersonality(m: PortfolioMetrics) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Question → period inference (lightweight)
 // ─────────────────────────────────────────────────────────────────────────────
+const MONTH_NAMES: Record<string, number> = {
+  january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+  july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+  jan: 1, feb: 2, mar: 3, apr: 4, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+};
+
 export function inferPeriod(q: string): string {
   const s = q.toLowerCase();
+  // "May 2026", "in may 2026", "for may, 2026"
+  const monthYear = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\b[^0-9]{0,6}(\d{4})\b/);
+  if (monthYear) {
+    const mm = MONTH_NAMES[monthYear[1]];
+    return `month:${monthYear[2]}-${String(mm).padStart(2, "0")}`;
+  }
+  // "2026-05" or "5/2026"
+  const isoMy = s.match(/\b(\d{4})-(\d{2})\b/);
+  if (isoMy) return `month:${isoMy[1]}-${isoMy[2]}`;
+  const slashMy = s.match(/\b(\d{1,2})\/(\d{4})\b/);
+  if (slashMy) return `month:${slashMy[2]}-${String(slashMy[1]).padStart(2, "0")}`;
+  const yearOnly = s.match(/\b(20\d{2})\b/);
   if (/\bthis month\b|\bmtd\b/.test(s)) return "this_month";
   if (/\blast month\b/.test(s)) return "last_month";
   if (/\bytd\b|year to date|this year/.test(s)) return "ytd";
   if (/\bttm\b|trailing.*12|last 12 months/.test(s)) return "ttm";
   if (/last 3 months|last quarter/.test(s)) return "last_3_months";
+  if (yearOnly) return `year:${yearOnly[1]}`;
   return "all_time";
 }
 
