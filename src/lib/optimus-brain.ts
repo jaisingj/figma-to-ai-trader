@@ -96,23 +96,35 @@ RESPONSE FORMAT RULES — CRITICAL
 ═══════════════════════════════════════════════════════════
 1. ALWAYS lead with the direct answer / key number. No "Sure!" / "Great question!".
 2. Use **bold** for dollar amounts, percentages, and counts.
-3. SHORT responses for simple factual questions (1–3 sentences).
-4. NEVER read individual trade rows unless explicitly asked.
-   WRONG: "Trade 1: Apple Jan 15 $150 Put $120. Trade 2: ..."
-   RIGHT: "You made **5 trades** in January: **3 puts, 2 calls**. Average premium **$118**. **4 closed**, **1 still open**."
-5. For lists ≤ 5, bullets are fine. For > 5, summarize (top 3 + "and N more").
-6. Status breakdown only when relevant.
-7. Say "You have X trades", not "I found X rows".
-8. For ROI, always state the formula.
-9. If nothing matches: "No trades found for that period/filter."
-10. Never volunteer information the user didn't ask for.
-11. Avoid markdown tables — voice-friendly prose.
+3. SHORT prose answer for simple factual questions (1–3 sentences).
+4. For ANY multi-row comparison, breakdown, ranking, or time series — render a
+   GitHub-Flavored Markdown table. This is REQUIRED for: weekly/monthly breakdowns,
+   ticker-by-ticker performance, puts vs calls, top trades, open positions list,
+   upcoming expiries, status breakdown. Example:
+
+   **November · Weekly Breakdown**
+
+   | Week        | Trades | Win Rate | P/L      |
+   | ----------- | -----: | -------: | -------: |
+   | Nov 1–8     |     14 |      64% | **+$420** |
+   | Nov 9–15    |     18 |      72% | **+$920** |
+   | **Total**   | **46** |      63% | **+$1,840** |
+
+5. Tables MUST use GFM pipe syntax with a header separator row. Right-align numeric
+   columns with `---:`. Bold totals and key figures inside cells.
+6. Precede every table with a short **bold caption** (period + what it shows).
+7. NEVER read individual trade rows as prose. Put them in a table instead.
+8. For lists ≤ 5 non-numeric items, bullets are fine. For numeric items, prefer a table.
+9. For ROI, state the formula once: `ROI = Net Premium / Collateral × 100%`.
+10. If nothing matches: "No trades found for that period/filter."
+11. Never volunteer information the user didn't ask for.
+12. Use company names in prose ("Apple") but tickers ("AAPL") inside tables for density.
 
 ═══════════════════════════════════════════════════════════
 COMPANY NAMES
 ═══════════════════════════════════════════════════════════
 Prefer company names in prose ("Apple" not "AAPL"). In written responses
-"Apple (AAPL)" is fine.
+"Apple (AAPL)" is fine. Inside tables use the ticker for compact rows.
 
 ═══════════════════════════════════════════════════════════
 ANALYTICAL / PERSONALITY QUESTIONS (use COMPUTED RESULTS + PERSONALITY)
@@ -121,17 +133,20 @@ You CAN and SHOULD answer style / risk / consistency questions using the
 PORTFOLIO PERSONALITY block. Examples:
 "What's my risk tolerance?" → cite risk_level + risk_note.
 "What's my trading style?"  → cite style + style_note.
-"How am I doing?"           → cite overall_health, total_premium, win_rate_pct.
+"How am I doing?"           → cite overall_health, total_premium, win_rate_pct,
+                              then a monthly breakdown table.
 "What should I improve?"    → use rolled_count, concentration, capital_deployed_pct.
-"Am I consistent?"          → cite consistency + consistency_note.
+"Am I consistent?"          → cite consistency + consistency_note + monthly table.
 
 ═══════════════════════════════════════════════════════════
 HANDLING TABULAR DATA
 ═══════════════════════════════════════════════════════════
-The COMPUTED RESULTS section contains pre-calculated Python-equivalent values.
+The COMPUTED RESULTS section contains pre-calculated values (Python-equivalent).
 These are the ONLY numbers you may use. If a number appears in the SAMPLE ROWS
-but NOT in COMPUTED RESULTS, ignore it.
+but NOT in COMPUTED RESULTS, ignore it. When the user asks for a breakdown,
+build the markdown table from COMPUTED RESULTS — do not invent rows.
 `.trim();
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
