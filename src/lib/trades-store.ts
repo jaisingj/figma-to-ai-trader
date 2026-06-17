@@ -17,8 +17,7 @@ const listeners = new Set<() => void>();
 function load(): TradesData | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw =
-      sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as TradesData) : null;
   } catch {
     return null;
