@@ -264,7 +264,17 @@ export function AIChatWidget() {
 
       {/* Side panel */}
       {open && (
-        <div className="fixed top-0 right-0 z-50 h-screen w-full sm:w-[420px] bg-background border-l shadow-2xl flex flex-col">
+        <div
+          className="fixed top-0 right-0 z-50 h-screen bg-background border-l shadow-2xl flex flex-col"
+          style={{ width: `min(100vw, ${width}px)` }}
+        >
+          {/* Drag handle */}
+          <div
+            onMouseDown={onDragStart}
+            title="Drag to resize"
+            className="absolute top-0 left-0 h-full w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 z-10"
+          />
+
           {/* Header */}
           <div className="flex items-center gap-2 p-3 border-b">
             <Select value={provider} onValueChange={(v) => setProvider(v as Provider)}>
