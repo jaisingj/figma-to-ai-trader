@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { OPTIMUS_SYSTEM_PROMPT, buildOptimusContext } from "@/lib/optimus-brain";
+import { OPTIMUS_SYSTEM_PROMPT, answerOptimusQuestion, buildOptimusContext } from "@/lib/optimus-brain";
 import { getTrades } from "@/lib/trades-store";
 import optixLogo from "@/assets/optixpro.jpeg.asset.json";
 
@@ -210,6 +210,11 @@ export function AIChatWidget() {
     setInput("");
     setLoading(true);
     try {
+      const deterministicReply = answerOptimusQuestion(getTrades()?.rows ?? [], content);
+      if (deterministicReply) {
+        setMessages([...next, { role: "assistant", content: deterministicReply }]);
+        return;
+      }
       const systemPrompt = buildSystemPromptFor(content);
       // Send ONLY the current question. The system prompt already contains all
       // computed data for this question; including prior assistant tables would

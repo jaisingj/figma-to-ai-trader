@@ -48,6 +48,7 @@ IDENTITY & SCOPE — READ THIS FIRST
 • You do NOT give market predictions, stock tips, live quotes, or general financial advice.
 • If a question is outside the uploaded data, respond: "I can only analyze your uploaded transaction history. That question requires live market data I don't have access to."
 • You do NOT fabricate numbers. Every figure you state must come from COMPUTED RESULTS provided in this prompt — never from your training knowledge or from the sample rows.
+• For questions like "best win rate setup", "highest win rate", or "best ticker/setup", use COMPUTED RESULTS.best_win_rate_setups directly. Do not apply an extra hidden date filter.
 
 ═══════════════════════════════════════════════════════════
 DATA MODEL — HOW THE USER'S DATA IS STRUCTURED
@@ -185,6 +186,7 @@ function monthKey(d: Date | null): string {
 
 type OptimusRow = {
   date: Date | null;
+  closeDate: Date | null;
   expiry: Date | null;
   instrument: string;
   optionType: string;
@@ -196,6 +198,7 @@ type OptimusRow = {
   collateral: number;
   status: string;
   broker: string;
+  transCode: string;
 };
 
 const ALLOWED_TRANS_CODES = new Set(["OASSGN", "OASGN", "OEXP", "STO", "BTC"]);
@@ -212,8 +215,18 @@ function normalizeTransCode(row: Trade): string {
   return raw;
 }
 
+function normalizeStatus(row: Trade, transCode: string): string {
+  const raw = String(pick(row, ["Status"]) ?? "").trim().toLowerCase();
+  if (raw) return raw.charAt(0).toUpperCase() + raw.slice(1);
+  if (transCode === "OEXP") return "Expired";
+  if (transCode === "OASSGN") return "Assigned";
+  if (transCode === "BTC") return "Closed";
+  if (transCode === "STO") return "Open";
+  return "";
+}
+
 function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
-  return rows.flatMap((r) => {
+  const normalized = rows.flatMap((r) => {
     const transCode = normalizeTransCode(r);
     if (transCode && !ALLOWED_TRANS_CODES.has(transCode)) return [];
     const sto = toNum(pick(r, ["STO($)", "STO $", "STO"]));
@@ -224,8 +237,10 @@ function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
     const strike = toNum(pick(r, ["Strike Price", "Strike"]));
     const collRaw = toNum(pick(r, ["Collateral"]));
     const collateral = collRaw > 0 ? collRaw : Math.abs(qty) * strike * 100;
+    const date = toDate(pick(r, ["Activity Date", "STO Date", "Trade Date", "Date", "Run Date"]));
     return {
-      date: toDate(pick(r, ["Activity Date", "STO Date", "Trade Date", "Date", "Run Date"])),
+      date,
+      closeDate: transCode === "BTC" || transCode === "OEXP" || transCode === "OASSGN" ? date : toDate(pick(r, ["BTC Date", "Close Date"])),
       expiry: toDate(pick(r, ["Expiry Date", "Expiration", "Expiration Date"])),
       instrument: String(pick(r, ["Instrument", "Symbol", "Ticker"]) ?? "").toUpperCase(),
       optionType: String(pick(r, ["Option Type", "Type"]) ?? "").trim(),
@@ -235,10 +250,90 @@ function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
       btc,
       premium,
       collateral,
-      status: String(pick(r, ["Status"]) ?? "").trim(),
+      status: normalizeStatus(r, transCode),
       broker: String(pick(r, ["Broker"]) ?? "").trim(),
+      transCode,
     };
   });
+
+  return pairTransactionLegs(normalized);
+}
+
+function pairTransactionLegs(rows: OptimusRow[]): OptimusRow[] {
+  const hasTransactionLegs = rows.some((r) => r.transCode === "STO" || r.transCode === "BTC" || r.transCode === "OEXP" || r.transCode === "OASSGN");
+  const hasOpeners = rows.some((r) => r.transCode === "STO");
+  if (!hasTransactionLegs || !hasOpeners) return rows;
+
+  const keyFor = (r: OptimusRow) => [r.instrument, r.optionType || "Option", r.strike, ymd(r.expiry)].join("|");
+  const byContract = new Map<string, OptimusRow[]>();
+  const ungrouped: OptimusRow[] = [];
+  for (const row of rows) {
+    if (!row.instrument || !row.strike || !row.expiry) {
+      ungrouped.push(row);
+      continue;
+    }
+    const key = keyFor(row);
+    byContract.set(key, [...(byContract.get(key) ?? []), row]);
+  }
+
+  const paired: OptimusRow[] = [];
+  for (const group of byContract.values()) {
+    const sorted = group.slice().sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0));
+    const closers = sorted.filter((r) => r.transCode === "BTC" || r.transCode === "OEXP" || r.transCode === "OASSGN");
+    const usedClosers = new Set<OptimusRow>();
+
+    for (const opener of sorted.filter((r) => r.transCode === "STO")) {
+      let remaining = Math.abs(opener.quantity) || 1;
+      const closes: OptimusRow[] = [];
+      for (const closer of closers) {
+        if (usedClosers.has(closer)) continue;
+        if (opener.date && closer.date && closer.date < opener.date) continue;
+        closes.push(closer);
+        usedClosers.add(closer);
+        remaining -= Math.abs(closer.quantity) || 1;
+        if (remaining <= 0) break;
+      }
+
+      const closeQty = closes.reduce((sum, r) => sum + (Math.abs(r.quantity) || 1), 0);
+      const btc = closes
+        .filter((r) => r.transCode === "BTC")
+        .reduce((sum, r) => sum + (r.btc || (r.premium < 0 ? r.premium : -Math.abs(r.premium))), 0);
+      const sto = opener.sto || Math.abs(opener.premium);
+      const status = closes.some((r) => r.transCode === "OASSGN")
+        ? "Assigned"
+        : closes.some((r) => r.transCode === "OEXP") && !closes.some((r) => r.transCode === "BTC")
+          ? "Expired"
+          : closeQty >= (Math.abs(opener.quantity) || 1)
+            ? "Closed"
+            : "Open";
+      const closeDate = closes.length ? closes[closes.length - 1].date : null;
+      paired.push({
+        ...opener,
+        quantity: Math.abs(opener.quantity) || 1,
+        sto,
+        btc,
+        premium: sto + btc,
+        status,
+        closeDate,
+        transCode: "STO",
+      });
+    }
+
+    for (const closer of closers) {
+      if (usedClosers.has(closer)) continue;
+      const btc = closer.transCode === "BTC" ? closer.btc || (closer.premium < 0 ? closer.premium : -Math.abs(closer.premium)) : 0;
+      paired.push({
+        ...closer,
+        sto: 0,
+        btc,
+        premium: btc,
+        status: closer.transCode === "OASSGN" ? "Assigned" : closer.transCode === "OEXP" ? "Expired" : "Closed",
+        closeDate: closer.date,
+      });
+    }
+  }
+
+  return paired.length ? [...paired, ...ungrouped] : rows;
 }
 
 // Period slicing (matches Python _period_df, plus explicit "month:YYYY-MM" and "year:YYYY")
@@ -316,6 +411,30 @@ export function computePortfolioMetrics(
   const winners = resolved.filter((r) => r.premium > 0).length;
   const losers = resolved.length - winners;
   const winRate = resolved.length ? (winners / resolved.length) * 100 : 0;
+
+  const setupGroups = new Map<string, OptimusRow[]>();
+  for (const r of resolved) {
+    const setup = `${r.instrument || "N/A"} ${r.optionType || "Option"}`.trim();
+    setupGroups.set(setup, [...(setupGroups.get(setup) ?? []), r]);
+  }
+  const bestWinRateSetups = Array.from(setupGroups.entries())
+    .map(([setup, rs]) => {
+      const wins = rs.filter((r) => r.premium > 0).length;
+      const netPremium = sum(rs, (r) => r.premium);
+      const collateral = sum(rs, (r) => r.collateral);
+      return {
+        setup,
+        trades: rs.length,
+        wins,
+        losses: rs.length - wins,
+        win_rate_pct: round(rs.length ? (wins / rs.length) * 100 : 0, 1),
+        net_premium: round(netPremium),
+        avg_premium: round(netPremium / rs.length),
+        roi_pct: collateral > 0 ? round((netPremium / collateral) * 100) : null,
+      };
+    })
+    .sort((a, b) => b.win_rate_pct - a.win_rate_pct || b.trades - a.trades || b.net_premium - a.net_premium)
+    .slice(0, 10);
 
   const positivePrems = work.map((r) => r.premium).filter((p) => p > 0);
 
@@ -419,6 +538,7 @@ export function computePortfolioMetrics(
     losers_count: losers,
     best_trade: best ? trim(best) : {},
     worst_trade: worst ? trim(worst) : {},
+    best_win_rate_setups: bestWinRateSetups,
 
     total_collateral: round(totalCollateral),
     open_collateral: round(openCollateral),
@@ -559,6 +679,50 @@ export function inferTicker(q: string): string | undefined {
   return;
 }
 
+function money(n: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "-" : "";
+  return `${sign}$${Math.abs(Math.round(n)).toLocaleString()}`;
+}
+
+function isBestWinRateQuestion(q: string): boolean {
+  const s = q.toLowerCase();
+  return /\b(best|highest|top)\b/.test(s) && /\b(win\s*rate|winning|wins?|success rate|win %|setup|ticker)\b/.test(s);
+}
+
+function periodCaption(period: string): string {
+  if (period.startsWith("month:")) {
+    const [year, month] = period.slice(6).split("-");
+    const d = new Date(Number(year), Number(month) - 1, 1);
+    return `${d.toLocaleString("en-US", { month: "long" })} ${year}`.toUpperCase();
+  }
+  if (period.startsWith("year:")) return period.slice(5);
+  return period.replace(/_/g, " ").toUpperCase();
+}
+
+export function answerOptimusQuestion(rawRows: Trade[], question: string): string | null {
+  if (!isBestWinRateQuestion(question)) return null;
+
+  const period = inferPeriod(question);
+  const ticker = inferTicker(question);
+  const metrics = computePortfolioMetrics(rawRows, period, ticker);
+  if ("error" in metrics) return String(metrics.error || "No trades found for that period/filter.");
+  if (!metrics.best_win_rate_setups.length) return "No resolved trades found for that period/filter.";
+
+  const top = metrics.best_win_rate_setups[0];
+  const rows = metrics.best_win_rate_setups
+    .map((r) => `| ${r.setup} | ${r.trades} | ${r.wins} | ${r.losses} | **${r.win_rate_pct}%** | **${money(r.net_premium)}** | ${money(r.avg_premium)} | ${r.roi_pct == null ? "N/A" : `${r.roi_pct}%`} |`)
+    .join("\n");
+
+  return [
+    `**${top.setup}** has the best win rate at **${top.win_rate_pct}%** across **${top.trades} resolved trades**.`,
+    "",
+    `### ${periodCaption(period)} · BEST WIN RATE SETUPS`,
+    "| Setup | Trades | Wins | Losses | Win Rate | Net P/L | Avg P/L | ROI |",
+    "| ----- | -----: | ---: | -----: | -------: | ------: | ------: | --: |",
+    rows,
+  ].join("\n");
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Build the full prompt block: COMPUTED + PERSONALITY + SAMPLE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -591,6 +755,8 @@ export function buildOptimusContext(rawRows: Trade[], question: string): string 
       premium: r.premium,
       collateral: r.collateral,
       status: r.status,
+      close_date: ymd(r.closeDate),
+      trans_code: r.transCode,
       broker: r.broker,
     }));
 
