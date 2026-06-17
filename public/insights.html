@@ -764,63 +764,120 @@ const WIDGETS={
         <div class="meter"><i class="${hit?'hit':'miss'}" style="width:${fillPct}%"></i></div>
         <div class="streak">${streakBlock}</div>`;
     }},
-  aiins:{label:'AI Insights', desc:'Smart patterns auto-detected from your trade history.', icon:SVG.bulb,
+  aiins:{label:'AI Insights', desc:'Smart patterns auto-detected within your selected date range.', icon:SVG.bulb,
     render(el){
       el.classList.add('aiins');
-      // Insight 1: net premium last 30d vs prior 30d
-      const now=new Date(); const d30=new Date(now-30*864e5); const d60=new Date(now-60*864e5);
-      let cur=0, prev=0, curN=0, prevN=0;
-      (D.tickers||[]).forEach(tk=>(tk.trades||[]).forEach(t=>{
-         const d=parseD(t.date); if(!d||t.code!=='STO')return;
-         const amt=+t.amt||0;
-         if(d>=d30&&d<=now){cur+=amt;curN++;}
-         else if(d>=d60&&d<d30){prev+=amt;prevN++;}
-      }));
-      const delta = prev>0 ? ((cur-prev)/prev*100) : (cur>0?100:0);
-      const i1Dir = delta>=0 ? 'pos':'neg';
-      const i1Ico = delta>=0 ? SVG.trend : SVG.warn;
-      const i1Txt = `Premium ${delta>=0?'up':'down'} ${Math.abs(delta).toFixed(0)}% vs prior 30d`;
+      // Honor the user-selected calendar range; D.tickers is already filtered to it.
+      let rFrom=null, rTo=null;
+      try{const r=JSON.parse(sessionStorage.getItem('optixRange')||'null');
+        if(r&&r.from&&r.to){rFrom=new Date(r.from+'T00:00:00');rTo=new Date(r.to+'T23:59:59');}
+      }catch(e){}
+      const allDates=[];
+      (D.tickers||[]).forEach(tk=>(tk.trades||[]).forEach(t=>{const d=parseD(t.date);if(d)allDates.push(d);}));
+      if(!rFrom||!rTo){
+        if(allDates.length){allDates.sort((a,b)=>a-b);rFrom=allDates[0];rTo=allDates[allDates.length-1];}
+        else {rFrom=new Date(Date.now()-30*864e5);rTo=new Date();}
+      }
+      const mid=new Date((rFrom.getTime()+rTo.getTime())/2);
 
-      // Insight 2: best vs worst weekday by avg net per STO trade
-      const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      const byDow=Array.from({length:7},()=>({n:0,net:0}));
+      // Insight 1: premium trend — second half vs first half of selected range
+      let curP=0, prevP=0;
       (D.tickers||[]).forEach(tk=>(tk.trades||[]).forEach(t=>{
-         const d=parseD(t.date); if(!d||t.code!=='STO')return;
-         byDow[d.getDay()].net+=(+t.amt||0); byDow[d.getDay()].n++;
+        const d=parseD(t.date); if(!d||t.code!=='STO')return;
+        const amt=+t.amt||0;
+        if(d>=mid&&d<=rTo)curP+=amt; else if(d>=rFrom&&d<mid)prevP+=amt;
       }));
-      const dowAvg=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
-      let i2Txt='Not enough data to find best day', i2Ico=SVG.warn, i2Dir='neu';
-      if(dowAvg.length>=2){
-        dowAvg.sort((a,b)=>b.avg-a.avg);
-        const best=dowAvg[0], worst=dowAvg[dowAvg.length-1];
-        if(worst.avg<best.avg*0.5 && worst.avg>=0){
-          const pct=Math.round((1-worst.avg/best.avg)*100);
-          i2Txt=`Avoid ${worst.d}s: ${pct}% lower premium`;
-        } else {
-          i2Txt=`${best.d}s are your best day for premium`;
+      const delta = prevP>0 ? ((curP-prevP)/prevP*100) : (curP>0?100:0);
+      const i1Dir = delta>=0 ? 'pos' : 'neg';
+      const i1Ico = delta>=0 ? SVG.trend : SVG.warn;
+      const i1Txt = `Premium ${delta>=0?'up':'down'} ${Math.abs(delta).toFixed(0)}% in the second half of the range`;
+
+      // Weekday stats: full names, count legs paired by ticker+strike+expiry for win rate
+      const DOW=['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'];
+      const byDow=Array.from({length:7},()=>({n:0,net:0,wins:0,trades:0}));
+      (D.tickers||[]).forEach(tk=>{
+        // Group this ticker's legs by option contract to compute wins
+        const groups={};
+        (tk.trades||[]).forEach(t=>{
+          const d=parseD(t.date); if(!d)return;
+          if(t.code==='STO'){
+            const dow=d.getDay();
+            byDow[dow].net+=(+t.amt||0); byDow[dow].n++;
+            const k=(t.desc||'').trim();
+            if(!groups[k])groups[k]={openDow:dow,net:0,opened:true};
+            else groups[k].openDow=dow;
+            groups[k].net+=(+t.amt||0);
+          } else if(t.code==='BTC'){
+            const k=(t.desc||'').trim();
+            if(!groups[k])groups[k]={openDow:d.getDay(),net:0,opened:false};
+            groups[k].net+=(+t.amt||0);
+          } else if(t.code==='OEXP'||t.code==='OASSGN'||t.code==='OASGN'){
+            const k=(t.desc||'').trim();
+            if(!groups[k])groups[k]={openDow:d.getDay(),net:0,opened:false};
+          }
+        });
+        Object.values(groups).forEach(g=>{
+          if(g.openDow==null||!g.opened)return;
+          byDow[g.openDow].trades++;
+          if(g.net>0)byDow[g.openDow].wins++;
+        });
+      });
+
+      // Insight 2: best day by win rate (fallback to avg premium)
+      const dowWin=byDow.map((x,i)=>({d:DOW[i],wr:x.trades?x.wins/x.trades:0,trades:x.trades,avg:x.n?x.net/x.n:0,n:x.n}))
+        .filter(x=>x.trades>=3);
+      let i2Txt='Not enough closed trades yet to rank by win rate', i2Ico=SVG.bulb, i2Dir='neu';
+      if(dowWin.length){
+        dowWin.sort((a,b)=>b.wr-a.wr||b.trades-a.trades);
+        const best=dowWin[0];
+        i2Txt=`Best day: ${best.d} · ${(best.wr*100).toFixed(0)}% win rate (${best.trades} trades)`;
+        i2Ico=SVG.check; i2Dir='pos';
+      } else {
+        const dowAvg=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
+        if(dowAvg.length){
+          dowAvg.sort((a,b)=>b.avg-a.avg);
+          i2Txt=`Best day: ${dowAvg[0].d} earn the most premium on average`;
           i2Ico=SVG.trend; i2Dir='pos';
         }
       }
 
-      // Insight 3: top ticker by retention % (net / credits)
+      // Insight 3: avoid day (significantly worse premium)
+      const dowAvg=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
+      let i3Txt='', i3Ico=SVG.warn, i3Dir='neg';
+      if(dowAvg.length>=2){
+        dowAvg.sort((a,b)=>b.avg-a.avg);
+        const best=dowAvg[0], worst=dowAvg[dowAvg.length-1];
+        if(best.avg>0 && worst.avg<best.avg*0.6){
+          const pct=Math.round((1-Math.max(0,worst.avg)/best.avg)*100);
+          i3Txt=`Avoid ${worst.d}: ${pct}% lower premium`;
+        }
+      }
+
+      // Insight 4: top ticker by retention % (net / credits)
       const ranked=(D.tickers||[]).filter(t=>t.credits>0&&t.legs>=3)
         .map(t=>({tk:t.ticker,ret:t.net/t.credits*100,legs:t.legs}))
         .sort((a,b)=>b.ret-a.ret);
-      let i3Txt='Add more trades to surface winners', i3Ico=SVG.bulb, i3Dir='neu';
+      let i4Txt='Add more trades to surface winners', i4Ico=SVG.bulb, i4Dir='neu';
       if(ranked.length){
         const top=ranked[0];
-        i3Txt=`${top.tk}: ${Math.max(0,Math.round(top.ret))}% premium retained`;
-        i3Ico=SVG.check; i3Dir='pos';
+        i4Txt=`${top.tk}: ${Math.max(0,Math.round(top.ret))}% premium retained`;
+        i4Ico=SVG.check; i4Dir='pos';
       }
+
+      const rows=[
+        {dir:i1Dir,ico:i1Ico,tx:i1Txt},
+        {dir:i2Dir,ico:i2Ico,tx:i2Txt},
+        i3Txt?{dir:i3Dir,ico:i3Ico,tx:i3Txt}:null,
+        {dir:i4Dir,ico:i4Ico,tx:i4Txt},
+      ].filter(Boolean);
 
       el.innerHTML=`
         <div class="t">${SVG.bulb}AI Insights</div>
         <div class="aiins-list">
-          <div class="aiins-row"><span class="aiico ${i1Dir}">${i1Ico}</span><span class="aitx">${i1Txt}</span></div>
-          <div class="aiins-row"><span class="aiico ${i2Dir}">${i2Ico}</span><span class="aitx">${i2Txt}</span></div>
-          <div class="aiins-row"><span class="aiico ${i3Dir}">${i3Ico}</span><span class="aitx">${i3Txt}</span></div>
+          ${rows.map(r=>`<div class="aiins-row"><span class="aiico ${r.dir}">${r.ico}</span><span class="aitx">${r.tx}</span></div>`).join('')}
         </div>`;
     }}
+};
 };
 const WIDGET_ORDER=['target','toplife','topmonth','ytd','total','roi','aiins'];
 
