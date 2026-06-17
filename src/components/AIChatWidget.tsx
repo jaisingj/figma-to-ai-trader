@@ -370,18 +370,16 @@ export function AIChatWidget() {
               {/* Shortcut chips */}
               <div className="px-5 pt-3 pb-2 border-t border-slate-200 bg-white">
                 <div className="flex flex-wrap gap-2">
-                  {SHORTCUTS.map((s, idx) => (
+                  {SHORTCUTS.map((s) => (
                     <button
                       key={s.label}
                       onClick={() => send(s.prompt)}
                       disabled={loading}
-                      className={
-                        idx === 0
-                          ? "inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-[#2962ff] text-white font-medium shadow-sm hover:bg-[#1e4fd1] disabled:opacity-50"
-                          : "inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                      }
+                      className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-[#2962ff] hover:text-white hover:border-[#2962ff] transition-colors disabled:opacity-50"
                     >
                       <span aria-hidden>{s.emoji}</span> {s.label}
+                    </button>
+                  ))}
                     </button>
                   ))}
                 </div>
