@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { MessageCircle, X, Send, Loader2, KeyRound, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { OPTIMUS_SYSTEM_PROMPT, buildOptimusContext } from "@/lib/optimus-brain";
 import { getTrades } from "@/lib/trades-store";
+
 
 type Provider = "openai" | "anthropic" | "gemini";
 
@@ -146,8 +149,15 @@ export function AIChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [width, setWidth] = useState<number>(() => {
+    if (typeof window === "undefined") return 460;
+    const saved = Number(localStorage.getItem("optix.chat.width.v1"));
+    return saved >= 360 && saved <= 1200 ? saved : 460;
+  });
+  const draggingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
 
   const hasKey = !!keys[provider];
 
@@ -162,6 +172,36 @@ export function AIChatWidget() {
   useEffect(() => {
     if (open && hasKey) inputRef.current?.focus();
   }, [open, hasKey, provider]);
+
+  // Resize drag handlers
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      if (!draggingRef.current) return;
+      const next = Math.min(1200, Math.max(360, window.innerWidth - e.clientX));
+      setWidth(next);
+    }
+    function onUp() {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      localStorage.setItem("optix.chat.width.v1", String(width));
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [width]);
+
 
   async function send(text: string) {
     const content = text.trim();
@@ -224,7 +264,17 @@ export function AIChatWidget() {
 
       {/* Side panel */}
       {open && (
-        <div className="fixed top-0 right-0 z-50 h-screen w-full sm:w-[420px] bg-background border-l shadow-2xl flex flex-col">
+        <div
+          className="fixed top-0 right-0 z-50 h-screen bg-background border-l shadow-2xl flex flex-col"
+          style={{ width: `min(100vw, ${width}px)` }}
+        >
+          {/* Drag handle */}
+          <div
+            onMouseDown={onDragStart}
+            title="Drag to resize"
+            className="absolute top-0 left-0 h-full w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 z-10"
+          />
+
           {/* Header */}
           <div className="flex items-center gap-2 p-3 border-b">
             <Select value={provider} onValueChange={(v) => setProvider(v as Provider)}>
@@ -289,12 +339,17 @@ export function AIChatWidget() {
                     className={
                       m.role === "user"
                         ? "ml-auto max-w-[85%] rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm whitespace-pre-wrap"
-                        : "max-w-[90%] text-sm whitespace-pre-wrap text-foreground"
+                        : "optix-md max-w-full text-sm text-foreground"
                     }
                   >
-                    {m.content}
+                    {m.role === "assistant" ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    ) : (
+                      m.content
+                    )}
                   </div>
                 ))}
+
                 {loading && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" /> Thinking...
@@ -302,6 +357,7 @@ export function AIChatWidget() {
                 )}
                 {error && <div className="text-xs text-destructive">{error}</div>}
               </div>
+
 
               {/* Shortcuts */}
               <div className="px-3 pt-2 flex flex-wrap gap-1.5 border-t">
