@@ -1160,8 +1160,16 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
       var D = buildDFromRows(rows);
       if (!D){ showToast('Could not aggregate uploaded rows.', false); return; }
       var s = JSON.stringify(D);
+      var tradeStore = JSON.stringify({
+        filename: json.filename || (files.length === 1 ? files[0].name : (files.length + ' files')),
+        columns: json.columns || [],
+        rows: rows,
+        uploadedAt: new Date().toISOString()
+      });
       try { sessionStorage.setItem('optix.insights.v1', s); } catch(e){}
       try { localStorage.setItem('optix.insights.v1', s); } catch(e){}
+      try { sessionStorage.setItem('optix.trades.v1', tradeStore); } catch(e){}
+      try { localStorage.setItem('optix.trades.v1', tradeStore); } catch(e){}
       try { sessionStorage.removeItem('optixRange'); } catch(e){}
       var brokers = (json.files||[]).map(function(f){ return f.broker+':'+f.filename; }).join(', ');
       showToast('Loaded ' + rows.length + ' rows · ' + brokers + ' — refreshing…');
