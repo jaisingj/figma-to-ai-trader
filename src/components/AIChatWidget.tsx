@@ -462,8 +462,37 @@ export function AIChatWidget() {
 
               {/* Composer */}
               <div className="px-5 pb-5 pt-2 bg-white">
-                <div className="flex items-end gap-2 rounded-full border border-slate-300 bg-white pl-4 pr-2 py-2 shadow-sm focus-within:border-[#2962ff] focus-within:ring-2 focus-within:ring-[#2962ff]/15">
-                  <PenLine className="h-4 w-4 text-slate-500 shrink-0 mb-1.5" />
+                {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {attachments.map((a, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 text-xs bg-slate-100 border border-slate-200 text-slate-700 pl-2 pr-1 py-1 rounded-full max-w-[220px]">
+                        {a.kind === "image" ? <ImageIcon className="h-3 w-3 shrink-0" /> : <FileText className="h-3 w-3 shrink-0" />}
+                        <span className="truncate">{a.name}</span>
+                        <button onClick={() => removeAttachment(i)} className="h-4 w-4 rounded-full hover:bg-slate-300 flex items-center justify-center shrink-0" aria-label="Remove">
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-end gap-2 rounded-full border border-slate-300 bg-white pl-2 pr-2 py-2 shadow-sm focus-within:border-[#2962ff] focus-within:ring-2 focus-within:ring-[#2962ff]/15">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPT}
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFiles(e.target.files)}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    aria-label="Attach file"
+                    title="Attach CSV, DOCX, JPG, or XLS"
+                    className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100 hover:text-[#2962ff] flex items-center justify-center transition disabled:opacity-50 shrink-0"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </button>
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -477,14 +506,16 @@ export function AIChatWidget() {
                   />
                   <button
                     onClick={() => send(input)}
-                    disabled={loading || !input.trim()}
+                    disabled={loading || (!input.trim() && attachments.length === 0)}
                     aria-label="Send"
                     className="h-8 w-8 rounded-full bg-slate-100 hover:bg-[#2962ff] hover:text-white text-slate-700 flex items-center justify-center transition disabled:opacity-50 disabled:hover:bg-slate-100 disabled:hover:text-slate-700"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
                   </button>
                 </div>
+                <div className="text-[10px] text-slate-400 mt-1.5 pl-2">Accepts: CSV, DOCX, JPG, XLS · 5MB max</div>
               </div>
+
             </>
           )}
         </div>
