@@ -196,40 +196,59 @@
   }
 }
 
-/* Markdown rendering inside the AI chat widget */
-.optix-md { line-height: 1.5; }
-.optix-md p { margin: 0.4em 0; }
-.optix-md strong { font-weight: 600; }
+/* Markdown rendering inside the AI chat widget — themed to match Ask OptiX */
+.optix-md { line-height: 1.55; color: #1e293b; }
+.optix-md p { margin: 0.5em 0; }
+.optix-md strong { font-weight: 700; color: #0f172a; }
 .optix-md h1, .optix-md h2, .optix-md h3, .optix-md h4 {
-  font-weight: 700; margin: 0.6em 0 0.3em; line-height: 1.25;
+  font-weight: 700; margin: 0.8em 0 0.4em; line-height: 1.25; color: #0f172a;
 }
-.optix-md h1 { font-size: 1.05rem; }
+.optix-md h1 { font-size: 1.1rem; }
 .optix-md h2 { font-size: 1rem; }
-.optix-md h3 { font-size: 0.95rem; }
+.optix-md h3 {
+  font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #2962ff; font-weight: 700; margin-top: 1em;
+}
 .optix-md ul, .optix-md ol { margin: 0.4em 0; padding-left: 1.25rem; }
-.optix-md li { margin: 0.15em 0; }
+.optix-md li { margin: 0.2em 0; }
 .optix-md code {
-  background: var(--color-muted);
+  background: #f1f5f9;
   padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.85em;
 }
 .optix-md pre {
-  background: var(--color-muted);
-  padding: 0.6em 0.8em; border-radius: 6px; overflow-x: auto; margin: 0.5em 0;
+  background: #f8fafc; padding: 0.7em 0.9em; border-radius: 8px;
+  overflow-x: auto; margin: 0.6em 0; border: 1px solid #e2e8f0;
 }
 .optix-md pre code { background: transparent; padding: 0; }
-.optix-md a { color: var(--color-primary); text-decoration: underline; }
+.optix-md a { color: #2962ff; text-decoration: underline; }
+
+/* Tables rendered like the Ask OptiX breakdown cards */
 .optix-md table {
-  border-collapse: collapse; width: 100%; margin: 0.6em 0;
-  font-size: 0.85rem; display: table;
+  border-collapse: separate; border-spacing: 0; width: 100%;
+  margin: 0.8em 0 1em; font-size: 0.875rem; display: table;
+  border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
+  background: #ffffff;
 }
-.optix-md thead { background: var(--color-muted); }
-.optix-md th, .optix-md td {
-  border: 1px solid var(--color-border);
-  padding: 0.35em 0.6em; text-align: left;
+.optix-md thead { background: #ffffff; }
+.optix-md thead th {
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #64748b; font-weight: 600;
+  padding: 0.85em 0.9em; border-bottom: 1px solid #e2e8f0;
+  text-align: left; background: #ffffff;
 }
-.optix-md th { font-weight: 600; }
-.optix-md tbody tr:nth-child(even) { background: color-mix(in oklab, var(--color-muted) 40%, transparent); }
+.optix-md tbody td {
+  padding: 0.85em 0.9em; border-bottom: 1px solid #f1f5f9;
+  color: #1e293b; vertical-align: middle;
+}
+.optix-md tbody tr:last-child td { border-bottom: none; }
+.optix-md tbody tr:nth-child(even) td { background: #fafbfd; }
+/* Right-align numeric (last) column and color it blue like the reference */
+.optix-md th:last-child, .optix-md td:last-child { text-align: right; }
+.optix-md tbody td:last-child { color: #2962ff; font-weight: 700; }
+/* Bold totals row: detect by **bold** content already rendered as <strong> */
+.optix-md tbody tr td:has(> strong) { background: #f8fafc; font-weight: 600; }
+
 .optix-md blockquote {
-  border-left: 3px solid var(--color-border);
-  padding-left: 0.75em; color: var(--color-muted-foreground); margin: 0.5em 0;
+  border-left: 3px solid #e2e8f0;
+  padding-left: 0.75em; color: #64748b; margin: 0.6em 0;
 }
