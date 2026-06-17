@@ -682,7 +682,17 @@ function money(n: number): string {
 
 function isBestWinRateQuestion(q: string): boolean {
   const s = q.toLowerCase();
-  return /\b(best|highest|top)\b/.test(s) && /\b(win rate|winning|wins?|setup|ticker)\b/.test(s);
+  return /\b(best|highest|top)\b/.test(s) && /\b(win\s*rate|winning|wins?|success rate|win %|setup|ticker)\b/.test(s);
+}
+
+function periodCaption(period: string): string {
+  if (period.startsWith("month:")) {
+    const [year, month] = period.slice(6).split("-");
+    const d = new Date(Number(year), Number(month) - 1, 1);
+    return `${d.toLocaleString("en-US", { month: "long" })} ${year}`.toUpperCase();
+  }
+  if (period.startsWith("year:")) return period.slice(5);
+  return period.replace(/_/g, " ").toUpperCase();
 }
 
 export function answerOptimusQuestion(rawRows: Trade[], question: string): string | null {
@@ -702,7 +712,7 @@ export function answerOptimusQuestion(rawRows: Trade[], question: string): strin
   return [
     `**${top.setup}** has the best win rate at **${top.win_rate_pct}%** across **${top.trades} resolved trades**.`,
     "",
-    "### ALL TIME · BEST WIN RATE SETUPS",
+    `### ${periodCaption(period)} · BEST WIN RATE SETUPS`,
     "| Setup | Trades | Wins | Losses | Win Rate | Net P/L | Avg P/L | ROI |",
     "| ----- | -----: | ---: | -----: | -------: | ------: | ------: | --: |",
     rows,
