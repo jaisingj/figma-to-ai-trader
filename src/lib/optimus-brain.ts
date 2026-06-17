@@ -556,7 +556,30 @@ export function buildOptimusContext(rawRows: Trade[], question: string): string 
   const metrics = computePortfolioMetrics(rawRows, period, ticker);
   const personality = "error" in metrics ? null : computePortfolioPersonality(metrics);
 
-  // Tiny RAG sample: 8 most recent rows, lean columns
+  // Filtered trades for THIS period/ticker — so the LLM can render a per-trade table.
+  // Cap at 200 rows to keep prompt size sane.
+  const normalized = normalizeForOptimus(rawRows);
+  const sliced = periodSlice(normalized, period);
+  const filtered = (ticker ? sliced.filter((r) => r.instrument === ticker.toUpperCase()) : sliced)
+    .slice()
+    .sort((a, b) => (b.date?.getTime() ?? 0) - (a.date?.getTime() ?? 0))
+    .slice(0, 200)
+    .map((r) => ({
+      date: ymd(r.date),
+      ticker: r.instrument,
+      type: r.optionType,
+      strike: r.strike,
+      qty: r.quantity,
+      expiry: ymd(r.expiry),
+      sto: r.sto,
+      btc: r.btc,
+      premium: r.premium,
+      collateral: r.collateral,
+      status: r.status,
+      broker: r.broker,
+    }));
+
+  // Tiny RAG sample: 8 most recent rows overall, for shape only
   const sample = rawRows
     .slice()
     .sort((a, b) => {
@@ -586,7 +609,10 @@ export function buildOptimusContext(rawRows: Trade[], question: string): string 
     "PORTFOLIO PERSONALITY (use for style/risk/health questions):",
     JSON.stringify(personality, null, 2),
     "",
-    "SAMPLE ROWS (most recent — for shape/context only, NOT for numbers):",
+    `FILTERED TRADES for period=${period}${ticker ? ` ticker=${ticker}` : ""} (${filtered.length} rows, authoritative — use these to build per-trade tables):`,
+    JSON.stringify(filtered, null, 2),
+    "",
+    "SAMPLE ROWS (most recent overall — for shape/context only, NOT for numbers):",
     JSON.stringify(sample, null, 2),
   ].join("\n");
 }
