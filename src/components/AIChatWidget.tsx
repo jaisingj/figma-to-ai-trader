@@ -186,6 +186,25 @@ export function AIChatWidget() {
   const draggingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+
+  async function handleFiles(list: FileList | null) {
+    if (!list) return;
+    const next: AttachedFile[] = [];
+    for (const f of Array.from(list)) {
+      if (f.size > MAX_FILE_BYTES) { setError(`${f.name} exceeds 5MB limit.`); continue; }
+      const kind = classifyFile(f);
+      try {
+        if (kind === "image") next.push({ name: f.name, size: f.size, mime: f.type || "image/jpeg", kind, dataUrl: await readAsDataURL(f) });
+        else if (kind === "text") next.push({ name: f.name, size: f.size, mime: f.type || "text/csv", kind, text: (await readAsText(f)).slice(0, 200_000) });
+        else next.push({ name: f.name, size: f.size, mime: f.type || "application/octet-stream", kind });
+      } catch { setError(`Could not read ${f.name}`); }
+    }
+    if (next.length) { setAttachments((a) => [...a, ...next]); setError(null); }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+  function removeAttachment(i: number) { setAttachments((a) => a.filter((_, idx) => idx !== i)); }
 
   const hasKey = !!keys[provider];
   const effectiveWidth = expanded ? Math.max(width, 760) : width;
