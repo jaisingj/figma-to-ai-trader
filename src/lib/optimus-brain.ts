@@ -675,6 +675,40 @@ export function inferTicker(q: string): string | undefined {
   return;
 }
 
+function money(n: number): string {
+  const sign = n > 0 ? "+" : n < 0 ? "-" : "";
+  return `${sign}$${Math.abs(Math.round(n)).toLocaleString()}`;
+}
+
+function isBestWinRateQuestion(q: string): boolean {
+  const s = q.toLowerCase();
+  return /\b(best|highest|top)\b/.test(s) && /\b(win rate|winning|wins?|setup|ticker)\b/.test(s);
+}
+
+export function answerOptimusQuestion(rawRows: Trade[], question: string): string | null {
+  if (!isBestWinRateQuestion(question)) return null;
+
+  const period = inferPeriod(question);
+  const ticker = inferTicker(question);
+  const metrics = computePortfolioMetrics(rawRows, period, ticker);
+  if ("error" in metrics) return metrics.error;
+  if (!metrics.best_win_rate_setups.length) return "No resolved trades found for that period/filter.";
+
+  const top = metrics.best_win_rate_setups[0];
+  const rows = metrics.best_win_rate_setups
+    .map((r) => `| ${r.setup} | ${r.trades} | ${r.wins} | ${r.losses} | **${r.win_rate_pct}%** | **${money(r.net_premium)}** | ${money(r.avg_premium)} | ${r.roi_pct == null ? "N/A" : `${r.roi_pct}%`} |`)
+    .join("\n");
+
+  return [
+    `**${top.setup}** has the best win rate at **${top.win_rate_pct}%** across **${top.trades} resolved trades**.`,
+    "",
+    "### ALL TIME · BEST WIN RATE SETUPS",
+    "| Setup | Trades | Wins | Losses | Win Rate | Net P/L | Avg P/L | ROI |",
+    "| ----- | -----: | ---: | -----: | -------: | ------: | ------: | --: |",
+    rows,
+  ].join("\n");
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Build the full prompt block: COMPUTED + PERSONALITY + SAMPLE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -707,6 +741,8 @@ export function buildOptimusContext(rawRows: Trade[], question: string): string 
       premium: r.premium,
       collateral: r.collateral,
       status: r.status,
+      close_date: ymd(r.closeDate),
+      trans_code: r.transCode,
       broker: r.broker,
     }));
 
