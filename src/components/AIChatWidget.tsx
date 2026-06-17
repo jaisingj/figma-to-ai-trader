@@ -211,10 +211,14 @@ export function AIChatWidget() {
     setLoading(true);
     try {
       const systemPrompt = buildSystemPromptFor(content);
+      // Send ONLY the current question. The system prompt already contains all
+      // computed data for this question; including prior assistant tables would
+      // anchor the model on stale context and break follow-up prompts.
+      const singleTurn: ChatMessage[] = [{ role: "user", content }];
       let reply = "";
-      if (provider === "openai") reply = await callOpenAI(key, next, systemPrompt);
-      else if (provider === "anthropic") reply = await callAnthropic(key, next, systemPrompt);
-      else reply = await callGemini(key, next, systemPrompt);
+      if (provider === "openai") reply = await callOpenAI(key, singleTurn, systemPrompt);
+      else if (provider === "anthropic") reply = await callAnthropic(key, singleTurn, systemPrompt);
+      else reply = await callGemini(key, singleTurn, systemPrompt);
       setMessages([...next, { role: "assistant", content: reply }]);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Request failed");
