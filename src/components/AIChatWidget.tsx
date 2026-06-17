@@ -11,6 +11,9 @@ import {
   PenLine,
   ChevronDown,
   Check,
+  Paperclip,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -68,6 +71,27 @@ const STARTERS = [
 ];
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+type AttachedFile = { name: string; size: number; mime: string; kind: "image" | "text" | "binary"; text?: string; dataUrl?: string };
+
+const ACCEPT = ".csv,.docx,.jpg,.jpeg,.xls,.xlsx";
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+function classifyFile(f: File): AttachedFile["kind"] {
+  const n = f.name.toLowerCase();
+  if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image";
+  if (n.endsWith(".csv")) return "text";
+  return "binary"; // docx, xls, xlsx — opaque in-browser
+}
+
+function readAsText(f: File) { return f.text(); }
+function readAsDataURL(f: File) {
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(f);
+  });
+}
 
 const LS_KEYS = "optix.chat.keys.v1";
 const LS_PROVIDER = "optix.chat.provider.v1";
@@ -162,6 +186,25 @@ export function AIChatWidget() {
   const draggingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
+
+  async function handleFiles(list: FileList | null) {
+    if (!list) return;
+    const next: AttachedFile[] = [];
+    for (const f of Array.from(list)) {
+      if (f.size > MAX_FILE_BYTES) { setError(`${f.name} exceeds 5MB limit.`); continue; }
+      const kind = classifyFile(f);
+      try {
+        if (kind === "image") next.push({ name: f.name, size: f.size, mime: f.type || "image/jpeg", kind, dataUrl: await readAsDataURL(f) });
+        else if (kind === "text") next.push({ name: f.name, size: f.size, mime: f.type || "text/csv", kind, text: (await readAsText(f)).slice(0, 200_000) });
+        else next.push({ name: f.name, size: f.size, mime: f.type || "application/octet-stream", kind });
+      } catch { setError(`Could not read ${f.name}`); }
+    }
+    if (next.length) { setAttachments((a) => [...a, ...next]); setError(null); }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+  function removeAttachment(i: number) { setAttachments((a) => a.filter((_, idx) => idx !== i)); }
 
   const hasKey = !!keys[provider];
   const effectiveWidth = expanded ? Math.max(width, 760) : width;
@@ -201,25 +244,39 @@ export function AIChatWidget() {
 
   async function send(text: string) {
     const content = text.trim();
-    if (!content || loading) return;
+    if ((!content && attachments.length === 0) || loading) return;
     const key = keys[provider];
     if (!key) { setError("Please add an API key for the selected model."); return; }
     setError(null);
-    const next = [...messages, { role: "user" as const, content }];
+
+    // Build a display message that shows attachments to the user
+    const attachLines = attachments.map((a) => `📎 ${a.name} (${Math.round(a.size / 1024)} KB)`).join("\n");
+    const displayContent = [content, attachLines].filter(Boolean).join("\n\n");
+
+    // Build the content sent to the LLM: append text-file contents inline, note other files
+    const fileBlocks = attachments.map((a) => {
+      if (a.kind === "text" && a.text) return `\n\n--- File: ${a.name} ---\n\`\`\`\n${a.text}\n\`\`\``;
+      if (a.kind === "image") return `\n\n[Attached image: ${a.name}]`;
+      return `\n\n[Attached file: ${a.name} — content not readable in browser; please export to CSV for analysis.]`;
+    }).join("");
+    const llmContent = (content || "Please analyze the attached file(s).") + fileBlocks;
+
+    const sentAttachments = attachments;
+    const next = [...messages, { role: "user" as const, content: displayContent || llmContent }];
     setMessages(next);
     setInput("");
+    setAttachments([]);
     setLoading(true);
     try {
-      const deterministicReply = answerOptimusQuestion(getTrades()?.rows ?? [], content);
-      if (deterministicReply) {
-        setMessages([...next, { role: "assistant", content: deterministicReply }]);
-        return;
+      if (sentAttachments.length === 0) {
+        const deterministicReply = answerOptimusQuestion(getTrades()?.rows ?? [], content);
+        if (deterministicReply) {
+          setMessages([...next, { role: "assistant", content: deterministicReply }]);
+          return;
+        }
       }
       const systemPrompt = buildSystemPromptFor(content);
-      // Send ONLY the current question. The system prompt already contains all
-      // computed data for this question; including prior assistant tables would
-      // anchor the model on stale context and break follow-up prompts.
-      const singleTurn: ChatMessage[] = [{ role: "user", content }];
+      const singleTurn: ChatMessage[] = [{ role: "user", content: llmContent }];
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, singleTurn, systemPrompt);
       else if (provider === "anthropic") reply = await callAnthropic(key, singleTurn, systemPrompt);
@@ -405,8 +462,37 @@ export function AIChatWidget() {
 
               {/* Composer */}
               <div className="px-5 pb-5 pt-2 bg-white">
-                <div className="flex items-end gap-2 rounded-full border border-slate-300 bg-white pl-4 pr-2 py-2 shadow-sm focus-within:border-[#2962ff] focus-within:ring-2 focus-within:ring-[#2962ff]/15">
-                  <PenLine className="h-4 w-4 text-slate-500 shrink-0 mb-1.5" />
+                {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {attachments.map((a, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 text-xs bg-slate-100 border border-slate-200 text-slate-700 pl-2 pr-1 py-1 rounded-full max-w-[220px]">
+                        {a.kind === "image" ? <ImageIcon className="h-3 w-3 shrink-0" /> : <FileText className="h-3 w-3 shrink-0" />}
+                        <span className="truncate">{a.name}</span>
+                        <button onClick={() => removeAttachment(i)} className="h-4 w-4 rounded-full hover:bg-slate-300 flex items-center justify-center shrink-0" aria-label="Remove">
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-end gap-2 rounded-full border border-slate-300 bg-white pl-2 pr-2 py-2 shadow-sm focus-within:border-[#2962ff] focus-within:ring-2 focus-within:ring-[#2962ff]/15">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPT}
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFiles(e.target.files)}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    aria-label="Attach file"
+                    title="Attach CSV, DOCX, JPG, or XLS"
+                    className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100 hover:text-[#2962ff] flex items-center justify-center transition disabled:opacity-50 shrink-0"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </button>
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -420,14 +506,16 @@ export function AIChatWidget() {
                   />
                   <button
                     onClick={() => send(input)}
-                    disabled={loading || !input.trim()}
+                    disabled={loading || (!input.trim() && attachments.length === 0)}
                     aria-label="Send"
                     className="h-8 w-8 rounded-full bg-slate-100 hover:bg-[#2962ff] hover:text-white text-slate-700 flex items-center justify-center transition disabled:opacity-50 disabled:hover:bg-slate-100 disabled:hover:text-slate-700"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
                   </button>
                 </div>
+                <div className="text-[10px] text-slate-400 mt-1.5 pl-2">Accepts: CSV, DOCX, JPG, XLS · 5MB max</div>
               </div>
+
             </>
           )}
         </div>
