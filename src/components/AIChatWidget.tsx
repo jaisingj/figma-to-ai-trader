@@ -11,6 +11,9 @@ import {
   PenLine,
   ChevronDown,
   Check,
+  Paperclip,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
