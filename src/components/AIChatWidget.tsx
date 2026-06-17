@@ -149,8 +149,15 @@ export function AIChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [width, setWidth] = useState<number>(() => {
+    if (typeof window === "undefined") return 460;
+    const saved = Number(localStorage.getItem("optix.chat.width.v1"));
+    return saved >= 360 && saved <= 1200 ? saved : 460;
+  });
+  const draggingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
 
   const hasKey = !!keys[provider];
 
