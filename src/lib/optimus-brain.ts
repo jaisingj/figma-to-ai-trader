@@ -266,8 +266,12 @@ function pairTransactionLegs(rows: OptimusRow[]): OptimusRow[] {
 
   const keyFor = (r: OptimusRow) => [r.instrument, r.optionType || "Option", r.strike, ymd(r.expiry)].join("|");
   const byContract = new Map<string, OptimusRow[]>();
+  const ungrouped: OptimusRow[] = [];
   for (const row of rows) {
-    if (!row.instrument || !row.strike || !row.expiry) continue;
+    if (!row.instrument || !row.strike || !row.expiry) {
+      ungrouped.push(row);
+      continue;
+    }
     const key = keyFor(row);
     byContract.set(key, [...(byContract.get(key) ?? []), row]);
   }
@@ -329,7 +333,7 @@ function pairTransactionLegs(rows: OptimusRow[]): OptimusRow[] {
     }
   }
 
-  return paired.length ? paired : rows;
+  return paired.length ? [...paired, ...ungrouped] : rows;
 }
 
 // Period slicing (matches Python _period_df, plus explicit "month:YYYY-MM" and "year:YYYY")
