@@ -17,7 +17,7 @@ const listeners = new Set<() => void>();
 function load(): TradesData | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as TradesData) : null;
   } catch {
     return null;
@@ -32,8 +32,14 @@ export function setTrades(data: TradesData | null) {
   current = data;
   if (typeof window !== "undefined") {
     try {
-      if (data) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      else sessionStorage.removeItem(STORAGE_KEY);
+      if (data) {
+        const json = JSON.stringify(data);
+        sessionStorage.setItem(STORAGE_KEY, json);
+        localStorage.setItem(STORAGE_KEY, json);
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY);
+      }
     } catch {
       // ignore quota errors
     }
@@ -42,6 +48,7 @@ export function setTrades(data: TradesData | null) {
 }
 
 export function getTrades(): TradesData | null {
+  current = load();
   return current;
 }
 
