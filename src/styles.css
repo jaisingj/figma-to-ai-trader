@@ -195,3 +195,41 @@
     color: var(--color-foreground);
   }
 }
+
+/* Markdown rendering inside the AI chat widget */
+.optix-md { line-height: 1.5; }
+.optix-md p { margin: 0.4em 0; }
+.optix-md strong { font-weight: 600; }
+.optix-md h1, .optix-md h2, .optix-md h3, .optix-md h4 {
+  font-weight: 700; margin: 0.6em 0 0.3em; line-height: 1.25;
+}
+.optix-md h1 { font-size: 1.05rem; }
+.optix-md h2 { font-size: 1rem; }
+.optix-md h3 { font-size: 0.95rem; }
+.optix-md ul, .optix-md ol { margin: 0.4em 0; padding-left: 1.25rem; }
+.optix-md li { margin: 0.15em 0; }
+.optix-md code {
+  background: var(--color-muted);
+  padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.85em;
+}
+.optix-md pre {
+  background: var(--color-muted);
+  padding: 0.6em 0.8em; border-radius: 6px; overflow-x: auto; margin: 0.5em 0;
+}
+.optix-md pre code { background: transparent; padding: 0; }
+.optix-md a { color: var(--color-primary); text-decoration: underline; }
+.optix-md table {
+  border-collapse: collapse; width: 100%; margin: 0.6em 0;
+  font-size: 0.85rem; display: table;
+}
+.optix-md thead { background: var(--color-muted); }
+.optix-md th, .optix-md td {
+  border: 1px solid var(--color-border);
+  padding: 0.35em 0.6em; text-align: left;
+}
+.optix-md th { font-weight: 600; }
+.optix-md tbody tr:nth-child(even) { background: color-mix(in oklab, var(--color-muted) 40%, transparent); }
+.optix-md blockquote {
+  border-left: 3px solid var(--color-border);
+  padding-left: 0.75em; color: var(--color-muted-foreground); margin: 0.5em 0;
+}
