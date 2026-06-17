@@ -94,6 +94,43 @@ def _detect_broker(filename: str, head_text: str) -> str:
     return "Other"
 
 
+# Only these option-lifecycle trans codes are kept. Everything else
+# (ACH deposits, dividends, interest, share buys, journal entries, etc.)
+# is discarded so the dashboard / chatbot only see real options trades.
+ALLOWED_TRANS_CODES = {"OASSGN", "OEXP", "STO", "BTC"}
+
+# Map raw Action / Trans Code variants from different brokers onto our
+# canonical four codes. Anything not in here is dropped.
+TRANS_CODE_ALIASES = {
+    "STO": "STO",
+    "SELL TO OPEN": "STO",
+    "SOLD": "STO",
+    "BTC": "BTC",
+    "BUY TO CLOSE": "BTC",
+    "BOUGHT": "BTC",
+    "OEXP": "OEXP",
+    "EXPIRED": "OEXP",
+    "OPTION EXPIRATION": "OEXP",
+    "EXPIRATION": "OEXP",
+    "OASSGN": "OASSGN",
+    "ASSIGNED": "OASSGN",
+    "ASSIGNMENT": "OASSGN",
+    "OPTION ASSIGNMENT": "OASSGN",
+}
+
+
+def _filter_to_options_only(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only rows whose Trans Code maps to STO/BTC/OEXP/OASSGN."""
+    if "Trans Code" not in df.columns or len(df) == 0:
+        return df
+    raw = df["Trans Code"].astype(str).str.upper().str.strip()
+    canonical = raw.map(lambda x: TRANS_CODE_ALIASES.get(x, x))
+    keep = canonical.isin(ALLOWED_TRANS_CODES)
+    df = df.loc[keep].copy()
+    df["Trans Code"] = canonical[keep].values
+    return df
+
+
 def _parse_one(filename: str, contents: bytes) -> pd.DataFrame:
     head_text = contents[:4096].decode("utf-8", errors="ignore")
     broker = _detect_broker(filename, head_text)
@@ -115,6 +152,7 @@ def _parse_one(filename: str, contents: bytes) -> pd.DataFrame:
         df = parse_generic_file(buf)
 
     df = normalize_dataframe_columns(df)
+    df = _filter_to_options_only(df)
     df["Broker"] = broker if broker != "Other" else df.get("Broker", "Other")
     df["Source File"] = filename
     return df
@@ -159,6 +197,7 @@ async def upload_csv(
 
     combined = pd.concat(frames, ignore_index=True, sort=False)
     combined = normalize_dataframe_columns(combined)
+    combined = _filter_to_options_only(combined)
 
     records = _df_to_records(combined)
     return {
