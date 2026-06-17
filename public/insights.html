@@ -826,32 +826,46 @@ const WIDGETS={
       // Insight 2: best day by win rate (fallback to avg premium)
       const dowWin=byDow.map((x,i)=>({d:DOW[i],wr:x.trades?x.wins/x.trades:0,trades:x.trades,avg:x.n?x.net/x.n:0,n:x.n}))
         .filter(x=>x.trades>=3);
+      let bestDay=null;
       let i2Txt='Not enough closed trades yet to rank by win rate', i2Ico=SVG.bulb, i2Dir='neu';
       if(dowWin.length){
         dowWin.sort((a,b)=>b.wr-a.wr||b.trades-a.trades);
-        const best=dowWin[0];
-        i2Txt=`Best day: ${best.d} · ${(best.wr*100).toFixed(0)}% win rate (${best.trades} trades)`;
+        bestDay=dowWin[0];
+        i2Txt=`Best day: ${bestDay.d} · ${(bestDay.wr*100).toFixed(0)}% win rate (${bestDay.trades} trades)`;
         i2Ico=SVG.check; i2Dir='pos';
       } else {
-        const dowAvg=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
-        if(dowAvg.length){
-          dowAvg.sort((a,b)=>b.avg-a.avg);
-          i2Txt=`Best day: ${dowAvg[0].d} earn the most premium on average`;
+        const dowAvgF=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
+        if(dowAvgF.length){
+          dowAvgF.sort((a,b)=>b.avg-a.avg);
+          bestDay={d:dowAvgF[0].d};
+          i2Txt=`Best day: ${dowAvgF[0].d} earn the most premium on average`;
           i2Ico=SVG.trend; i2Dir='pos';
         }
       }
 
-      // Insight 3: avoid day (significantly worse premium)
-      const dowAvg=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
+      // Insight 3: avoid day — must differ from best day
       let i3Txt='', i3Ico=SVG.warn, i3Dir='neg';
-      if(dowAvg.length>=2){
-        dowAvg.sort((a,b)=>b.avg-a.avg);
-        const best=dowAvg[0], worst=dowAvg[dowAvg.length-1];
-        if(best.avg>0 && worst.avg<best.avg*0.6){
-          const pct=Math.round((1-Math.max(0,worst.avg)/best.avg)*100);
-          i3Txt=`Avoid ${worst.d}: ${pct}% lower premium`;
+      // Prefer win-rate based "worst" when available
+      if(dowWin.length>=2){
+        const worstWr=[...dowWin].sort((a,b)=>a.wr-b.wr||b.trades-a.trades)
+          .find(x=>!bestDay||x.d!==bestDay.d);
+        if(worstWr && bestDay && worstWr.wr < (bestDay.wr||0) - 0.1){
+          i3Txt=`Avoid ${worstWr.d}: ${(worstWr.wr*100).toFixed(0)}% win rate (${worstWr.trades} trades)`;
         }
       }
+      if(!i3Txt){
+        const dowAvg=byDow.map((x,i)=>({d:DOW[i],avg:x.n?x.net/x.n:0,n:x.n})).filter(x=>x.n>=2);
+        if(dowAvg.length>=2){
+          dowAvg.sort((a,b)=>b.avg-a.avg);
+          const best=dowAvg[0];
+          const worst=[...dowAvg].reverse().find(x=>(!bestDay||x.d!==bestDay.d)&&x.d!==best.d) || dowAvg[dowAvg.length-1];
+          if(worst && worst.d!==(bestDay&&bestDay.d) && best.avg>0 && worst.avg<best.avg*0.6){
+            const pct=Math.round((1-Math.max(0,worst.avg)/best.avg)*100);
+            i3Txt=`Avoid ${worst.d}: ${pct}% lower premium`;
+          }
+        }
+      }
+
 
       // Insight 4: top ticker by retention % (net / credits)
       const ranked=(D.tickers||[]).filter(t=>t.credits>0&&t.legs>=3)
