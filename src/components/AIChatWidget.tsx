@@ -339,7 +339,7 @@ export function AIChatWidget() {
                     className={
                       m.role === "user"
                         ? "ml-auto max-w-[85%] rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm whitespace-pre-wrap"
-                        : "max-w-full text-sm text-foreground prose prose-sm dark:prose-invert prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-table:border prose-th:border prose-td:border prose-table:border-border prose-th:border-border prose-td:border-border max-w-none"
+                        : "optix-md max-w-full text-sm text-foreground"
                     }
                   >
                     {m.role === "assistant" ? (
@@ -349,6 +349,7 @@ export function AIChatWidget() {
                     )}
                   </div>
                 ))}
+
                 {loading && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" /> Thinking...
