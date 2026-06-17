@@ -185,6 +185,7 @@ function monthKey(d: Date | null): string {
 
 type OptimusRow = {
   date: Date | null;
+  closeDate: Date | null;
   expiry: Date | null;
   instrument: string;
   optionType: string;
@@ -196,6 +197,7 @@ type OptimusRow = {
   collateral: number;
   status: string;
   broker: string;
+  transCode: string;
 };
 
 const ALLOWED_TRANS_CODES = new Set(["OASSGN", "OASGN", "OEXP", "STO", "BTC"]);
@@ -212,8 +214,18 @@ function normalizeTransCode(row: Trade): string {
   return raw;
 }
 
+function normalizeStatus(row: Trade, transCode: string): string {
+  const raw = String(pick(row, ["Status"]) ?? "").trim().toLowerCase();
+  if (raw) return raw.charAt(0).toUpperCase() + raw.slice(1);
+  if (transCode === "OEXP") return "Expired";
+  if (transCode === "OASSGN") return "Assigned";
+  if (transCode === "BTC") return "Closed";
+  if (transCode === "STO") return "Open";
+  return "";
+}
+
 function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
-  return rows.flatMap((r) => {
+  const normalized = rows.flatMap((r) => {
     const transCode = normalizeTransCode(r);
     if (transCode && !ALLOWED_TRANS_CODES.has(transCode)) return [];
     const sto = toNum(pick(r, ["STO($)", "STO $", "STO"]));
@@ -224,8 +236,10 @@ function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
     const strike = toNum(pick(r, ["Strike Price", "Strike"]));
     const collRaw = toNum(pick(r, ["Collateral"]));
     const collateral = collRaw > 0 ? collRaw : Math.abs(qty) * strike * 100;
+    const date = toDate(pick(r, ["Activity Date", "STO Date", "Trade Date", "Date", "Run Date"]));
     return {
-      date: toDate(pick(r, ["Activity Date", "STO Date", "Trade Date", "Date", "Run Date"])),
+      date,
+      closeDate: transCode === "BTC" || transCode === "OEXP" || transCode === "OASSGN" ? date : toDate(pick(r, ["BTC Date", "Close Date"])),
       expiry: toDate(pick(r, ["Expiry Date", "Expiration", "Expiration Date"])),
       instrument: String(pick(r, ["Instrument", "Symbol", "Ticker"]) ?? "").toUpperCase(),
       optionType: String(pick(r, ["Option Type", "Type"]) ?? "").trim(),
@@ -235,10 +249,86 @@ function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
       btc,
       premium,
       collateral,
-      status: String(pick(r, ["Status"]) ?? "").trim(),
+      status: normalizeStatus(r, transCode),
       broker: String(pick(r, ["Broker"]) ?? "").trim(),
+      transCode,
     };
   });
+
+  return pairTransactionLegs(normalized);
+}
+
+function pairTransactionLegs(rows: OptimusRow[]): OptimusRow[] {
+  const hasTransactionLegs = rows.some((r) => r.transCode === "STO" || r.transCode === "BTC" || r.transCode === "OEXP" || r.transCode === "OASSGN");
+  const hasOpeners = rows.some((r) => r.transCode === "STO");
+  if (!hasTransactionLegs || !hasOpeners) return rows;
+
+  const keyFor = (r: OptimusRow) => [r.instrument, r.optionType || "Option", r.strike, ymd(r.expiry)].join("|");
+  const byContract = new Map<string, OptimusRow[]>();
+  for (const row of rows) {
+    if (!row.instrument || !row.strike || !row.expiry) continue;
+    const key = keyFor(row);
+    byContract.set(key, [...(byContract.get(key) ?? []), row]);
+  }
+
+  const paired: OptimusRow[] = [];
+  for (const group of byContract.values()) {
+    const sorted = group.slice().sort((a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0));
+    const closers = sorted.filter((r) => r.transCode === "BTC" || r.transCode === "OEXP" || r.transCode === "OASSGN");
+    const usedClosers = new Set<OptimusRow>();
+
+    for (const opener of sorted.filter((r) => r.transCode === "STO")) {
+      let remaining = Math.abs(opener.quantity) || 1;
+      const closes: OptimusRow[] = [];
+      for (const closer of closers) {
+        if (usedClosers.has(closer)) continue;
+        if (opener.date && closer.date && closer.date < opener.date) continue;
+        closes.push(closer);
+        usedClosers.add(closer);
+        remaining -= Math.abs(closer.quantity) || 1;
+        if (remaining <= 0) break;
+      }
+
+      const closeQty = closes.reduce((sum, r) => sum + (Math.abs(r.quantity) || 1), 0);
+      const btc = closes
+        .filter((r) => r.transCode === "BTC")
+        .reduce((sum, r) => sum + (r.btc || (r.premium < 0 ? r.premium : -Math.abs(r.premium))), 0);
+      const sto = opener.sto || Math.abs(opener.premium);
+      const status = closes.some((r) => r.transCode === "OASSGN")
+        ? "Assigned"
+        : closes.some((r) => r.transCode === "OEXP") && !closes.some((r) => r.transCode === "BTC")
+          ? "Expired"
+          : closeQty >= (Math.abs(opener.quantity) || 1)
+            ? "Closed"
+            : "Open";
+      const closeDate = closes.length ? closes[closes.length - 1].date : null;
+      paired.push({
+        ...opener,
+        quantity: Math.abs(opener.quantity) || 1,
+        sto,
+        btc,
+        premium: sto + btc,
+        status,
+        closeDate,
+        transCode: "STO",
+      });
+    }
+
+    for (const closer of closers) {
+      if (usedClosers.has(closer)) continue;
+      const btc = closer.transCode === "BTC" ? closer.btc || (closer.premium < 0 ? closer.premium : -Math.abs(closer.premium)) : 0;
+      paired.push({
+        ...closer,
+        sto: 0,
+        btc,
+        premium: btc,
+        status: closer.transCode === "OASSGN" ? "Assigned" : closer.transCode === "OEXP" ? "Expired" : "Closed",
+        closeDate: closer.date,
+      });
+    }
+  }
+
+  return paired.length ? paired : rows;
 }
 
 // Period slicing (matches Python _period_df, plus explicit "month:YYYY-MM" and "year:YYYY")
