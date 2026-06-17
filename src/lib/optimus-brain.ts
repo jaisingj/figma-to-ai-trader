@@ -111,11 +111,12 @@ RESPONSE FORMAT RULES — CRITICAL
    | **Total**   | **46** |      63% | **+$1,840** |
 
 5. Tables MUST use GFM pipe syntax with a header separator row. Right-align numeric
-   columns with `---:`. Bold totals and key figures inside cells.
+   columns with ---: (three dashes + colon). Bold totals and key figures inside cells.
 6. Precede every table with a short **bold caption** (period + what it shows).
 7. NEVER read individual trade rows as prose. Put them in a table instead.
 8. For lists ≤ 5 non-numeric items, bullets are fine. For numeric items, prefer a table.
-9. For ROI, state the formula once: `ROI = Net Premium / Collateral × 100%`.
+9. For ROI, state the formula once: ROI = Net Premium / Collateral × 100%.
+
 10. If nothing matches: "No trades found for that period/filter."
 11. Never volunteer information the user didn't ask for.
 12. Use company names in prose ("Apple") but tickers ("AAPL") inside tables for density.
