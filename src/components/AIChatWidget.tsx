@@ -244,25 +244,39 @@ export function AIChatWidget() {
 
   async function send(text: string) {
     const content = text.trim();
-    if (!content || loading) return;
+    if ((!content && attachments.length === 0) || loading) return;
     const key = keys[provider];
     if (!key) { setError("Please add an API key for the selected model."); return; }
     setError(null);
-    const next = [...messages, { role: "user" as const, content }];
+
+    // Build a display message that shows attachments to the user
+    const attachLines = attachments.map((a) => `📎 ${a.name} (${Math.round(a.size / 1024)} KB)`).join("\n");
+    const displayContent = [content, attachLines].filter(Boolean).join("\n\n");
+
+    // Build the content sent to the LLM: append text-file contents inline, note other files
+    const fileBlocks = attachments.map((a) => {
+      if (a.kind === "text" && a.text) return `\n\n--- File: ${a.name} ---\n\`\`\`\n${a.text}\n\`\`\``;
+      if (a.kind === "image") return `\n\n[Attached image: ${a.name}]`;
+      return `\n\n[Attached file: ${a.name} — content not readable in browser; please export to CSV for analysis.]`;
+    }).join("");
+    const llmContent = (content || "Please analyze the attached file(s).") + fileBlocks;
+
+    const sentAttachments = attachments;
+    const next = [...messages, { role: "user" as const, content: displayContent || llmContent }];
     setMessages(next);
     setInput("");
+    setAttachments([]);
     setLoading(true);
     try {
-      const deterministicReply = answerOptimusQuestion(getTrades()?.rows ?? [], content);
-      if (deterministicReply) {
-        setMessages([...next, { role: "assistant", content: deterministicReply }]);
-        return;
+      if (sentAttachments.length === 0) {
+        const deterministicReply = answerOptimusQuestion(getTrades()?.rows ?? [], content);
+        if (deterministicReply) {
+          setMessages([...next, { role: "assistant", content: deterministicReply }]);
+          return;
+        }
       }
       const systemPrompt = buildSystemPromptFor(content);
-      // Send ONLY the current question. The system prompt already contains all
-      // computed data for this question; including prior assistant tables would
-      // anchor the model on stale context and break follow-up prompts.
-      const singleTurn: ChatMessage[] = [{ role: "user", content }];
+      const singleTurn: ChatMessage[] = [{ role: "user", content: llmContent }];
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, singleTurn, systemPrompt);
       else if (provider === "anthropic") reply = await callAnthropic(key, singleTurn, systemPrompt);
