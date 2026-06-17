@@ -198,8 +198,24 @@ type OptimusRow = {
   broker: string;
 };
 
+const ALLOWED_TRANS_CODES = new Set(["OASSGN", "OASGN", "OEXP", "STO", "BTC"]);
+
+function normalizeTransCode(row: Trade): string {
+  const raw = String(pick(row, ["Trans Code", "Code", "Action", "Side", "Trade Type"]) ?? "")
+    .toUpperCase()
+    .trim();
+  if (raw === "OASGN") return "OASSGN";
+  if (raw === "SELL TO OPEN" || raw === "SOLD") return "STO";
+  if (raw === "BUY TO CLOSE" || raw === "BOUGHT") return "BTC";
+  if (raw === "EXPIRED" || raw === "OPTION EXPIRATION" || raw === "EXPIRATION") return "OEXP";
+  if (raw === "ASSIGNED" || raw === "ASSIGNMENT" || raw === "OPTION ASSIGNMENT") return "OASSGN";
+  return raw;
+}
+
 function normalizeForOptimus(rows: Trade[]): OptimusRow[] {
-  return rows.map((r) => {
+  return rows.flatMap((r) => {
+    const transCode = normalizeTransCode(r);
+    if (transCode && !ALLOWED_TRANS_CODES.has(transCode)) return [];
     const sto = toNum(pick(r, ["STO($)", "STO $", "STO"]));
     const btc = toNum(pick(r, ["BTC($)", "BTC $", "BTC"]));
     const premRaw = pick(r, ["Premium($)", "Premium $", "Premium", "Net Premium"]);
