@@ -515,13 +515,13 @@ const MONTH_NAMES: Record<string, number> = {
 
 export function inferPeriod(q: string): string {
   const s = q.toLowerCase();
-  // "May 2026", "in may 2026", "for may, 2026"
+  // Matches any "<month name> <year>" — e.g. "March 2025", "in jan 2024", "for october, 2023"
   const monthYear = s.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\b[^0-9]{0,6}(\d{4})\b/);
   if (monthYear) {
     const mm = MONTH_NAMES[monthYear[1]];
     return `month:${monthYear[2]}-${String(mm).padStart(2, "0")}`;
   }
-  // "2026-05" or "5/2026"
+  // Matches any "YYYY-MM" or "M/YYYY"
   const isoMy = s.match(/\b(\d{4})-(\d{2})\b/);
   if (isoMy) return `month:${isoMy[1]}-${isoMy[2]}`;
   const slashMy = s.match(/\b(\d{1,2})\/(\d{4})\b/);
