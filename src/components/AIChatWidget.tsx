@@ -339,10 +339,14 @@ export function AIChatWidget() {
                     className={
                       m.role === "user"
                         ? "ml-auto max-w-[85%] rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm whitespace-pre-wrap"
-                        : "max-w-[90%] text-sm whitespace-pre-wrap text-foreground"
+                        : "max-w-full text-sm text-foreground prose prose-sm dark:prose-invert prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-table:border prose-th:border prose-td:border prose-table:border-border prose-th:border-border prose-td:border-border max-w-none"
                     }
                   >
-                    {m.content}
+                    {m.role === "assistant" ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    ) : (
+                      m.content
+                    )}
                   </div>
                 ))}
                 {loading && (
@@ -352,6 +356,7 @@ export function AIChatWidget() {
                 )}
                 {error && <div className="text-xs text-destructive">{error}</div>}
               </div>
+
 
               {/* Shortcuts */}
               <div className="px-3 pt-2 flex flex-wrap gap-1.5 border-t">
