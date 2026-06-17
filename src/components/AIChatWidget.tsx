@@ -380,8 +380,6 @@ export function AIChatWidget() {
                       <span aria-hidden>{s.emoji}</span> {s.label}
                     </button>
                   ))}
-                    </button>
-                  ))}
                 </div>
                 <div className="flex items-center justify-between mt-2 pl-1">
                   <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
