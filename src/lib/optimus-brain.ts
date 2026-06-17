@@ -691,7 +691,7 @@ export function answerOptimusQuestion(rawRows: Trade[], question: string): strin
   const period = inferPeriod(question);
   const ticker = inferTicker(question);
   const metrics = computePortfolioMetrics(rawRows, period, ticker);
-  if ("error" in metrics) return metrics.error;
+  if ("error" in metrics) return String(metrics.error || "No trades found for that period/filter.");
   if (!metrics.best_win_rate_setups.length) return "No resolved trades found for that period/filter.";
 
   const top = metrics.best_win_rate_setups[0];
