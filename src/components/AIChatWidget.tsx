@@ -57,6 +57,7 @@ const PROVIDERS: Record<
 };
 
 const SHORTCUTS: { label: string; emoji: string; prompt: string }[] = [
+  { emoji: "🩺", label: "Health score", prompt: "Give me my overall trading health score (0–100) with a sub-score table, a plain-English explanation of each stat, 3 specific actionable tips, and flag any emotional trading patterns you detect." },
   { emoji: "📊", label: "Summarize my month", prompt: "Summarize my trading month with a weekly breakdown table." },
   { emoji: "🎯", label: "Best win rate setup", prompt: "Which ticker / setup gave me the best win rate? Show a table." },
   { emoji: "⚠️", label: "Riskiest open positions", prompt: "List my riskiest open positions in a table." },
