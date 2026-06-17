@@ -173,6 +173,36 @@ export function AIChatWidget() {
     if (open && hasKey) inputRef.current?.focus();
   }, [open, hasKey, provider]);
 
+  // Resize drag handlers
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      if (!draggingRef.current) return;
+      const next = Math.min(1200, Math.max(360, window.innerWidth - e.clientX));
+      setWidth(next);
+    }
+    function onUp() {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      localStorage.setItem("optix.chat.width.v1", String(width));
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [width]);
+
+
   async function send(text: string) {
     const content = text.trim();
     if (!content || loading) return;
