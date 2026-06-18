@@ -133,8 +133,16 @@ function AdminKnowledgePage() {
 
       if (chunks.length === 0) throw new Error("No text could be extracted from this file.");
 
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+      const storagePath = `${crypto.randomUUID()}-${safeName}`;
+      setProgress("Uploading file to storage…");
+      const { error: upErr } = await supabase.storage
+        .from("kb-books")
+        .upload(storagePath, file, { contentType: file.type || "application/octet-stream", upsert: false });
+      if (upErr) throw new Error(`Storage upload failed: ${upErr.message}`);
+
       setProgress(`Creating book record…`);
-      const { id } = await fnCreate({ data: { title, filename: file.name, pageCount } });
+      const { id } = await fnCreate({ data: { title, filename: file.name, pageCount, storagePath } });
       documentId = id;
 
       for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
