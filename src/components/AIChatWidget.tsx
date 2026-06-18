@@ -28,7 +28,49 @@ import {
 } from "@/components/ui/select";
 import { OPTIMUS_SYSTEM_PROMPT, answerOptimusQuestion, buildOptimusContext } from "@/lib/optimus-brain";
 import { getTrades } from "@/lib/trades-store";
+import { searchKnowledge } from "@/lib/kb.functions";
+import { useServerFn } from "@tanstack/react-start";
 import optixLogo from "@/assets/optixpro.jpeg.asset.json";
+
+// Heuristic: does this question warrant a knowledge-base lookup?
+// Trade-data questions (P&L, trades, performance, my portfolio) stay deterministic.
+function isConceptualQuestion(q: string): boolean {
+  const s = q.toLowerCase();
+  // Trade/data-shaped questions → skip RAG
+  const dataMarkers = [
+    "my ", "i have", "i made", "my trade", "my position", "my premium", "my p&l", "my pnl",
+    "health score", "win rate", "best month", "summarize my", "open trade", "my open",
+    "this month", "last month", "ytd", "year to date",
+  ];
+  if (dataMarkers.some((m) => s.includes(m))) return false;
+  // Conceptual / strategy / definition markers → use RAG
+  const conceptMarkers = [
+    "what is", "what's", "define", "explain", "how does", "how do", "how to",
+    "difference between", "vs ", "versus", "strategy", "covered call", "csp", "cash secured",
+    "iron condor", "credit spread", "debit spread", "straddle", "strangle", "butterfly",
+    "calendar", "diagonal", "wheel", "theta", "delta", "gamma", "vega", "iv", "implied volatility",
+    "assignment", "rolling", "roll a", "exercise", "early exercise", "greeks", "skew",
+    "when should", "when to", "should i", "best practice", "rule of thumb", "guideline",
+  ];
+  return conceptMarkers.some((m) => s.includes(m));
+}
+
+function formatPassages(
+  passages: Array<{ document_title: string; page_number: number | null; content: string }>,
+): string {
+  if (!passages.length) return "";
+  const lines = passages.map((p, i) => {
+    const cite = `[${i + 1}] ${p.document_title}${p.page_number ? `, p. ${p.page_number}` : ""}`;
+    return `${cite}\n${p.content}`;
+  });
+  return [
+    "RELEVANT PASSAGES FROM YOUR REFERENCE BOOKS:",
+    "Use these to inform your answer. Cite passages inline as [1], [2], etc. and list the sources at the end.",
+    "If the passages don't actually answer the question, say so and use your general options knowledge instead.",
+    "",
+    lines.join("\n\n"),
+  ].join("\n");
+}
 
 type Provider = "openai" | "anthropic" | "gemini";
 
@@ -107,11 +149,11 @@ function saveKeys(k: Partial<Record<Provider, string>>) {
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
-function buildSystemPromptFor(question: string): string {
+function buildSystemPromptFor(question: string, ragContext?: string): string {
   const trades = getTrades();
   const rows = trades?.rows ?? [];
   const ctx = buildOptimusContext(rows, question);
-  return `${OPTIMUS_SYSTEM_PROMPT}\n\n${ctx}`;
+  return [OPTIMUS_SYSTEM_PROMPT, ctx, ragContext].filter(Boolean).join("\n\n");
 }
 
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
@@ -176,6 +218,7 @@ export function AIChatWidget() {
   const [keys, setKeys] = useState<Partial<Record<Provider, string>>>(() => loadKeys());
   const [keyInput, setKeyInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const fnSearchKnowledge = useServerFn(searchKnowledge);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -283,7 +326,20 @@ export function AIChatWidget() {
           return;
         }
       }
-      const systemPrompt = buildSystemPromptFor(content);
+      // RAG: for conceptual/strategy questions, retrieve relevant passages from uploaded books
+      let ragContext: string | undefined;
+      if (sentAttachments.length === 0 && content && isConceptualQuestion(content)) {
+        try {
+          const passages = await fnSearchKnowledge({ data: { query: content, matchCount: 5 } });
+          // Only use passages above a minimum similarity threshold
+          const good = (passages ?? []).filter((p) => p.similarity > 0.35);
+          if (good.length) ragContext = formatPassages(good);
+        } catch (e) {
+          // Non-fatal — log and continue without RAG
+          console.warn("Knowledge search failed:", e);
+        }
+      }
+      const systemPrompt = buildSystemPromptFor(content, ragContext);
       const singleTurn: ChatMessage[] = [{ role: "user", content: llmContent }];
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, singleTurn, systemPrompt);
