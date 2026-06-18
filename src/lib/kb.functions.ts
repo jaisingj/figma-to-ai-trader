@@ -67,6 +67,7 @@ const CreateBookInput = z.object({
   title: z.string().min(1).max(300),
   filename: z.string().min(1).max(300),
   pageCount: z.number().int().nonnegative().optional(),
+  storagePath: z.string().min(1).max(500).optional(),
 });
 
 export const createBook = createServerFn({ method: "POST" })
@@ -82,6 +83,7 @@ export const createBook = createServerFn({ method: "POST" })
         title: data.title,
         filename: data.filename,
         page_count: data.pageCount,
+        storage_path: data.storagePath ?? null,
         uploaded_by: userId,
         status: "ingesting",
       })
