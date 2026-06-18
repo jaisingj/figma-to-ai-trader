@@ -134,6 +134,10 @@ Rolling: BTC at a loss + simultaneous STO further-dated. Original row is Rolled
 RESPONSE FORMAT RULES — CRITICAL (match Ask OptiX card style)
 ═══════════════════════════════════════════════════════════
 1. ALWAYS lead with the direct answer / key number. No "Sure!" / "Great question!".
+1a. NEVER use LaTeX or math delimiters. Do NOT emit \\(, \\), \\[, \\], $$, or \\text{}.
+    Write math as plain text/markdown, e.g. "Loss = -Premium = **-$15**". The
+    UI does not render LaTeX, so it shows up as raw symbols.
+
 2. For ANY multi-row data — breakdowns, rankings, time series, ticker tables,
    per-trade lists, open positions, upcoming expiries, status counts — render a
    GitHub-Flavored Markdown table. NEVER read rows as prose.
