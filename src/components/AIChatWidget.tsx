@@ -335,7 +335,7 @@ export function AIChatWidget() {
         try {
           const passages = await fnSearchKnowledge({ data: { query: content, matchCount: 5 } });
           // Only use passages above a minimum similarity threshold
-          const good = (passages ?? []).filter((p) => p.similarity > 0.35);
+          const good = (passages ?? []).filter((p) => p.similarity > 0.2);
           if (good.length) ragContext = formatPassages(good);
         } catch (e) {
           // Non-fatal — log and continue without RAG
