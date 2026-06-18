@@ -216,6 +216,13 @@ export function AIChatWidget() {
   }, [messages, loading]);
   useEffect(() => { if (open && hasKey) inputRef.current?.focus(); }, [open, hasKey, provider]);
 
+  // Notify the page (home.tsx) so the embedded insights iframe can re-flow
+  // (collapse sidebar, drop to single column) and reserve horizontal space.
+  useEffect(() => {
+    const detail = { open, width: open ? effectiveWidth : 0 };
+    window.dispatchEvent(new CustomEvent("optix-chat", { detail }));
+  }, [open, effectiveWidth]);
+
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     draggingRef.current = true;
