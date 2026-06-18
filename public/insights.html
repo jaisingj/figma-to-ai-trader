@@ -410,6 +410,25 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans)
 .wp .wpf{padding:0 18px 18px}
 .wp .wpclose{width:100%;background:var(--navy);color:#fff;border:none;border-radius:11px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer}
 .wp .wpclose:hover{background:#172645}
+
+/* ===== chat-open compact mode (driven by parent postMessage) ===== */
+body.chat-open .side{width:62px;flex:0 0 62px}
+body.chat-open .side .logo span:last-child,
+body.chat-open .nav a > :not(.ic),
+body.chat-open .side .bottom a{font-size:0}
+body.chat-open .nav a{font-size:0}
+body.chat-open .nav a .ic{margin:0}
+body.chat-open .side .bottom a svg{margin:0}
+body.chat-open .content{padding:18px 16px 40px;max-width:100%}
+body.chat-open .topbar{padding:14px 18px}
+body.chat-open .perf-grid,
+body.chat-open .kpis,
+body.chat-open .grid2{grid-template-columns:1fr}
+body.chat-open .kpi-stats{grid-template-columns:1fr 1fr;height:auto}
+body.chat-open .acc-row td,
+body.chat-open .acc-table .colhead th{padding-left:12px;padding-right:12px}
+body.chat-open .acc-table .colhead th,
+body.chat-open .acc-row td{font-size:12.5px}
 </style>
 </head>
 <body>
