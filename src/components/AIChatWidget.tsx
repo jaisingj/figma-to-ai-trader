@@ -333,10 +333,13 @@ export function AIChatWidget() {
       let ragContext: string | undefined;
       if (sentAttachments.length === 0 && content && isConceptualQuestion(content)) {
         try {
-          const passages = await fnSearchKnowledge({ data: { query: content, matchCount: 5 } });
-          // Only use passages above a minimum similarity threshold
-          const good = (passages ?? []).filter((p) => p.similarity > 0.2);
-          if (good.length) ragContext = formatPassages(good);
+          const passages = await fnSearchKnowledge({ data: { query: content, matchCount: 6 } });
+          console.log("[RAG] query:", content, "matches:", (passages ?? []).map((p) => ({ title: p.document_title, page: p.page_number, sim: p.similarity?.toFixed(3) })));
+          // Keep anything with a non-trivial similarity. text-embedding-3-small
+          // cosine often sits in the 0.1–0.4 range for related passages, so we
+          // don't filter aggressively — the LLM is instructed to ignore weak ones.
+          const ranked = (passages ?? []).filter((p) => p.similarity > 0.05).slice(0, 5);
+          if (ranked.length) ragContext = formatPassages(ranked);
         } catch (e) {
           // Non-fatal — log and continue without RAG
           console.warn("Knowledge search failed:", e);
