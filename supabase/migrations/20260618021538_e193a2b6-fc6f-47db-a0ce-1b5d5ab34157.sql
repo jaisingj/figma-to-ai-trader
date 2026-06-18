@@ -1,0 +1,1 @@
+CREATE POLICY "Admins manage kb-books objects" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'kb-books' AND public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (bucket_id = 'kb-books' AND public.has_role(auth.uid(), 'admin'::public.app_role));

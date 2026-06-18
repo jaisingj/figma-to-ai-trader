@@ -67,6 +67,7 @@ const CreateBookInput = z.object({
   title: z.string().min(1).max(300),
   filename: z.string().min(1).max(300),
   pageCount: z.number().int().nonnegative().optional(),
+  storagePath: z.string().min(1).max(500).optional(),
 });
 
 export const createBook = createServerFn({ method: "POST" })
@@ -82,6 +83,7 @@ export const createBook = createServerFn({ method: "POST" })
         title: data.title,
         filename: data.filename,
         page_count: data.pageCount,
+        storage_path: data.storagePath ?? null,
         uploaded_by: userId,
         status: "ingesting",
       })
@@ -157,7 +159,7 @@ export const listBooks = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("kb_documents")
-      .select("id, title, filename, page_count, chunk_count, status, error, created_at")
+      .select("id, title, filename, page_count, chunk_count, status, error, storage_path, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -171,6 +173,14 @@ export const deleteBook = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: doc } = await supabaseAdmin
+      .from("kb_documents")
+      .select("storage_path")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (doc?.storage_path) {
+      await supabaseAdmin.storage.from("kb-books").remove([doc.storage_path]);
+    }
     const { error } = await supabaseAdmin.from("kb_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
