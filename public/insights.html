@@ -1491,6 +1491,17 @@ document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.m
   }
 })();
 </script>
+<script>
+// Listen for chat-open toggle from parent (AIChatWidget) and re-flow layout.
+window.addEventListener('message', function(e){
+  var d = e && e.data;
+  if (!d || d.type !== 'optix-chat') return;
+  document.body.classList.toggle('chat-open', !!d.open);
+  // nudge Chart.js to recompute sizes
+  setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 60);
+});
+</script>
 </body>
 </html>
+
 
