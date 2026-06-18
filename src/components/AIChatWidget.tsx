@@ -326,7 +326,20 @@ export function AIChatWidget() {
           return;
         }
       }
-      const systemPrompt = buildSystemPromptFor(content);
+      // RAG: for conceptual/strategy questions, retrieve relevant passages from uploaded books
+      let ragContext: string | undefined;
+      if (sentAttachments.length === 0 && content && isConceptualQuestion(content)) {
+        try {
+          const passages = await fnSearchKnowledge({ data: { query: content, matchCount: 5 } });
+          // Only use passages above a minimum similarity threshold
+          const good = (passages ?? []).filter((p) => p.similarity > 0.35);
+          if (good.length) ragContext = formatPassages(good);
+        } catch (e) {
+          // Non-fatal — log and continue without RAG
+          console.warn("Knowledge search failed:", e);
+        }
+      }
+      const systemPrompt = buildSystemPromptFor(content, ragContext);
       const singleTurn: ChatMessage[] = [{ role: "user", content: llmContent }];
       let reply = "";
       if (provider === "openai") reply = await callOpenAI(key, singleTurn, systemPrompt);
