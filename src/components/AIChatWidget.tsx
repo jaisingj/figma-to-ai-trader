@@ -36,24 +36,18 @@ import optixLogo from "@/assets/optixpro.jpeg.asset.json";
 // Trade-data questions (P&L, trades, performance, my portfolio) stay deterministic.
 function isConceptualQuestion(q: string): boolean {
   const s = q.toLowerCase();
-  // Trade/data-shaped questions → skip RAG
+  // Strong trade/data markers → skip RAG, go deterministic
   const dataMarkers = [
-    "my ", "i have", "i made", "my trade", "my position", "my premium", "my p&l", "my pnl",
+    "my trade", "my position", "my premium", "my p&l", "my pnl", "my portfolio",
     "health score", "win rate", "best month", "summarize my", "open trade", "my open",
-    "this month", "last month", "ytd", "year to date",
+    "this month", "last month", "ytd", "year to date", "my exposure", "my cashflow",
   ];
   if (dataMarkers.some((m) => s.includes(m))) return false;
-  // Conceptual / strategy / definition markers → use RAG
-  const conceptMarkers = [
-    "what is", "what's", "define", "explain", "how does", "how do", "how to",
-    "difference between", "vs ", "versus", "strategy", "covered call", "csp", "cash secured",
-    "iron condor", "credit spread", "debit spread", "straddle", "strangle", "butterfly",
-    "calendar", "diagonal", "wheel", "theta", "delta", "gamma", "vega", "iv", "implied volatility",
-    "assignment", "rolling", "roll a", "exercise", "early exercise", "greeks", "skew",
-    "when should", "when to", "should i", "best practice", "rule of thumb", "guideline",
-  ];
-  return conceptMarkers.some((m) => s.includes(m));
+  // Otherwise, treat as a candidate for RAG — retrieval similarity gating
+  // will decide whether passages are actually relevant.
+  return true;
 }
+
 
 function formatPassages(
   passages: Array<{ document_title: string; page_number: number | null; content: string }>,
@@ -149,12 +143,21 @@ function saveKeys(k: Partial<Record<Provider, string>>) {
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
+const THREE_RULES_REMINDER = `
+REMINDER — APPLY THESE THREE RULES TO EVERY ANSWER:
+1. You are an options trade analysis expert (patterns, behavior, trade metrics, health score, P&L).
+2. For concept/strategy questions, answer ONLY from the RAG passages below (the user's uploaded books). If no passages are provided or they don't cover the question, say so — do NOT use general knowledge.
+3. When you use a book passage, CITE it inline as [1], [2] and list "**Sources:**" at the end with book title + page.
+Anything outside trade analysis or the knowledge base → refuse with the hard-refusal line in your identity block.
+`;
+
 function buildSystemPromptFor(question: string, ragContext?: string): string {
   const trades = getTrades();
   const rows = trades?.rows ?? [];
   const ctx = buildOptimusContext(rows, question);
-  return [OPTIMUS_SYSTEM_PROMPT, ctx, ragContext].filter(Boolean).join("\n\n");
+  return [OPTIMUS_SYSTEM_PROMPT, ctx, ragContext, THREE_RULES_REMINDER].filter(Boolean).join("\n\n");
 }
+
 
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -332,7 +335,7 @@ export function AIChatWidget() {
         try {
           const passages = await fnSearchKnowledge({ data: { query: content, matchCount: 5 } });
           // Only use passages above a minimum similarity threshold
-          const good = (passages ?? []).filter((p) => p.similarity > 0.35);
+          const good = (passages ?? []).filter((p) => p.similarity > 0.2);
           if (good.length) ragContext = formatPassages(good);
         } catch (e) {
           // Non-fatal — log and continue without RAG
