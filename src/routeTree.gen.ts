@@ -15,6 +15,7 @@ import { Route as MeetOptixRouteImport } from './routes/meet-optix'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminKnowledgeRouteImport } from './routes/admin.knowledge'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminKnowledgeRoute = AdminKnowledgeRouteImport.update({
+  id: '/admin/knowledge',
+  path: '/admin/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
   '/upload': typeof UploadRoute
+  '/admin/knowledge': typeof AdminKnowledgeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
   '/upload': typeof UploadRoute
+  '/admin/knowledge': typeof AdminKnowledgeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/meet-optix': typeof MeetOptixRoute
   '/register': typeof RegisterRoute
   '/upload': typeof UploadRoute
+  '/admin/knowledge': typeof AdminKnowledgeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/home' | '/meet-optix' | '/register' | '/upload'
+  fullPaths:
+    | '/'
+    | '/demo'
+    | '/home'
+    | '/meet-optix'
+    | '/register'
+    | '/upload'
+    | '/admin/knowledge'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/home' | '/meet-optix' | '/register' | '/upload'
+  to:
+    | '/'
+    | '/demo'
+    | '/home'
+    | '/meet-optix'
+    | '/register'
+    | '/upload'
+    | '/admin/knowledge'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/meet-optix'
     | '/register'
     | '/upload'
+    | '/admin/knowledge'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   MeetOptixRoute: typeof MeetOptixRoute
   RegisterRoute: typeof RegisterRoute
   UploadRoute: typeof UploadRoute
+  AdminKnowledgeRoute: typeof AdminKnowledgeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/knowledge': {
+      id: '/admin/knowledge'
+      path: '/admin/knowledge'
+      fullPath: '/admin/knowledge'
+      preLoaderRoute: typeof AdminKnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeetOptixRoute: MeetOptixRoute,
   RegisterRoute: RegisterRoute,
   UploadRoute: UploadRoute,
+  AdminKnowledgeRoute: AdminKnowledgeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
