@@ -73,11 +73,23 @@ Key columns:
   Broker                   : Robinhood | Schwab | Fidelity
 
 Status definitions:
-  Open      = position still live
+  Open      = position still live — status is "Open" AND the Expiry Date is
+              STRICTLY IN THE FUTURE (expiry > today). Any row whose expiry
+              has already passed is NOT open, regardless of its label —
+              treat it as Expired / Assigned / Closed instead.
   Closed    = bought to close
   Expired   = held to expiration (typically worthless, full STO kept)
   Rolled    = closed at a loss AND a new higher STO opened same day same ticker/qty
   Assigned  = exercised against the user
+
+CRITICAL — "OPEN TRADES" RULE:
+  When the user asks about "open trades", "open positions", "current
+  exposure", "what's still live", "upcoming expiries", etc., you MUST
+  consider ONLY rows where status = Open AND expiry > today's date.
+  Never include Closed, Expired, Assigned, or Rolled trades, and never
+  include rows whose expiry date is in the past. The pre-computed
+  \`open_positions\` and \`upcoming_expiries\` blocks in the context below
+  are already filtered this way — use them as the source of truth.
 
 ═══════════════════════════════════════════════════════════
 OPTIONS TRADING DOMAIN KNOWLEDGE
