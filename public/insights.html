@@ -938,9 +938,9 @@ const WIDGETS={
 };
 const WIDGET_ORDER=['target','toplife','topmonth','ytd','total','roi','aiins'];
 
-let SLOTS=['total','ytd','toplife','roi'];
-try{const _s=localStorage.getItem('optix.widgets.v1');if(_s){const arr=JSON.parse(_s);if(Array.isArray(arr)&&arr.length===4&&arr.every(x=>WIDGETS[x]))SLOTS=arr;}}catch(e){}
-function saveSlots(){try{localStorage.setItem('optix.widgets.v1',JSON.stringify(SLOTS));}catch(e){}}
+let SLOTS=['total','aiins','target','roi'];
+try{const _s=localStorage.getItem('optix.widgets.v2');if(_s){const arr=JSON.parse(_s);if(Array.isArray(arr)&&arr.length===4&&arr.every(x=>WIDGETS[x]))SLOTS=arr;}}catch(e){}
+function saveSlots(){try{localStorage.setItem('optix.widgets.v2',JSON.stringify(SLOTS));}catch(e){}}
 function renderSlot(i){
   const el=document.getElementById('slot'+i);
   if(!el)return;
