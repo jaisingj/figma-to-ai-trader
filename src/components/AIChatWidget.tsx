@@ -143,12 +143,21 @@ function saveKeys(k: Partial<Record<Provider, string>>) {
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
+const THREE_RULES_REMINDER = `
+REMINDER — APPLY THESE THREE RULES TO EVERY ANSWER:
+1. You are an options trade analysis expert (patterns, behavior, trade metrics, health score, P&L).
+2. For concept/strategy questions, answer ONLY from the RAG passages below (the user's uploaded books). If no passages are provided or they don't cover the question, say so — do NOT use general knowledge.
+3. When you use a book passage, CITE it inline as [1], [2] and list "**Sources:**" at the end with book title + page.
+Anything outside trade analysis or the knowledge base → refuse with the hard-refusal line in your identity block.
+`;
+
 function buildSystemPromptFor(question: string, ragContext?: string): string {
   const trades = getTrades();
   const rows = trades?.rows ?? [];
   const ctx = buildOptimusContext(rows, question);
-  return [OPTIMUS_SYSTEM_PROMPT, ctx, ragContext].filter(Boolean).join("\n\n");
+  return [OPTIMUS_SYSTEM_PROMPT, ctx, ragContext, THREE_RULES_REMINDER].filter(Boolean).join("\n\n");
 }
+
 
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
