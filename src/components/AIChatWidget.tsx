@@ -149,11 +149,11 @@ function saveKeys(k: Partial<Record<Provider, string>>) {
   localStorage.setItem(LS_KEYS, JSON.stringify(k));
 }
 
-function buildSystemPromptFor(question: string): string {
+function buildSystemPromptFor(question: string, ragContext?: string): string {
   const trades = getTrades();
   const rows = trades?.rows ?? [];
   const ctx = buildOptimusContext(rows, question);
-  return `${OPTIMUS_SYSTEM_PROMPT}\n\n${ctx}`;
+  return [OPTIMUS_SYSTEM_PROMPT, ctx, ragContext].filter(Boolean).join("\n\n");
 }
 
 async function callOpenAI(key: string, messages: ChatMessage[], system: string) {
