@@ -753,24 +753,19 @@ const SVG={
 const pct1=n=>(n>=0?'':'-')+Math.abs(n*100).toFixed(1)+'%';
 
 const WIDGETS={
-  total:{label:'Total Premium Made', desc:'All-time net premium kept, net of buy-to-close.', icon:SVG.cam,
+  total:{label:'Total Premium · Top Stock', desc:'All-time net premium kept plus your top-earning ticker.', icon:SVG.cam,
     render(el){
       const mrows=(D.mrows||[]).filter(m=>(+m.net||0)!==0||(+m.trades||0)>0);
       const months=mrows.length||1;
       const avg=(T.net_premium||0)/months;
       const trades=T.total_trades||0;
-      const perTrade=trades>0?(T.net_premium||0)/trades:0;
-      const best=mrows.reduce((a,b)=>(+b.net>+((a&&a.net)||-Infinity)?b:a),null);
-      const bestLbl=best?new Date(best.month+'-01').toLocaleDateString('en-US',{month:'short',year:'2-digit'}):'—';
-      const capRate=(T.sto>0)?((T.net_premium/T.sto)*100):0;
       el.innerHTML=`<div class="t">${SVG.cam}Total Premium Made</div>
         <div class="v">${fmt0(T.net_premium)}</div>
-        <div class="d">net of buy-to-close</div>
-        <div class="totx">
-          <div class="totx-row"><span>Monthly avg</span><b>${fmt0(avg)}</b></div>
-          <div class="totx-row"><span>Per trade</span><b>${fmt0(perTrade)} · ${trades} trades</b></div>
-          <div class="totx-row"><span>Best month</span><b>${bestLbl}${best?' · '+fmt0(best.net):''}</b></div>
-          <div class="totx-row"><span>Capture rate</span><b>${capRate.toFixed(0)}% of credits kept</b></div>
+        <div class="d">net of buy-to-close · ${fmt0(avg)}/mo · ${trades} trades</div>
+        <div class="totx topblk">
+          <div class="totx-head">${SVG.star}<span>Top Earning Stock</span><em>Lifetime</em></div>
+          <div class="totx-stk"><span class="tkr">${topTLife.ticker}</span><span class="amt">+${fmt0(topTLife.net)}</span></div>
+          <div class="totx-sub">most premium captured</div>
         </div>`;
     }},
   ytd:{label:'YTD Premium', desc:'Premium collected since Jan 1 this year.', icon:SVG.cal,
