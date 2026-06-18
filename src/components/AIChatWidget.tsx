@@ -218,6 +218,7 @@ export function AIChatWidget() {
   const [keys, setKeys] = useState<Partial<Record<Provider, string>>>(() => loadKeys());
   const [keyInput, setKeyInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const fnSearchKnowledge = useServerFn(searchKnowledge);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
