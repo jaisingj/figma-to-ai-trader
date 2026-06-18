@@ -486,8 +486,12 @@ export function computePortfolioMetrics(
     return { error: `No${ticker ? " " + ticker : ""} trades found for the selected period (${period}).` } as const;
   }
 
+  const nowTs = Date.now();
   const isStatus = (s: string) => (r: OptimusRow) => r.status.toLowerCase() === s;
-  const open = work.filter(isStatus("open"));
+  // "Open" = status Open AND expiry strictly in the future. Rows labeled Open
+  // but whose expiry has already passed are stale and excluded from open-trade
+  // questions (they're effectively expired/assigned but never updated).
+  const open = work.filter((r) => isStatus("open")(r) && r.expiry && r.expiry.getTime() > nowTs);
   const closed = work.filter(isStatus("closed"));
   const expired = work.filter(isStatus("expired"));
   const rolled = work.filter(isStatus("rolled"));
