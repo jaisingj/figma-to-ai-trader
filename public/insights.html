@@ -750,7 +750,25 @@ const pct1=n=>(n>=0?'':'-')+Math.abs(n*100).toFixed(1)+'%';
 
 const WIDGETS={
   total:{label:'Total Premium Made', desc:'All-time net premium kept, net of buy-to-close.', icon:SVG.cam,
-    render(el){el.innerHTML=`<div class="t">${SVG.cam}Total Premium Made</div><div class="v">${fmt0(T.net_premium)}</div><div class="d">net of buy-to-close</div>`;}},
+    render(el){
+      const mrows=(D.mrows||[]).filter(m=>(+m.net||0)!==0||(+m.trades||0)>0);
+      const months=mrows.length||1;
+      const avg=(T.net_premium||0)/months;
+      const trades=T.total_trades||0;
+      const perTrade=trades>0?(T.net_premium||0)/trades:0;
+      const best=mrows.reduce((a,b)=>(+b.net>+((a&&a.net)||-Infinity)?b:a),null);
+      const bestLbl=best?new Date(best.month+'-01').toLocaleDateString('en-US',{month:'short',year:'2-digit'}):'—';
+      const capRate=(T.sto>0)?((T.net_premium/T.sto)*100):0;
+      el.innerHTML=`<div class="t">${SVG.cam}Total Premium Made</div>
+        <div class="v">${fmt0(T.net_premium)}</div>
+        <div class="d">net of buy-to-close</div>
+        <div class="totx">
+          <div class="totx-row"><span>Monthly avg</span><b>${fmt0(avg)}</b></div>
+          <div class="totx-row"><span>Per trade</span><b>${fmt0(perTrade)} · ${trades} trades</b></div>
+          <div class="totx-row"><span>Best month</span><b>${bestLbl}${best?' · '+fmt0(best.net):''}</b></div>
+          <div class="totx-row"><span>Capture rate</span><b>${capRate.toFixed(0)}% of credits kept</b></div>
+        </div>`;
+    }},
   ytd:{label:'YTD Premium', desc:'Premium collected since Jan 1 this year.', icon:SVG.cal,
     render(el){el.innerHTML=`<div class="t">${SVG.cal}YTD Premium</div><div class="v pos">${(ytdPrem>=0?'+':'')+fmt0(ytdPrem)}</div><div class="d">Jan 1, ${curYear} – today</div>`;}},
   toplife:{label:'Top Earning Stock (Lifetime)', desc:'Ticker with the most premium captured all-time.', icon:SVG.star,
