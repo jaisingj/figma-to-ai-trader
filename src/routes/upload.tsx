@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Upload, Loader2, Check, AlertCircle, ArrowRight, X } from "lucide-react";
 import { setTrades } from "@/lib/trades-store";
 import { buildInsights } from "@/lib/insights-aggregate";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/upload")({
   component: UploadPage,
@@ -42,8 +44,18 @@ function UploadPage() {
     try {
       const fd = new FormData();
       for (const f of files) fd.append("files", f);
-      const res = await fetch(`${BACKEND_URL}/upload-csv`, { method: "POST", body: fd });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        throw new Error("You must be signed in to upload trades.");
+      }
+      const res = await fetch(`${BACKEND_URL}/upload-csv`, {
+        method: "POST",
+        body: fd,
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) {
+
         const text = await res.text();
         throw new Error(text || `Request failed (${res.status})`);
       }
