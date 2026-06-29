@@ -234,6 +234,7 @@ def _parse_one(filename: str, contents: bytes) -> pd.DataFrame:
 async def upload_csv(
     file: UploadFile | None = File(None),
     files: list[UploadFile] | None = File(None),
+    _user: dict[str, Any] = Depends(require_supabase_user),
 ) -> dict[str, Any]:
     upload_list: list[UploadFile] = []
     if files:
@@ -245,18 +246,39 @@ async def upload_csv(
 
     frames: list[pd.DataFrame] = []
     per_file: list[dict[str, Any]] = []
+    total_bytes = 0
     for up in upload_list:
         if not up.filename:
             continue
+
+        # MIME / extension allowlist
+        ext = os.path.splitext(up.filename)[1].lower()
+        ctype = (up.content_type or "").lower()
+        if ext not in ALLOWED_EXTENSIONS and ctype not in ALLOWED_CONTENT_TYPES:
+            raise HTTPException(
+                status_code=415,
+                detail="Unsupported file type. Upload CSV or Excel files only.",
+            )
+
         contents = await up.read()
         if not contents:
             continue
+
+        total_bytes += len(contents)
+        if len(contents) > MAX_UPLOAD_BYTES or total_bytes > MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail="File too large. Maximum upload size is 10 MB.",
+            )
+
         try:
             df = _parse_one(up.filename, contents)
-        except Exception as e:  # noqa: BLE001
+        except Exception:  # noqa: BLE001
+            logger.exception("Parse error for uploaded file %s", up.filename)
             raise HTTPException(
-                status_code=400, detail=f"Parse error in {up.filename}: {e}"
-            ) from e
+                status_code=400,
+                detail="File could not be parsed. Please check the format and try again.",
+            )
         frames.append(df)
         per_file.append({
             "filename": up.filename,
@@ -279,3 +301,4 @@ async def upload_csv(
         "columns": list(combined.columns),
         "rows": records,
     }
+
