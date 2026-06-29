@@ -11,12 +11,15 @@ Endpoints:
 from __future__ import annotations
 
 import io
+import logging
 import math
+import os
 import re
 from typing import Any
 
+import httpx
 import pandas as pd
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from parsers import (
@@ -27,14 +30,83 @@ from parsers import (
     normalize_dataframe_columns,
 )
 
+logger = logging.getLogger("optix.backend")
+logging.basicConfig(level=logging.INFO)
+
 app = FastAPI(title="OptiX Backend", version="0.2.0")
+
+# CORS: restrict to known app origins. Override with ALLOWED_ORIGINS env
+# (comma-separated) when deploying to additional domains.
+_default_origins = [
+    "https://figma-to-ai-trader.lovable.app",
+    "https://id-preview--4acc8039-25c8-4665-9b34-1ca3d038e55f.lovable.app",
+    "http://localhost:8080",
+    "http://localhost:5173",
+]
+_env_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+ALLOWED_ORIGINS = _env_origins or _default_origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
+
+# Upload limits to prevent resource exhaustion
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))  # 10 MB
+ALLOWED_CONTENT_TYPES = {
+    "text/csv",
+    "application/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/octet-stream",  # some browsers send this for csv/xlsx
+    "",  # missing content-type — fall back to extension check
+}
+ALLOWED_EXTENSIONS = {".csv", ".xls", ".xlsx"}
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY") or os.getenv("SUPABASE_PUBLISHABLE_KEY")
+
+
+async def require_supabase_user(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Validate the caller's Supabase JWT by calling Supabase's /auth/v1/user.
+
+    Rejects with 401 if the header is missing/invalid or Supabase rejects
+    the token. Returns the user dict on success.
+    """
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        # Misconfigured server — fail closed rather than allow anonymous access.
+        logger.error("Supabase auth env vars are not configured")
+        raise HTTPException(status_code=503, detail="Server auth not configured")
+
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing bearer token")
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                f"{SUPABASE_URL}/auth/v1/user",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "apikey": SUPABASE_ANON_KEY,
+                },
+            )
+    except Exception:
+        logger.exception("Auth verification request failed")
+        raise HTTPException(status_code=503, detail="Auth verification unavailable")
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    return resp.json()
+
 
 
 @app.get("/health")
