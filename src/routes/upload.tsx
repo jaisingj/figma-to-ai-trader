@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Upload, Loader2, Check, AlertCircle, ArrowRight, X } from "lucide-react";
 import { setTrades } from "@/lib/trades-store";
 import { buildInsights } from "@/lib/insights-aggregate";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/upload")({
   component: UploadPage,
