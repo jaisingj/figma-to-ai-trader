@@ -14,6 +14,16 @@ const STORAGE_KEY = "optix.trades.v1";
 let current: TradesData | null = load();
 const listeners = new Set<() => void>();
 
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) {
+      current = load();
+      emit();
+    }
+  });
+}
+
+
 function load(): TradesData | null {
   if (typeof window === "undefined") return null;
   try {
