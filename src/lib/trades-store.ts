@@ -48,15 +48,26 @@ export function setTrades(data: TradesData | null) {
 }
 
 export function getTrades(): TradesData | null {
-  current = load();
+  return current;
+}
+
+export function refreshTrades(): TradesData | null {
+  const next = load();
+  if (JSON.stringify(next) !== JSON.stringify(current)) {
+    current = next;
+    emit();
+  }
   return current;
 }
 
 function subscribe(cb: () => void) {
   listeners.add(cb);
-  return () => listeners.delete(cb);
+  return () => {
+    listeners.delete(cb);
+  };
 }
 
 export function useTrades(): TradesData | null {
   return useSyncExternalStore(subscribe, getTrades, () => null);
 }
+
